@@ -1,5 +1,5 @@
-import { useId } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useId, useState } from 'react';
+import { Link, NavLink } from 'react-router-dom';
 
 // Label + input + error message, wired up for screen readers.
 export function Field({ label, error, hint, children, id: givenId }) {
@@ -35,6 +35,15 @@ export function Icon({ name, size = 22 }) {
     close: <path d="M6 6l12 12M18 6L6 18" />,
     logout: <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />,
     trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
+    box: <><path d="M3 7l9-4 9 4v10l-9 4-9-4z" /><path d="M3 7l9 4 9-4M12 11v10" /></>,
+    file: <><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h7M9 16h5" /></>,
+    search: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>,
+    chevron: <path d="M9 6l6 6-6 6" />,
+    alert: <><path d="M12 3l9 16H3z" /><path d="M12 10v4M12 17v.5" /></>,
+    share: <path d="M21 12a8.5 8.5 0 01-12.6 7.5L3 21l1.6-5.2A8.5 8.5 0 1121 12z" />,
+    copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3" /></>,
+    print: <><path d="M7 9V3h10v6" /><rect x="3" y="9" width="18" height="8" rx="2" /><path d="M7 14h10v7H7z" /></>,
+    settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" /></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -48,8 +57,55 @@ export function BottomNav() {
   return (
     <nav className="bottom-nav" aria-label="Main">
       <NavLink to="/" end><Icon name="home" />Home</NavLink>
-      <NavLink to="/record/sale" className="nav-record"><Icon name="plus" />Record</NavLink>
       <NavLink to="/records"><Icon name="list" />Records</NavLink>
+      <NavLink to="/record/sale" className="nav-record"><Icon name="plus" />Record</NavLink>
+      <NavLink to="/stock"><Icon name="box" />Stock</NavLink>
+      <NavLink to="/invoices"><Icon name="file" />Invoices</NavLink>
     </nav>
+  );
+}
+
+export function TopBar({ title, back = '/', right }) {
+  return (
+    <header className="topbar">
+      <Link to={back} className="icon-btn" aria-label="Back"><Icon name="back" /></Link>
+      <span className="topbar-title">{title}</span>
+      {right || <span className="icon-btn" aria-hidden="true" />}
+    </header>
+  );
+}
+
+export function StatusPill({ status, label }) {
+  return <span className={`pill pill-${status}`}>{label}</span>;
+}
+
+// Searchable list of products to add to a sale, stock purchase or invoice.
+export function ProductPicker({ products, onPick, onClose, priceField = 'sellingPrice', showStock = true }) {
+  const [q, setQ] = useState('');
+  const list = products.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase()));
+  return (
+    <div className="picker" role="dialog" aria-label="Choose a product">
+      <div className="picker-head">
+        <label className="search">
+          <Icon name="search" size={20} />
+          <span className="sr-only">Search products</span>
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" />
+        </label>
+        <button type="button" className="btn-link" onClick={onClose}>Done</button>
+      </div>
+      <ul className="picker-list">
+        {list.map((p) => (
+          <li key={p.id}>
+            <button type="button" onClick={() => onPick(p)}>
+              <span className="picker-name">{p.name}</span>
+              <span className="muted small">
+                GHS {p[priceField]}{showStock && p.trackStock ? ` · ${Number(p.onHand)} ${p.unit} in stock` : ''}
+              </span>
+            </button>
+          </li>
+        ))}
+        {!list.length && <li className="muted small picker-empty">No products match. Add products in Stock.</li>}
+      </ul>
+    </div>
   );
 }

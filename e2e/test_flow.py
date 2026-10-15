@@ -79,7 +79,8 @@ with sync_playwright() as p:
     expect(page).to_have_url(BASE + "/")
 
     # Transfer cash -> MoMo
-    page.get_by_role("link", name="Transfer").click()
+    page.get_by_role("navigation", name="Main").get_by_role("link", name="Record", exact=True).click()
+    page.get_by_role("tab", name="Transfer").click()
     page.get_by_label("How much did you move? (GHS)").fill("300")
     page.get_by_role("button", name="Save transfer").click()
     expect(page).to_have_url(BASE + "/")
@@ -105,6 +106,7 @@ with sync_playwright() as p:
     # Reload keeps you logged in; log out and back in
     page.reload()
     expect(page.get_by_text("Ama's Shito & Spices")).to_be_visible()
+    page.get_by_role("link", name="Business details and log out").click()
     page.get_by_role("button", name="Log out").click()
     expect(page).to_have_url(BASE + "/login")
     page.get_by_label("Phone number").fill("+233245550101")

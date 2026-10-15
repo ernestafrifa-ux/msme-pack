@@ -8,6 +8,8 @@ const { requireAuth } = require('./auth');
 const { HttpError } = require('./http');
 const auth = require('./routes/auth');
 const businesses = require('./routes/businesses');
+const invoices = require('./routes/invoices');
+const rateLimit = require('express-rate-limit');
 const { pool } = require('./db');
 
 function createApp() {
@@ -36,6 +38,9 @@ function createApp() {
 
   app.use('/api/auth', auth.router);
   app.use('/api/businesses', requireAuth, businesses.router);
+  // Customer-facing invoice links: no login, read-only, rate-limited.
+  app.use('/api/public', rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false }),
+    invoices.publicRouter);
 
   app.use('/api', (req, res, next) => next(new HttpError(404, 'Not found.')));
 

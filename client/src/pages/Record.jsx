@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api, newClientRef } from '../api';
 import { useSession } from '../session.jsx';
-import { Field, FormError, Icon } from '../components.jsx';
-import { money, todayGhana } from '../format';
+import { Field, FormError, Icon, ProductPicker } from '../components.jsx';
+import { money, qty, todayGhana } from '../format';
 
 const TABS = [
   ['sale', 'Sale'],
   ['expense', 'Expense'],
+  ['purchase', 'Buy stock'],
   ['transfer', 'Transfer'],
 ];
 const CATEGORY_KIND = { sale: 'income', expense: 'expense' };
@@ -24,10 +25,15 @@ function emptyForm(accounts) {
 export default function Record() {
   const { kind } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { business } = useSession();
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm([]));
+  // Products on this sale or purchase: [{ productId, name, unit, onHand, trackStock, quantity, unitPrice }]
+  const [lines, setLines] = useState([]);
+  const [picking, setPicking] = useState(false);
   // One id per record being entered, so a retried save after a dropped connection isn't saved twice.
   const [clientRef, setClientRef] = useState(newClientRef);
   const [errors, setErrors] = useState({});
@@ -35,14 +41,20 @@ export default function Record() {
   const [saved, setSaved] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const isPurchase = kind === 'purchase';
+  const usesProducts = kind === 'sale' || isPurchase;
+  const priceField = isPurchase ? 'costPrice' : 'sellingPrice';
+
   useEffect(() => {
     Promise.all([
       api(`/businesses/${business.id}/accounts`),
       api(`/businesses/${business.id}/categories`),
+      api(`/businesses/${business.id}/products`),
     ])
-      .then(([a, c]) => {
+      .then(([a, c, p]) => {
         setAccounts(a.accounts);
         setCategories(c.categories);
+        setProducts(p.products.filter((x) => x.kind === 'product'));
         // Only fill in the default accounts: keep anything typed while this was loading.
         const defaults = emptyForm(a.accounts);
         setForm((f) => ({
@@ -50,17 +62,46 @@ export default function Record() {
           accountId: f.accountId || defaults.accountId,
           toAccountId: f.toAccountId || defaults.toAccountId,
         }));
+        // Opened from a product's "Bought more" button: start with that product.
+        const startWith = p.products.find((x) => x.id === location.state?.productId);
+        if (startWith) setLines((l) => (l.length ? l : [lineFrom(startWith, 'costPrice')]));
       })
       .catch((err) => setMessage(err.message));
-  }, [business.id]);
+  }, [business.id, location.state?.productId]);
 
   const cats = useMemo(() => categories.filter((c) => c.kind === CATEGORY_KIND[kind]), [categories, kind]);
   const account = accounts.find((a) => a.id === form.accountId);
   const isMomo = account?.kind === 'mobile_money';
+  const itemTotal = lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * Number(l.unitPrice || 0) * 100), 0) / 100;
+  const hasLines = usesProducts && lines.length > 0;
 
   if (!TABS.some(([k]) => k === kind)) return <Navigate to="/record/sale" replace />;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  function lineFrom(p, field) {
+    return {
+      productId: p.id, name: p.name, unit: p.unit, onHand: Number(p.onHand), trackStock: p.trackStock,
+      quantity: 1, unitPrice: p[field],
+    };
+  }
+  function addProduct(p) {
+    setLines((ls) => {
+      const existing = ls.find((l) => l.productId === p.id);
+      if (existing) return ls.map((l) => (l === existing ? { ...l, quantity: Number(l.quantity || 0) + 1 } : l));
+      return [...ls, lineFrom(p, priceField)];
+    });
+  }
+  const setLine = (i, k, v) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, [k]: v } : l)));
+  const step = (i, d) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, quantity: Math.max(0, Number(l.quantity || 0) + d) } : l)).filter((l) => Number(l.quantity) > 0 || d > 0));
+
+  function switchTab(k) {
+    navigate(`/record/${k}`, { replace: true });
+    setErrors({});
+    setMessage('');
+    setLines([]);
+    setPicking(false);
+  }
 
   async function submit(e, again) {
     e?.preventDefault();
@@ -69,27 +110,30 @@ export default function Record() {
     setMessage('');
     setSaved('');
     try {
-      const body = {
-        kind,
-        amount: form.amount,
-        accountId: form.accountId,
-        date: form.date,
-        note: form.note || null,
-        clientRef,
-      };
+      const body = { kind, accountId: form.accountId, date: form.date, note: form.note || null, clientRef };
       if (kind === 'transfer') body.toAccountId = form.toAccountId;
-      else body.categoryId = form.categoryId || null;
+      if (kind === 'sale' || kind === 'expense') body.categoryId = form.categoryId || null;
+      if (hasLines) {
+        body.items = lines.map((l) => ({ productId: l.productId, quantity: l.quantity, unitPrice: l.unitPrice }));
+      } else {
+        body.amount = form.amount;
+      }
       if (isMomo) {
         body.paymentRef = form.paymentRef || null;
         body.momoFee = form.momoFee || 0;
       }
-      await api(`/businesses/${business.id}/transactions`, { method: 'POST', body });
+      const { transaction } = await api(`/businesses/${business.id}/transactions`, { method: 'POST', body });
       const label = TABS.find(([k]) => k === kind)[1];
-      const msg = `${label} of GHS ${money(form.amount)} saved.`;
+      const msg = isPurchase
+        ? `Stock bought for GHS ${money(transaction.amount)} saved.`
+        : `${label} of GHS ${money(transaction.amount)} saved.`;
       if (again) {
         setForm({ ...emptyForm(accounts), accountId: form.accountId, date: form.date });
+        setLines([]);
         setClientRef(newClientRef());
         setSaved(msg);
+        // Refresh stock numbers shown in the picker.
+        api(`/businesses/${business.id}/products`).then((p) => setProducts(p.products.filter((x) => x.kind === 'product'))).catch(() => {});
       } else {
         navigate('/', { state: { flash: msg } });
       }
@@ -101,6 +145,12 @@ export default function Record() {
     }
   }
 
+  const amountLabel = {
+    sale: 'How much did you receive? (GHS)',
+    expense: 'How much did you spend? (GHS)',
+    transfer: 'How much did you move? (GHS)',
+  }[kind];
+
   return (
     <main className="screen">
       <header className="topbar">
@@ -109,12 +159,9 @@ export default function Record() {
         <span className="icon-btn" aria-hidden="true" />
       </header>
 
-      <div className="segmented" role="tablist" aria-label="Record type">
+      <div className="segmented segmented-4" role="tablist" aria-label="Record type">
         {TABS.map(([k, label]) => (
-          <button key={k} role="tab" aria-selected={kind === k}
-            onClick={() => { navigate(`/record/${k}`, { replace: true }); setErrors({}); setMessage(''); }}>
-            {label}
-          </button>
+          <button key={k} role="tab" aria-selected={kind === k} onClick={() => switchTab(k)}>{label}</button>
         ))}
       </div>
 
@@ -122,11 +169,72 @@ export default function Record() {
         <FormError message={message} />
         {saved && <div className="flash" role="status">{saved}</div>}
 
-        <Field label={kind === 'sale' ? 'How much did you receive? (GHS)' : kind === 'expense' ? 'How much did you spend? (GHS)' : 'How much did you move? (GHS)'}
-          error={errors.amount}>
-          {(p) => <input {...p} className="amount-input" type="number" inputMode="decimal" min="0" step="0.01"
-            placeholder="0.00" value={form.amount} onChange={set('amount')} autoFocus required />}
-        </Field>
+        {usesProducts && (
+          <section className="field" aria-label={isPurchase ? 'Products bought' : 'Products sold'}>
+            <div className="field-label">{isPurchase ? 'What did you buy?' : 'What did you sell?'}</div>
+            {lines.length > 0 && (
+              <ul className="lines">
+                {lines.map((l, i) => {
+                  const short = !isPurchase && l.trackStock && Number(l.quantity) > l.onHand;
+                  return (
+                    <li key={l.productId} className="line">
+                      <div className="line-top">
+                        <span className="line-name">{l.name}</span>
+                        <button type="button" className="icon-btn small-btn" aria-label={`Remove ${l.name}`}
+                          onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}><Icon name="close" size={16} /></button>
+                      </div>
+                      <div className="line-controls">
+                        <div className="stepper">
+                          <button type="button" aria-label={`One fewer ${l.name}`} onClick={() => step(i, -1)}>−</button>
+                          <input aria-label={`Quantity of ${l.name}`} type="number" inputMode="decimal" min="0" step="any"
+                            value={l.quantity} onChange={(e) => setLine(i, 'quantity', e.target.value)} />
+                          <button type="button" aria-label={`One more ${l.name}`} onClick={() => step(i, 1)}>+</button>
+                        </div>
+                        <span className="muted small">×</span>
+                        <label className="price-input">
+                          <span className="sr-only">{isPurchase ? 'Cost' : 'Price'} of one {l.name} (GHS)</span>
+                          <input type="number" inputMode="decimal" min="0" step="0.01" value={l.unitPrice}
+                            onChange={(e) => setLine(i, 'unitPrice', e.target.value)} />
+                        </label>
+                        <span className="line-total">{money(Number(l.quantity || 0) * Number(l.unitPrice || 0))}</span>
+                      </div>
+                      {short && <div className="warn-text small">Only {qty(l.onHand)} {l.unit} in your records. It will show as below zero until you correct it.</div>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {picking ? (
+              <ProductPicker products={products} priceField={priceField} onPick={addProduct} onClose={() => setPicking(false)} />
+            ) : (
+              <button type="button" className="btn btn-ghost btn-block dashed" onClick={() => setPicking(true)}
+                disabled={!products.length}>
+                <Icon name="plus" size={18} /> {lines.length ? 'Add another product' : 'Add products'}
+              </button>
+            )}
+            {!products.length && (
+              <p className="muted small">
+                {isPurchase ? 'Add your products in ' : 'To list products, add them in '}
+                <Link to="/stock/new">Stock</Link>{isPurchase ? ' first.' : '. Or just type the amount below.'}
+              </p>
+            )}
+            {errors.items && <div className="field-error">{errors.items}</div>}
+          </section>
+        )}
+
+        {hasLines ? (
+          <div className="total-row">
+            <span>{isPurchase ? 'Total paid' : 'Total received'}</span>
+            <span className="total-val">GHS {money(itemTotal)}</span>
+          </div>
+        ) : (
+          !isPurchase && (
+            <Field label={usesProducts && products.length ? 'Or type the amount received (GHS)' : amountLabel} error={errors.amount}>
+              {(p) => <input {...p} className="amount-input" type="number" inputMode="decimal" min="0" step="0.01"
+                placeholder="0.00" value={form.amount} onChange={set('amount')} autoFocus={!usesProducts} required />}
+            </Field>
+          )
+        )}
 
         {kind !== 'transfer' ? (
           <fieldset className="field">
@@ -164,7 +272,7 @@ export default function Record() {
           <p className="muted small">You need two places for money (e.g. cash box and MoMo) to record a transfer.</p>
         )}
 
-        {kind !== 'transfer' && (
+        {(kind === 'sale' || kind === 'expense') && !hasLines && (
           <Field label={kind === 'sale' ? 'What was sold?' : 'What was it for?'} error={errors.categoryId}>
             {(p) => (
               <select {...p} value={form.categoryId} onChange={set('categoryId')}>
@@ -192,14 +300,15 @@ export default function Record() {
             {(p) => <input {...p} type="date" max={todayGhana()} value={form.date} onChange={set('date')} />}
           </Field>
           <Field label="Note (optional)" error={errors.note}>
-            {(p) => <input {...p} value={form.note} onChange={set('note')} placeholder={kind === 'sale' ? 'e.g. 10 jars' : ''} />}
+            {(p) => <input {...p} value={form.note} onChange={set('note')}
+              placeholder={kind === 'sale' ? 'e.g. Auntie Esi' : isPurchase ? 'e.g. Kejetia market' : ''} />}
           </Field>
         </div>
 
-        <button className="btn btn-primary btn-block" disabled={busy || !accounts.length}>
-          {busy ? 'Saving…' : `Save ${kind}`}
+        <button className="btn btn-primary btn-block" disabled={busy || !accounts.length || (isPurchase && !lines.length)}>
+          {busy ? 'Saving…' : isPurchase ? 'Save stock bought' : `Save ${kind}`}
         </button>
-        <button type="button" className="btn btn-ghost btn-block" disabled={busy || !accounts.length}
+        <button type="button" className="btn btn-ghost btn-block" disabled={busy || !accounts.length || (isPurchase && !lines.length)}
           onClick={(e) => submit(e, true)}>
           Save and add another
         </button>

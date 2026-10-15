@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { BottomNav, Icon } from '../components.jsx';
-import { money, monthName } from '../format';
+import { money, monthName, qty } from '../format';
 import { TxnRow } from './Records.jsx';
 
 function greeting() {
@@ -14,7 +14,7 @@ function greeting() {
 }
 
 export default function Home() {
-  const { user, business, logout } = useSession();
+  const { user, business } = useSession();
   const location = useLocation();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
@@ -34,7 +34,7 @@ export default function Home() {
             <div className="muted">{greeting()}, {user.fullName.split(' ')[0]}</div>
             <h1 className="biz-name">{business.name}</h1>
           </div>
-          <button className="icon-btn" onClick={logout} aria-label="Log out"><Icon name="logout" /></button>
+          <Link to="/settings" className="icon-btn" aria-label="Business details and log out"><Icon name="settings" /></Link>
         </header>
 
         {flash && <div className="flash" role="status">{flash}</div>}
@@ -56,8 +56,32 @@ export default function Home() {
         <div className="quick">
           <Link to="/record/sale" className="quick-btn"><span className="q-in"><Icon name="plus" size={26} /></span>Sale</Link>
           <Link to="/record/expense" className="quick-btn"><span className="q-out"><Icon name="minus" size={26} /></span>Expense</Link>
-          <Link to="/record/transfer" className="quick-btn"><span className="q-move"><Icon name="swap" size={26} /></span>Transfer</Link>
+          <Link to="/record/purchase" className="quick-btn"><span className="q-move"><Icon name="box" size={26} /></span>Buy stock</Link>
+          <Link to="/invoices/new" className="quick-btn"><span className="q-in"><Icon name="file" size={26} /></span>Invoice</Link>
         </div>
+
+        {data && (data.lowStock.length > 0 || Number(data.owed.total) > 0) && (
+          <section aria-label="Needs attention">
+            <div className="card-head"><h2>Needs attention</h2></div>
+            <div className="alerts">
+              {Number(data.owed.total) > 0 && (
+                <Link to="/invoices" className={'alert' + (data.owed.overdueCount ? ' alert-warn' : '')}>
+                  <Icon name="file" size={20} />
+                  <span>
+                    Customers owe you <strong>GHS {money(data.owed.total)}</strong>
+                    {data.owed.overdueCount > 0 && <>, {data.owed.overdueCount} overdue</>}
+                  </span>
+                </Link>
+              )}
+              {data.lowStock.map((p) => (
+                <Link key={p.id} to={`/stock/${p.id}`} className="alert alert-warn">
+                  <Icon name="alert" size={20} />
+                  <span><strong>{p.name}</strong> is running low: {qty(p.onHand)} {p.unit} left</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="card">
           <div className="card-head">
@@ -72,7 +96,7 @@ export default function Home() {
                 {money(data?.summary.netProfitEstimate)}
               </div></div>
           </div>
-          <p className="muted small">Money in minus money spent this month, including MoMo charges.</p>
+          <p className="muted small">Money in, minus spending, MoMo charges and the cost of products sold this month.</p>
         </section>
 
         <section>

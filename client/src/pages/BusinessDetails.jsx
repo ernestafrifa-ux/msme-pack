@@ -1,0 +1,84 @@
+import { useEffect, useState } from 'react';
+import { api } from '../api';
+import { useSession } from '../session.jsx';
+import { Field, FormError, TopBar } from '../components.jsx';
+
+export default function BusinessDetails() {
+  const { business, logout } = useSession();
+  const [form, setForm] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState('');
+  const [saved, setSaved] = useState('');
+  const [busy, setBusy] = useState(false);
+  const canManage = ['owner', 'manager'].includes(business.role);
+
+  useEffect(() => {
+    api(`/businesses/${business.id}`)
+      .then(({ business: b }) => setForm({
+        name: b.name, phone: (b.phone || '').replace(/^\+233/, '0'), email: b.email || '', town: b.town || '',
+        digitalAddress: b.digitalAddress || '', tin: b.tin || '', invoicePrefix: b.invoicePrefix || 'INV',
+      }))
+      .catch((err) => setMessage(err.message));
+  }, [business.id]);
+
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    setErrors({});
+    setMessage('');
+    setSaved('');
+    try {
+      await api(`/businesses/${business.id}`, { method: 'PATCH', body: form });
+      setSaved('Saved. New and existing invoices show these details.');
+    } catch (err) {
+      setErrors(err.fields || {});
+      setMessage(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <main className="screen">
+      <TopBar title="Business details" back="/invoices" />
+      <p className="lead">These appear at the top of your invoices.</p>
+      {form && (
+        <form className="stack" onSubmit={submit} noValidate>
+          <FormError message={message} />
+          {saved && <div className="flash" role="status">{saved}</div>}
+          <fieldset disabled={!canManage} className="stack plain">
+            <Field label="Business name" error={errors.name}>
+              {(p) => <input {...p} value={form.name} onChange={set('name')} />}
+            </Field>
+            <div className="grid-2">
+              <Field label="Phone" error={errors.phone}>
+                {(p) => <input {...p} type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} />}
+              </Field>
+              <Field label="Town" error={errors.town}>
+                {(p) => <input {...p} value={form.town} onChange={set('town')} />}
+              </Field>
+            </div>
+            <Field label="Email (optional)" error={errors.email}>
+              {(p) => <input {...p} type="email" inputMode="email" value={form.email} onChange={set('email')} />}
+            </Field>
+            <div className="grid-2">
+              <Field label="Digital address" error={errors.digitalAddress} hint="GhanaPostGPS, optional">
+                {(p) => <input {...p} value={form.digitalAddress} onChange={set('digitalAddress')} placeholder="AK-039-5028" />}
+              </Field>
+              <Field label="TIN (optional)" error={errors.tin} hint="If you have one">
+                {(p) => <input {...p} value={form.tin} onChange={set('tin')} />}
+              </Field>
+            </div>
+            <Field label="Invoice number starts with" error={errors.invoicePrefix} hint="e.g. INV gives INV-0001">
+              {(p) => <input {...p} value={form.invoicePrefix} onChange={set('invoicePrefix')} maxLength={8} />}
+            </Field>
+            {canManage && <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>}
+          </fieldset>
+        </form>
+      )}
+      <button className="btn btn-ghost btn-block log-out" onClick={logout}>Log out</button>
+    </main>
+  );
+}

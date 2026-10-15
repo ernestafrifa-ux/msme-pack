@@ -2,7 +2,8 @@ const express = require('express');
 const { z } = require('zod');
 const { query, withTransaction } = require('../db');
 const { requireMember } = require('../auth');
-const { validate } = require('../http');
+const { HttpError, validate } = require('../http');
+const { normaliseGhanaPhone } = require('../phone');
 const { todayInGhana } = require('../dates');
 
 const router = express.Router();
@@ -43,6 +44,11 @@ function publicBusiness(b, role) {
     legalForm: b.legal_form,
     sizeTier: b.size_tier,
     currency: b.currency,
+    phone: b.phone,
+    email: b.email,
+    digitalAddress: b.digital_address,
+    tin: b.tin,
+    invoicePrefix: b.invoice_prefix,
     role,
   };
 }
@@ -64,10 +70,10 @@ router.post('/', validate(createSchema), async (req, res) => {
   const today = todayInGhana();
   const business = await withTransaction(async (db) => {
     const { rows } = await db.query(
-      `INSERT INTO businesses (name, sector_code, region_code, town, legal_form, size_tier, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      `INSERT INTO businesses (name, sector_code, region_code, town, legal_form, size_tier, phone, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
       [b.name, b.sectorCode || null, b.regionCode || null, b.town || null,
-       b.legalForm, b.sizeTier, req.user.id]
+       b.legalForm, b.sizeTier, req.user.phone, req.user.id]
     );
     const biz = rows[0];
     await db.query(
@@ -101,7 +107,41 @@ router.get('/:businessId', requireMember(), async (req, res) => {
   res.json({ business: publicBusiness(rows[0], req.memberRole) });
 });
 
-// Everything under /api/businesses/:businessId/… (accounts, transactions, dashboard).
+const settingsSchema = z.object({
+  name: z.string().trim().min(2).max(150).optional(),
+  phone: z.string().trim().max(30).optional().nullable(),
+  email: z.union([z.email('Enter a valid email.'), z.literal('')]).optional().nullable(),
+  town: z.string().trim().max(100).optional().nullable(),
+  digitalAddress: z.string().trim().max(20).optional().nullable(),
+  tin: z.string().trim().max(20).optional().nullable(),
+  invoicePrefix: z.string().trim().regex(/^[A-Za-z0-9]{1,8}$/, 'Letters and numbers only, up to 8.').optional(),
+});
+
+// Business details shown on invoices (owner and manager).
+router.patch('/:businessId', requireMember(['owner', 'manager']), validate(settingsSchema), async (req, res) => {
+  const v = req.valid.body;
+  if (v.phone) {
+    const p = normaliseGhanaPhone(v.phone);
+    if (!p) throw new HttpError(400, 'Please check the highlighted fields.', { phone: 'Enter a valid Ghana phone number.' });
+    v.phone = p;
+  }
+  const cols = { name: v.name, phone: v.phone, email: v.email, town: v.town,
+    digital_address: v.digitalAddress, tin: v.tin, invoice_prefix: v.invoicePrefix?.toUpperCase() };
+  const sets = [];
+  const params = [req.businessId];
+  for (const [col, val] of Object.entries(cols)) {
+    if (val === undefined) continue;
+    params.push(val === '' ? null : val);
+    sets.push(`${col} = $${params.length}`);
+  }
+  if (sets.length) await query(`UPDATE businesses SET ${sets.join(', ')}, updated_at = now() WHERE id = $1`, params);
+  const { rows } = await query('SELECT * FROM businesses WHERE id = $1', [req.businessId]);
+  res.json({ business: publicBusiness(rows[0], req.memberRole) });
+});
+
+// Everything under /api/businesses/:businessId/… (accounts, transactions, stock, invoices, dashboard).
 router.use('/:businessId', require('./cashbook').router);
+router.use('/:businessId', require('./stock').router);
+router.use('/:businessId', require('./invoices').router);
 
 module.exports = { router };

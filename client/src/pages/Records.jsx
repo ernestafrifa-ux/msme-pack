@@ -8,6 +8,7 @@ const FILTERS = [
   ['', 'All'],
   ['sale', 'Sales'],
   ['expense', 'Expenses'],
+  ['purchase', 'Stock'],
   ['transfer', 'Transfers'],
 ];
 
@@ -15,7 +16,9 @@ export function TxnRow({ t, showDate, onDelete }) {
   const dir = direction(t.kind);
   const sign = dir > 0 ? '+' : dir < 0 ? '−' : '';
   const where = t.kind === 'transfer' ? `${t.accountName} → ${t.toAccountName}` : t.accountName;
-  const title = t.categoryName || t.note || KIND_LABEL[t.kind];
+  const title = t.invoiceNumber
+    ? `${t.invoiceNumber} payment${t.contactName ? ` · ${t.contactName}` : ''}`
+    : t.itemsSummary || t.categoryName || t.note || KIND_LABEL[t.kind];
   return (
     <li className="txn">
       <div className={'txn-dot ' + (dir > 0 ? 'in' : dir < 0 ? 'out' : 'move')} aria-hidden="true">
@@ -25,7 +28,7 @@ export function TxnRow({ t, showDate, onDelete }) {
         <div className="txn-title">{title}</div>
         <div className="muted small">
           {KIND_LABEL[t.kind]} · {where}{showDate ? ` · ${friendlyDate(t.date)}` : ''}
-          {t.note && t.categoryName ? ` · ${t.note}` : ''}
+          {t.note && title !== t.note && !t.invoiceNumber ? ` · ${t.note}` : ''}
         </div>
       </div>
       <div className={'txn-amt ' + (dir > 0 ? 'pos' : dir < 0 ? 'neg' : '')}>
@@ -74,7 +77,10 @@ export default function Records() {
   }, [load]);
 
   async function remove(t) {
-    if (!window.confirm(`Delete this ${KIND_LABEL[t.kind].toLowerCase()} of GHS ${money(t.amount)}?`)) return;
+    const extra = t.invoiceNumber
+      ? ` ${t.invoiceNumber} will show as owed again.`
+      : t.itemsSummary ? ' The stock will be put back.' : '';
+    if (!window.confirm(`Delete this ${KIND_LABEL[t.kind].toLowerCase()} of GHS ${money(t.amount)}?${extra}`)) return;
     try {
       await api(`/businesses/${business.id}/transactions/${t.id}`, { method: 'DELETE' });
       setRows((r) => r.filter((x) => x.id !== t.id));

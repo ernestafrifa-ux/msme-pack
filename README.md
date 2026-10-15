@@ -2,7 +2,9 @@
 
 A mobile-first web app for micro, small and medium enterprises in Ghana: keep business records, see your money, and (in later phases) get guides and tools matched to your business.
 
-This first step covers **sign-up, business setup and the cash book**:
+Built so far: **sign-up, business setup, the cash book, stock and invoices**.
+
+**Cash book**
 
 - Sign up and log in with a Ghana phone number (any format: `024…`, `+233…`, `233…`)
 - Set up the business, with a cash box and optionally a MoMo wallet and their opening balances
@@ -11,12 +13,30 @@ This first step covers **sign-up, business setup and the cash book**:
 - Records list grouped by day, filter by type, load older records, delete (owners and managers)
 - Installable on a phone's home screen (PWA); opens without a connection
 
+**Stock**
+- Products (with stock) and services (no stock), cost and selling price, profit per item shown as you type
+- Sales can list products: the total is worked out and stock goes down automatically
+- "Buy stock" records money out and stock in, and updates the cost price
+- Other changes: made / produced, returned, damaged, expired, own use, each with a history
+- Stock count: type what's on the shelf; only the differences are saved
+- "Running low" warnings on the Stock screen and Home
+
+**Invoices**
+- Create with saved or new customers, products or free-text items, discount, optional tax, and how to pay you
+- Drafts don't touch stock; sending takes the products out of stock
+- Send on WhatsApp (pre-written message with a link), copy the link, or print / save as PDF
+- The customer's link opens a clean invoice page without logging in, showing what's still owed
+- Record part or full payments to cash or MoMo; each is a sale in the cash book
+- Overdue invoices flagged; Home shows how much customers owe
+- Cancelling a sent invoice puts the products back; deleting a payment makes the invoice owed again
+- Business details on invoices (phone, digital address, TIN, invoice number prefix) under the settings icon on Home
+
 ## Folders
 
 | Folder | What it is |
 |---|---|
 | `server/` | Express API (Node 20+) and the PostgreSQL schema |
-| `server/db/migrations/` | Database schema; `001_initial.sql` is the full MVP data model |
+| `server/db/migrations/` | Database schema; `001_initial.sql` is the full MVP data model, `002_…` adds stock and invoice changes |
 | `server/test/` | API tests against a real database |
 | `client/` | React app (Vite) |
 | `e2e/` | Browser test of the whole flow (Python + Playwright) |
@@ -61,9 +81,10 @@ You need **Node.js 20+** and **PostgreSQL 14+**.
 cd server
 DATABASE_URL=postgres://msme:choose-a-password@localhost:5432/msme_pack_test npm test
 
-# Browser test (optional): build the client, start the server on a fresh database, then
+# Browser tests (optional): build the client, start the server on a fresh database, then
 pip install playwright && playwright install chromium
-python e2e/test_flow.py
+python e2e/test_flow.py              # sign-up and cash book
+python e2e/test_stock_invoices.py    # stock and invoices (reset the database between the two)
 ```
 
 ## Deploying
@@ -95,7 +116,22 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 | GET | `/api/businesses/:id/transactions` | List, with `kind`, `from`, `to`, `accountId`, paging |
 | POST | `/api/businesses/:id/transactions` | Record a sale, expense or transfer |
 | DELETE | `/api/businesses/:id/transactions/:txnId` | Delete a record (owner/manager) |
-| GET | `/api/businesses/:id/dashboard` | Balances, month summary, latest records |
+| GET | `/api/businesses/:id/dashboard` | Balances, month summary, latest records, low stock, money owed |
+| PATCH | `/api/businesses/:id` | Business details shown on invoices (owner/manager) |
+| GET, POST | `/api/businesses/:id/products` | List (with stock on hand) / add a product or service |
+| GET, PATCH, DELETE | `/api/businesses/:id/products/:productId` | Details with stock history / edit / remove |
+| POST | `/api/businesses/:id/products/:productId/adjust` | Made, returned, damaged, expired, own use |
+| POST | `/api/businesses/:id/stock-count` | Save a physical count |
+| GET, POST | `/api/businesses/:id/contacts` | Customers |
+| GET, POST | `/api/businesses/:id/invoices` | List with totals owed / create a draft |
+| GET | `/api/businesses/:id/invoices/defaults` | Dates and payment details to start a new invoice |
+| GET, PUT, DELETE | `/api/businesses/:id/invoices/:invoiceId` | Details / edit draft / delete draft |
+| POST | `/api/businesses/:id/invoices/:invoiceId/send` | Mark as sent (products leave stock) |
+| POST | `/api/businesses/:id/invoices/:invoiceId/payments` | Record money received |
+| POST | `/api/businesses/:id/invoices/:invoiceId/void` | Cancel (products return to stock) |
+| GET | `/api/public/invoices/:token` | The customer's read-only view (no login) |
+
+`POST /transactions` also accepts `items: [{ productId, quantity, unitPrice }]` for sales and stock purchases (`kind: "purchase"`).
 
 ## How it protects data
 
@@ -105,6 +141,12 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 - Each record carries an ID made on the phone (`clientRef`), so retrying a save after a dropped connection never records it twice. This is also the base for full offline saving later.
 - Only nicknames and last 4 digits of accounts are stored, never full account numbers.
 
+## How profit is counted
+
+The month's estimated profit is money received (sales and other income), minus expenses and MoMo charges, minus the cost of products that left stock that month (from itemised sales and sent invoices, at their cost price). Money is counted when it moves; the cost of goods when they leave stock.
+
+If a business doesn't track products, it can record stock it buys as an expense ("Stock / raw materials") instead. Do one or the other for the same goods, not both, or the cost is counted twice.
+
 ## Next steps
 
-Stock and invoices, then the health check and guides, then full offline saving (see the build phases agreed earlier).
+The business health check and guides, then full offline saving.
