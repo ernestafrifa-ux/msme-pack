@@ -17,6 +17,7 @@ export default function Home() {
   const { user, business } = useSession();
   const location = useLocation();
   const [data, setData] = useState(null);
+  const [health, setHealth] = useState(null);
   const [error, setError] = useState('');
   const flash = location.state?.flash;
 
@@ -24,6 +25,7 @@ export default function Home() {
     api(`/businesses/${business.id}/dashboard`)
       .then(setData)
       .catch((err) => setError(err.message));
+    api(`/businesses/${business.id}/health`).then(setHealth).catch(() => {});
   }, [business.id]);
 
   return (
@@ -81,6 +83,28 @@ export default function Home() {
               ))}
             </div>
           </section>
+        )}
+
+        {health && (
+          health.latest ? (
+            <Link to={health.recommendations[0] ? `/learn/${health.recommendations[0].slug}` : '/health'} className="health-card">
+              <span className="health-score" aria-hidden="true">{health.latest.overallScore}</span>
+              <span className="txn-main">
+                <span className="small muted">Business health {health.latest.overallScore}/100{health.recommendations[0] ? ' · your next step' : ''}</span>
+                <span className="txn-title wrap">{health.recommendations[0] ? health.recommendations[0].title : 'See your result'}</span>
+              </span>
+              <Icon name="chevron" size={18} />
+            </Link>
+          ) : (
+            <Link to="/health" className="health-card">
+              <span className="health-score health-score-new" aria-hidden="true"><Icon name="pulse" size={22} /></span>
+              <span className="txn-main">
+                <span className="txn-title wrap">How healthy is your business?</span>
+                <span className="small muted">{health.inProgress ? 'Continue your health check' : 'Take the 5-minute check and get your next steps'}</span>
+              </span>
+              <Icon name="chevron" size={18} />
+            </Link>
+          )
         )}
 
         <section className="card">

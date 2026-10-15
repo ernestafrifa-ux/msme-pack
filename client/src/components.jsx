@@ -39,6 +39,9 @@ export function Icon({ name, size = 22 }) {
     file: <><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h7M9 16h5" /></>,
     search: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>,
     chevron: <path d="M9 6l6 6-6 6" />,
+    check: <path d="M5 12l5 5 9-10" />,
+    book: <><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" /><path d="M4 21V5" /></>,
+    pulse: <path d="M3 12h4l2-5 4 10 2-5h6" />,
     alert: <><path d="M12 3l9 16H3z" /><path d="M12 10v4M12 17v.5" /></>,
     share: <path d="M21 12a8.5 8.5 0 01-12.6 7.5L3 21l1.6-5.2A8.5 8.5 0 1121 12z" />,
     copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3" /></>,
@@ -61,6 +64,7 @@ export function BottomNav() {
       <NavLink to="/record/sale" className="nav-record"><Icon name="plus" />Record</NavLink>
       <NavLink to="/stock"><Icon name="box" />Stock</NavLink>
       <NavLink to="/invoices"><Icon name="file" />Invoices</NavLink>
+      <NavLink to="/learn"><Icon name="book" />Learn</NavLink>
     </nav>
   );
 }

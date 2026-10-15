@@ -2,7 +2,7 @@
 
 A mobile-first web app for micro, small and medium enterprises in Ghana: keep business records, see your money, and (in later phases) get guides and tools matched to your business.
 
-Built so far: **sign-up, business setup, the cash book, stock and invoices**.
+Built so far: **sign-up, business setup, the cash book, stock, invoices, the business health check and the first guides**.
 
 **Cash book**
 
@@ -31,12 +31,26 @@ Built so far: **sign-up, business setup, the cash book, stock and invoices**.
 - Cancelling a sent invoice puts the products back; deleting a payment makes the invoice owed again
 - Business details on invoices (phone, digital address, TIN, invoice number prefix) under the settings icon on Home
 
+**Business health check**
+- 18 questions across six areas: money and records, registration and compliance, stock and operations, marketing and customers, staff, and access to finance
+- One question per screen; every answer is saved at once, so leaving halfway loses nothing
+- A score out of 100 overall and per area, compared with the last check
+- "Your next steps": guides chosen from the weak answers, weakest area first
+- Retaking the check clears steps for areas that have improved
+
+**Guides (Learn)**
+- 11 short, practical guides written for Ghanaian small businesses, grouped by area
+- Each links to the matching screen in the app ("Try it now"), e.g. a stock count or a new invoice
+- Mark as read; reading a recommended guide ticks it off your next steps
+- Shown in the user's language when a translation exists, otherwise English; audio can be attached per guide
+
 ## Folders
 
 | Folder | What it is |
 |---|---|
 | `server/` | Express API (Node 20+) and the PostgreSQL schema |
 | `server/db/migrations/` | Database schema; `001_initial.sql` is the full MVP data model, `002_…` adds stock and invoice changes |
+| `server/content/` | Guide texts (`guides/en/*.md`) and health check questions (`health-check.js`) |
 | `server/test/` | API tests against a real database |
 | `client/` | React app (Vite) |
 | `e2e/` | Browser test of the whole flow (Python + Playwright) |
@@ -84,7 +98,8 @@ DATABASE_URL=postgres://msme:choose-a-password@localhost:5432/msme_pack_test npm
 # Browser tests (optional): build the client, start the server on a fresh database, then
 pip install playwright && playwright install chromium
 python e2e/test_flow.py              # sign-up and cash book
-python e2e/test_stock_invoices.py    # stock and invoices (reset the database between the two)
+python e2e/test_stock_invoices.py    # stock and invoices
+python e2e/test_health_guides.py     # health check and guides (reset the database between each)
 ```
 
 ## Deploying
@@ -130,6 +145,14 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 | POST | `/api/businesses/:id/invoices/:invoiceId/payments` | Record money received |
 | POST | `/api/businesses/:id/invoices/:invoiceId/void` | Cancel (products return to stock) |
 | GET | `/api/public/invoices/:token` | The customer's read-only view (no login) |
+| GET | `/api/businesses/:id/health` | Latest score, check in progress, open recommendations |
+| POST | `/api/businesses/:id/health` | Start or continue a health check (questions and saved answers) |
+| PUT | `/api/businesses/:id/health/:checkId/answers` | Save one answer |
+| POST | `/api/businesses/:id/health/:checkId/complete` | Score it and work out recommendations |
+| PATCH | `/api/businesses/:id/recommendations/:slug` | Mark a recommendation done, dismissed or open |
+| GET | `/api/guides` | Guide library with the user's reading progress |
+| GET | `/api/guides/:slug` | One guide (marks it started) |
+| POST | `/api/guides/:slug/complete` | Mark read or unread |
 
 `POST /transactions` also accepts `items: [{ productId, quantity, unitPrice }]` for sales and stock purchases (`kind: "purchase"`).
 
@@ -141,6 +164,18 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 - Each record carries an ID made on the phone (`clientRef`), so retrying a save after a dropped connection never records it twice. This is also the base for full offline saving later.
 - Only nicknames and last 4 digits of accounts are stored, never full account numbers.
 
+## Editing guides and health check questions
+
+Content lives in plain files, so non-programmers can help write it.
+
+- **Guides:** one Markdown file per guide in `server/content/guides/en/`. The top section (between `---` lines) holds the title, area (`FIN`, `COMP`, `OPS`, `MKT`, `PEOPLE` or `FUND`), summary, reading time, an optional app screen to link to (`toolPath`, `toolLabel`) and the date the facts were last checked (`reviewed`). The text supports `##` headings, `-` lists, `1.` lists, `- [ ]` checklists, `>` notes and `**bold**`.
+- **Translations:** add the same file name under a language folder, e.g. `server/content/guides/tw/tax-basics.md`. Users who chose that language see it; everyone else sees English.
+- **Questions:** `server/content/health-check.js`. Each question has four answers scored 0 to 4, and can point to guides to recommend when the answer is weak. Keep a question's `code` unchanged once people have answered it.
+
+After editing, run `npm run migrate` in `server`. It loads the changes and is safe to run any number of times.
+
+Guides about tax, SSNIT and registration were checked against GRA and SSNIT information in October 2026. Rules change, so review them at least once a year and update the `reviewed` date.
+
 ## How profit is counted
 
 The month's estimated profit is money received (sales and other income), minus expenses and MoMo charges, minus the cost of products that left stock that month (from itemised sales and sent invoices, at their cost price). Money is counted when it moves; the cost of goods when they leave stock.
@@ -149,4 +184,4 @@ If a business doesn't track products, it can record stock it buys as an expense 
 
 ## Next steps
 
-The business health check and guides, then full offline saving.
+Full offline saving (record sales with no connection and sync later), then the compliance calendar with SMS/WhatsApp reminders, payroll, and an advisor view for programmes supporting many businesses.

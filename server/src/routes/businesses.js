@@ -143,5 +143,6 @@ router.patch('/:businessId', requireMember(['owner', 'manager']), validate(setti
 router.use('/:businessId', require('./cashbook').router);
 router.use('/:businessId', require('./stock').router);
 router.use('/:businessId', require('./invoices').router);
+router.use('/:businessId', require('./health').router);
 
 module.exports = { router };

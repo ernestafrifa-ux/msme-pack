@@ -15,6 +15,10 @@ import InvoiceForm from './pages/InvoiceForm.jsx';
 import Invoice from './pages/Invoice.jsx';
 import PublicInvoice from './pages/PublicInvoice.jsx';
 import BusinessDetails from './pages/BusinessDetails.jsx';
+import Health from './pages/Health.jsx';
+import HealthCheck from './pages/HealthCheck.jsx';
+import Learn from './pages/Learn.jsx';
+import Guide from './pages/Guide.jsx';
 
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
@@ -75,6 +79,10 @@ export default function App() {
       <Route path="/invoices/:invoiceId" element={<Invoice />} />
       <Route path="/invoices/:invoiceId/edit" element={<InvoiceForm />} />
       <Route path="/settings" element={<BusinessDetails />} />
+      <Route path="/health" element={<Health />} />
+      <Route path="/health/check" element={<HealthCheck />} />
+      <Route path="/learn" element={<Learn />} />
+      <Route path="/learn/:slug" element={<Guide />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

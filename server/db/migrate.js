@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { pool } = require('../src/db');
+const { seedContent } = require('./seed');
 
 async function migrate({ log = console.log } = {}) {
   const client = await pool.connect();
@@ -29,6 +30,15 @@ async function migrate({ log = console.log } = {}) {
         await client.query('ROLLBACK');
         throw new Error(`Migration ${file} failed: ${err.message}`);
       }
+    }
+    // Guides and health check questions from server/content/.
+    await client.query('BEGIN');
+    try {
+      await seedContent(client, { log });
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw new Error(`Loading content failed: ${err.message}`);
     }
     log('Database is up to date.');
   } finally {
