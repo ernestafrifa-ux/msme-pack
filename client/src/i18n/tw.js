@@ -1,7 +1,7 @@
 // Asante Twi. Reviewed line by line by a fluent Asante Twi speaker in two rounds
 // (October 2026); all corrections and answers are applied. Save is "Sie" everywhere,
 // Transfer is "Sika a akɔ baabi foforɔ", and months use the Twi names.
-// Lines marked "new, to review" were added after the review (owner pay) and still need a check.
+// The owner pay lines were added later and reviewed separately (October 2026).
 // Business words people already say in English (MoMo, invoice, stock, app,
 // password, network, balance) are kept on purpose.
 // Leave a key out to show the English instead.
@@ -115,7 +115,7 @@ export default {
   'home.sales': 'Adetɔn',
   'home.expenses': 'Ɛka',
   'home.profit': 'Mfasoɔ (bɛyɛ)',
-  'home.ownerPay': 'Wo ho akatua bosome yi: GHS {amount}.', // new, to review
+  'home.ownerPay': 'Wo tua wo ho ka bosome yi: GHS {amount}.',
   'home.profitNote': 'Sika a ɛbaeɛ, yi ɛka, MoMo charges ne nneɛma a wotɔneeɛ no ka firi mu, bosome yi.',
   'home.latest': 'Nea wokyerɛw nnansa yi',
   'home.seeAll': 'Hwɛ ne nyinaa',
@@ -148,8 +148,8 @@ export default {
   'record.totalReceived': 'Sika a wonyaeɛ nyinaa',
   'record.amount.sale': 'Sika ahe na wonyaeɛ? (GHS)',
   'record.amount.expense': 'Ɛka ahe na wobɔɔ? (GHS)',
-  'record.amount.owner_draw': 'Sika ahe na wofaa maa wo ho? (GHS)', // new, to review
-  'record.help.owner_draw': 'Sika a wofa ma wo ho anaa wo fie. Ɛnyɛ adwuma ɛka, enti ɛnte wo mfasoɔ so.', // new, to review
+  'record.amount.owner_draw': 'Sika ahe na wofaa maa wo ho? (GHS)',
+  'record.help.owner_draw': 'Sika a wofa ma wo ho anaa wo fie. Ɛnyɛ adwuma ɛka, enti ɛnte wo mfasoɔ so.',
   'record.amount.transfer': 'Sika ahe na wotuiɛ? (GHS)',
   'record.amount.orType': 'Anaa kyerɛw sika a wonyaeɛ (GHS)',
   'record.whereTo': 'Sika no kɔɔ he?',
@@ -163,18 +163,18 @@ export default {
   'record.momoFee': 'MoMo fee (sɛ wopɛ a)',
   'record.ph.sale': 'sɛ Auntie Esi',
   'record.ph.purchase': 'sɛ Kejetia',
-  'record.ph.owner_draw': 'sɛ dapɛn akatua', // new, to review
+  'record.ph.owner_draw': 'sɛ dapɛn akatua',
   'record.save.sale': 'Sie adetɔn no',
   'record.save.expense': 'Sie ɛka no',
   'record.save.purchase': 'Sie nneɛma a wotɔeɛ',
   'record.save.transfer': 'Sie sika a akɔ baabi foforɔ no',
-  'record.save.owner_draw': 'Sie wo ho akatua no', // new, to review
+  'record.save.owner_draw': 'Sie wo ho akatua no',
   'record.saveAnother': 'Sie na kyerɛw foforɔ',
   'record.saved.sale': 'Adetɔn a woasie GHS {amount}.',
   'record.saved.expense': 'Ɛka a woasie GHS {amount}.',
   'record.saved.purchase': 'Nneɛma a wotɔeɛ a woasie GHS {amount}.',
   'record.saved.transfer': 'Sika a akɔ baabi foforɔ a woasie GHS {amount}.',
-  'record.saved.owner_draw': 'Wo ho akatua a woasie GHS {amount}.', // new, to review
+  'record.saved.owner_draw': "W'akatua a woasie GHS {amount}.",
 
   'picker.label': 'Paw adeɛ',
   'picker.search': 'Hwehwɛ nneɛma',
