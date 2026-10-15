@@ -83,7 +83,7 @@ export default function Health() {
                 </div>
                 <div className="money-label">
                   <span className="sr-only">{t('health.scoreSr', { n: latest.overallScore })} </span>
-                  {t('health.checked', { date: longDate(latest.completedAt.slice(0, 10)) })}
+                  {t('health.checked', { date: longDate(latest.completedAt.slice(0, 10), t) })}
                   {latest.previousScore !== undefined && (
                     <> · {t(latest.overallScore >= latest.previousScore ? 'health.up' : 'health.down', { n: latest.previousScore })}</>
                   )}

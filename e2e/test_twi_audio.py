@@ -1,4 +1,4 @@
-# Browser test of the Twi interface, draft Twi guides and guide audio.
+# Browser test of the reviewed Twi interface, Twi guides and guide audio.
 # Needs: pip install playwright && playwright install chromium
 # Run against a FRESH database with the server on :4000:
 #   python e2e/test_twi_audio.py
@@ -43,7 +43,7 @@ with sync_playwright() as p:
 
     # --- Twi before logging in --------------------------------------------------
     page.goto(BASE + "/login")
-    page.get_by_role("button", name="Twi (draft)").click()
+    page.get_by_role("button", name="Twi", exact=True).click()
     expect(page.get_by_role("heading", name="Akwaaba bio")).to_be_visible()
     expect(page.locator("html")).to_have_attribute("lang", "tw")
     page.get_by_role("link", name="Bue account").click()
@@ -60,9 +60,12 @@ with sync_playwright() as p:
     page.get_by_label("Sika a ɛwɔ adwuma adaka no mu nnɛ (GHS)").fill("100")
     page.get_by_role("button", name="Fi ase kyerɛw akontaa").click()
 
-    # --- Home in Twi, marked as draft -------------------------------------------------
+    # --- Home in Twi (reviewed: no draft banner, Twi month name) --------------------
     expect(page.locator(".money-label").first).to_have_text("Sika a wowɔ seesei")
-    expect(page.get_by_role("note")).to_contain_text("draft")
+    expect(page.get_by_role("note")).to_have_count(0)
+    twi_months = ["Ɔpɛpɔn", "Ɔgyefoɔ", "Ɔbɛnem", "Oforisuo", "Kotonimma", "Ayɛwohomumɔ", "Kitawonsa", "Ɔsanaa", "Ɛbɔ", "Ahinime", "Obubuo", "Ɔpɛnimma"]
+    month_now = page.evaluate("Number(new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Accra', month: 'numeric' }).format(new Date()))")
+    expect(page.get_by_text(twi_months[month_now - 1], exact=True)).to_be_visible()
     nav = page.get_by_role("navigation", name="Akwan titiriw")
     for label in ["Fie", "Akontaa", "Kyerɛw", "Nneɛma", "Invoice", "Sua"]:
         expect(nav.get_by_role("link", name=label, exact=True)).to_be_visible()
@@ -74,19 +77,19 @@ with sync_playwright() as p:
     expect(page.get_by_role("tab", name="Sika a akɔ baabi foforɔ")).to_be_visible()
     page.get_by_label("Sika ahe na wonyaeɛ? (GHS)").fill("50")
     shot(page, "t3-record-twi.png")
-    page.get_by_role("button", name="Kora adetɔn no").click()
-    expect(page.get_by_text("Adetɔn a woakora GHS 50.00.")).to_be_visible()
+    page.get_by_role("button", name="Sie adetɔn no").click()
+    expect(page.get_by_text("Adetɔn a woasie GHS 50.00.")).to_be_visible()
     nav = page.get_by_role("navigation", name="Akwan titiriw")
     nav.get_by_role("link", name="Akontaa", exact=True).click()
     expect(page.get_by_role("heading", name="Nnɛ")).to_be_visible()
     expect(page.locator(".txn .small").first).to_contain_text("Adetɔn")
 
-    # --- Twi draft guides ---------------------------------------------------------------
+    # --- Twi guides (all three reviewed) -----------------------------------------------
     page.get_by_role("navigation", name="Akwan titiriw").get_by_role("link", name="Sua", exact=True).click()
     twi_title = "Ɛnka adwuma sika ne fie sika mu"
     row = page.locator(".product-row", has_text=twi_title)
     expect(row.locator(".draft-tag")).to_have_count(0)  # reviewed and approved
-    expect(page.locator(".product-row", has_text="Kyerɛw wo akontaa da biara").locator(".draft-tag")).to_be_visible()  # one line still open
+    expect(page.locator(".product-row", has_text="Kyerɛw wo akontaa da biara").locator(".draft-tag")).to_have_count(0)  # approved in round 2
     expect(page.get_by_text("Tax basics for small businesses")).to_be_visible()  # not translated yet: English
     shot(page, "t4-learn-twi.png")
     row.click()
@@ -147,7 +150,7 @@ with sync_playwright() as p:
     expect(page.locator(".guide-audio-box")).to_contain_text("Listen in English")
 
     page.goto(BASE + "/settings")
-    page.get_by_label("Twi (draft)").check()
+    page.get_by_label("Twi", exact=True).check()
     expect(page.get_by_text("Woasesa kasa no.")).to_be_visible()
     page.reload()
     expect(page.get_by_role("heading", name="App kasa")).to_be_visible()

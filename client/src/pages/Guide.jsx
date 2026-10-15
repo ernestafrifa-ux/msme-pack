@@ -105,7 +105,7 @@ export default function Guide() {
             <Icon name={done ? 'check' : 'plus'} size={18} /> {done ? t('guide.readUndo') : t('guide.markRead')}
           </button>
           {guide.reviewedAt && (
-            <p className="muted small center">{t('guide.checked', { date: longDate(guide.reviewedAt.slice(0, 10)) })}</p>
+            <p className="muted small center">{t('guide.checked', { date: longDate(guide.reviewedAt.slice(0, 10), t) })}</p>
           )}
 
           {user.isAdmin && <AudioAdmin slug={slug} audio={guide.audio} onChange={load} />}

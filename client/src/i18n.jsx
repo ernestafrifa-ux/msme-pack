@@ -9,7 +9,7 @@ import tw from './i18n/tw.js';
 // interface in English.
 const DICTS = { en, tw };
 // Translations still waiting for a fluent speaker's review.
-export const DRAFT_LANGUAGES = ['tw'];
+export const DRAFT_LANGUAGES = []; // Twi was reviewed and approved in October 2026.
 // Languages offered in the switcher (interface translated).
 export const UI_LANGUAGES = ['en', 'tw'];
 

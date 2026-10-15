@@ -113,7 +113,7 @@ export default function Home() {
         <section className="card">
           <div className="card-head">
             <h2>{t('home.month')}</h2>
-            <span className="muted">{data ? monthName(data.month) : ''}</span>
+            <span className="muted">{data ? monthName(data.month, t) : ''}</span>
           </div>
           <div className="stats">
             <div><div className="muted small">{t('home.sales')}</div><div className="stat">{money(data?.summary.sales)}</div></div>

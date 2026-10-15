@@ -18,12 +18,20 @@ export function friendlyDate(iso, t) {
   const y = new Date(today + 'T00:00:00Z');
   y.setUTCDate(y.getUTCDate() - 1);
   if (iso === y.toISOString().slice(0, 10)) return t ? t('date.yesterday') : 'Yesterday';
+  if (twiMonths(t)) return `${Number(iso.slice(8, 10))} ${t(`month.${Number(iso.slice(5, 7))}`)}`;
   return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC',
   });
 }
 
-export function monthName(yyyyMm) {
+// True when t() has its own (non-English) month names, as Twi does.
+function twiMonths(t) {
+  return !!t && t('month.1') !== 'January';
+}
+
+// "2026-10" -> "October" (or "Ahinime" in Twi). Pass t() for translated names.
+export function monthName(yyyyMm, t) {
+  if (t) return t(`month.${Number(yyyyMm.slice(5, 7))}`);
   return new Date(yyyyMm + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'long', timeZone: 'UTC' });
 }
 
@@ -56,9 +64,10 @@ export function addDaysIso(iso, days) {
   return d.toISOString().slice(0, 10);
 }
 
-// "2026-10-29" -> "29 Oct 2026"
-export function longDate(iso) {
+// "2026-10-29" -> "29 Oct 2026" (or "29 Ahinime 2026" when t() has Twi month names)
+export function longDate(iso, t) {
   if (!iso) return '';
+  if (twiMonths(t)) return `${Number(iso.slice(8, 10))} ${t(`month.${Number(iso.slice(5, 7))}`)} ${iso.slice(0, 4)}`;
   return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
   });

@@ -43,7 +43,7 @@ after(async () => {
 
 const get = (t, p) => request(app).get(`/api${p}`).set('Authorization', `Bearer ${t}`);
 
-test('switching to Twi shows the Twi drafts, marked as drafts, and English for the rest', async () => {
+test('switching to Twi shows the reviewed Twi guides, and English for the rest', async () => {
   let r = await request(app).patch('/api/auth/me').set('Authorization', `Bearer ${user}`).send({ preferredLanguage: 'tw' });
   assert.equal(r.status, 200);
   assert.equal(r.body.user.preferredLanguage, 'tw');
@@ -55,7 +55,8 @@ test('switching to Twi shows the Twi drafts, marked as drafts, and English for t
   assert.equal(bySlug['separate-business-money'].language, 'tw');
   assert.equal(bySlug['separate-business-money'].isDraft, false, 'reviewed and approved');
   assert.equal(bySlug['price-for-profit'].isDraft, false, 'reviewed and approved');
-  assert.equal(bySlug['keep-daily-records'].isDraft, true, 'one line still open');
+  assert.equal(bySlug['keep-daily-records'].isDraft, false, 'approved in round 2');
+  assert.equal(bySlug['keep-daily-records'].title, 'Kyerɛw wo akontaa da biara wɔ simma num mu');
   assert.equal(bySlug['tax-basics'].language, 'en');
   assert.equal(bySlug['tax-basics'].isDraft, false);
 

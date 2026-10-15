@@ -23,6 +23,18 @@ export default {
 
   'date.today': 'Today',
   'date.yesterday': 'Yesterday',
+  'month.1': 'January',
+  'month.2': 'February',
+  'month.3': 'March',
+  'month.4': 'April',
+  'month.5': 'May',
+  'month.6': 'June',
+  'month.7': 'July',
+  'month.8': 'August',
+  'month.9': 'September',
+  'month.10': 'October',
+  'month.11': 'November',
+  'month.12': 'December',
 
   'kind.sale': 'Sale',
   'kind.other_income': 'Other income',
@@ -34,7 +46,7 @@ export default {
 
   'lang.label': 'Language',
   'lang.en': 'English',
-  'lang.tw': 'Twi (draft)',
+  'lang.tw': 'Twi',
   'lang.ee': 'Ewe',
   'lang.gaa': 'Ga',
   'lang.dag': 'Dagbani',

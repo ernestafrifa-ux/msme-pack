@@ -1,13 +1,12 @@
 ---
 slug: keep-daily-records
-title: Kyerɛw wo akontaa da biara wɔ simma enum mu
+title: Kyerɛw wo akontaa da biara wɔ simma num mu
 area: FIN
 summary: Kyerɛw adetɔn ne ɛka biara da no ara, na bere biara wobɛhunu wo sika ne wo mfasoɔ.
 readMinutes: 4
 toolLabel: Kyerɛw adetɔn seesei
 reviewed: 2026-10-15
-draft: true
-reviewNote: Reviewed by a fluent Asante Twi speaker, October 2026. One heading ("## Hwɛ bosome no") still to confirm, so this stays a draft.
+reviewNote: Reviewed by a fluent Asante Twi speaker in two rounds, October 2026. Approved.
 ---
 Akontaa pa nnyɛ akontaabu a ɛyɛ den. Ɛma wunya nsɛmmisa mmiɛnsa yi ho mmuaeɛ:
 
@@ -17,7 +16,7 @@ Akontaa pa nnyɛ akontaabu a ɛyɛ den. Ɛma wunya nsɛmmisa mmiɛnsa yi ho mmua
 
 ## Kyerɛw no da no ara
 
-Nkaeɛ yera ntɛm. Adetɔn a wo werɛ firi sɛ wobɛkyerɛw no nnɛ no, dapɛn a ɛdi hɔ no, ayera. Paw bere pɔtee bi, te sɛ bere a wototo wo pon mu anaa ansa na woada, na fa simma enum kyerɛw.
+Nkaeɛ yera ntɛm. Adetɔn a wo werɛ firi sɛ wobɛkyerɛw no nnɛ no, dapɛn a ɛdi hɔ no, ayera. Paw bere pɔtee bi, te sɛ bere a wototo wo pon mu anaa ansa na woada, na fa simma num kyerɛw.
 
 Wɔ app yi mu:
 
