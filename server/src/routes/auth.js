@@ -50,6 +50,7 @@ function publicUser(u) {
     fullName: u.full_name,
     phone: u.phone,
     preferredLanguage: u.preferred_language,
+    isAdmin: u.platform_role === 'admin',
   };
 }
 
@@ -61,7 +62,7 @@ router.post('/signup', authLimiter, validate(signupSchema), async (req, res) => 
     const { rows } = await query(
       `INSERT INTO users (full_name, phone, password_hash, preferred_language, last_login_at)
        VALUES ($1, $2, $3, $4, now())
-       RETURNING id, full_name, phone, preferred_language`,
+       RETURNING id, full_name, phone, preferred_language, platform_role`,
       [fullName, phone, hash, preferredLanguage]
     );
     user = rows[0];
@@ -79,7 +80,7 @@ router.post('/signup', authLimiter, validate(signupSchema), async (req, res) => 
 router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
   const { phone, password } = req.valid.body;
   const { rows } = await query(
-    `SELECT id, full_name, phone, preferred_language, password_hash
+    `SELECT id, full_name, phone, preferred_language, platform_role, password_hash
        FROM users WHERE phone = $1 AND is_active`,
     [phone]
   );
@@ -113,6 +114,24 @@ async function listBusinesses(userId) {
 
 router.get('/me', requireAuth, async (req, res) => {
   res.json({ user: publicUser(req.user), businesses: await listBusinesses(req.user.id) });
+});
+
+const meSchema = z.object({
+  fullName: z.string().trim().min(2, 'Enter your full name.').max(120).optional(),
+  preferredLanguage: z.enum(['en', 'tw', 'ee', 'gaa', 'dag', 'ha']).optional(),
+});
+
+// Change your name or the language the app and guides use.
+router.patch('/me', requireAuth, validate(meSchema), async (req, res) => {
+  const v = req.valid.body;
+  const { rows } = await query(
+    `UPDATE users SET full_name = COALESCE($2, full_name), preferred_language = COALESCE($3, preferred_language),
+            updated_at = now()
+      WHERE id = $1
+      RETURNING id, full_name, phone, preferred_language, platform_role`,
+    [req.user.id, v.fullName ?? null, v.preferredLanguage ?? null]
+  );
+  res.json({ user: publicUser(rows[0]) });
 });
 
 module.exports = { router, listBusinesses };

@@ -12,6 +12,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "migrate": "node db/migrate.js",
+    "make-admin": "node db/make-admin.js",
     "test": "node --test --test-concurrency=1 test/*.test.js"
   },
   "dependencies": {

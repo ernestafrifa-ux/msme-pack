@@ -4,13 +4,9 @@ import { api, newClientRef } from '../api';
 import { useSession } from '../session.jsx';
 import { Field, FormError, Icon, ProductPicker } from '../components.jsx';
 import { money, qty, todayGhana } from '../format';
+import { useT } from '../i18n.jsx';
 
-const TABS = [
-  ['sale', 'Sale'],
-  ['expense', 'Expense'],
-  ['purchase', 'Buy stock'],
-  ['transfer', 'Transfer'],
-];
+const TABS = ['sale', 'expense', 'purchase', 'transfer'];
 const CATEGORY_KIND = { sale: 'income', expense: 'expense' };
 
 function emptyForm(accounts) {
@@ -27,6 +23,7 @@ export default function Record() {
   const navigate = useNavigate();
   const location = useLocation();
   const { business } = useSession();
+  const { t } = useT();
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
@@ -75,7 +72,7 @@ export default function Record() {
   const itemTotal = lines.reduce((s, l) => s + Math.round(Number(l.quantity || 0) * Number(l.unitPrice || 0) * 100), 0) / 100;
   const hasLines = usesProducts && lines.length > 0;
 
-  if (!TABS.some(([k]) => k === kind)) return <Navigate to="/record/sale" replace />;
+  if (!TABS.includes(kind)) return <Navigate to="/record/sale" replace />;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -123,10 +120,7 @@ export default function Record() {
         body.momoFee = form.momoFee || 0;
       }
       const { transaction } = await api(`/businesses/${business.id}/transactions`, { method: 'POST', body });
-      const label = TABS.find(([k]) => k === kind)[1];
-      const msg = isPurchase
-        ? `Stock bought for GHS ${money(transaction.amount)} saved.`
-        : `${label} of GHS ${money(transaction.amount)} saved.`;
+      const msg = t(`record.saved.${kind}`, { amount: money(transaction.amount) });
       if (again) {
         setForm({ ...emptyForm(accounts), accountId: form.accountId, date: form.date });
         setLines([]);
@@ -145,23 +139,19 @@ export default function Record() {
     }
   }
 
-  const amountLabel = {
-    sale: 'How much did you receive? (GHS)',
-    expense: 'How much did you spend? (GHS)',
-    transfer: 'How much did you move? (GHS)',
-  }[kind];
+  const amountLabel = isPurchase ? '' : t(`record.amount.${kind}`);
 
   return (
     <main className="screen">
       <header className="topbar">
-        <Link to="/" className="icon-btn" aria-label="Close"><Icon name="close" /></Link>
-        <span className="topbar-title">New record</span>
+        <Link to="/" className="icon-btn" aria-label={t('common.close')}><Icon name="close" /></Link>
+        <span className="topbar-title">{t('record.title')}</span>
         <span className="icon-btn" aria-hidden="true" />
       </header>
 
-      <div className="segmented segmented-4" role="tablist" aria-label="Record type">
-        {TABS.map(([k, label]) => (
-          <button key={k} role="tab" aria-selected={kind === k} onClick={() => switchTab(k)}>{label}</button>
+      <div className="segmented segmented-4" role="tablist" aria-label={t('record.type')}>
+        {TABS.map((k) => (
+          <button key={k} role="tab" aria-selected={kind === k} onClick={() => switchTab(k)}>{t(`record.tab.${k}`)}</button>
         ))}
       </div>
 
@@ -170,8 +160,8 @@ export default function Record() {
         {saved && <div className="flash" role="status">{saved}</div>}
 
         {usesProducts && (
-          <section className="field" aria-label={isPurchase ? 'Products bought' : 'Products sold'}>
-            <div className="field-label">{isPurchase ? 'What did you buy?' : 'What did you sell?'}</div>
+          <section className="field" aria-label={isPurchase ? t('record.productsBought') : t('record.productsSold')}>
+            <div className="field-label">{isPurchase ? t('record.whatBought') : t('record.whatSold')}</div>
             {lines.length > 0 && (
               <ul className="lines">
                 {lines.map((l, i) => {
@@ -180,25 +170,25 @@ export default function Record() {
                     <li key={l.productId} className="line">
                       <div className="line-top">
                         <span className="line-name">{l.name}</span>
-                        <button type="button" className="icon-btn small-btn" aria-label={`Remove ${l.name}`}
+                        <button type="button" className="icon-btn small-btn" aria-label={t('record.remove', { name: l.name })}
                           onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))}><Icon name="close" size={16} /></button>
                       </div>
                       <div className="line-controls">
                         <div className="stepper">
-                          <button type="button" aria-label={`One fewer ${l.name}`} onClick={() => step(i, -1)}>−</button>
-                          <input aria-label={`Quantity of ${l.name}`} type="number" inputMode="decimal" min="0" step="any"
+                          <button type="button" aria-label={t('record.fewer', { name: l.name })} onClick={() => step(i, -1)}>−</button>
+                          <input aria-label={t('record.qtyOf', { name: l.name })} type="number" inputMode="decimal" min="0" step="any"
                             value={l.quantity} onChange={(e) => setLine(i, 'quantity', e.target.value)} />
-                          <button type="button" aria-label={`One more ${l.name}`} onClick={() => step(i, 1)}>+</button>
+                          <button type="button" aria-label={t('record.more', { name: l.name })} onClick={() => step(i, 1)}>+</button>
                         </div>
                         <span className="muted small">×</span>
                         <label className="price-input">
-                          <span className="sr-only">{isPurchase ? 'Cost' : 'Price'} of one {l.name} (GHS)</span>
+                          <span className="sr-only">{t(isPurchase ? 'record.costOf' : 'record.priceOf', { name: l.name })}</span>
                           <input type="number" inputMode="decimal" min="0" step="0.01" value={l.unitPrice}
                             onChange={(e) => setLine(i, 'unitPrice', e.target.value)} />
                         </label>
                         <span className="line-total">{money(Number(l.quantity || 0) * Number(l.unitPrice || 0))}</span>
                       </div>
-                      {short && <div className="warn-text small">Only {qty(l.onHand)} {l.unit} in your records. It will show as below zero until you correct it.</div>}
+                      {short && <div className="warn-text small">{t('record.short', { qty: qty(l.onHand), unit: l.unit })}</div>}
                     </li>
                   );
                 })}
@@ -209,13 +199,13 @@ export default function Record() {
             ) : (
               <button type="button" className="btn btn-ghost btn-block dashed" onClick={() => setPicking(true)}
                 disabled={!products.length}>
-                <Icon name="plus" size={18} /> {lines.length ? 'Add another product' : 'Add products'}
+                <Icon name="plus" size={18} /> {lines.length ? t('record.addAnother') : t('record.addProducts')}
               </button>
             )}
             {!products.length && (
               <p className="muted small">
-                {isPurchase ? 'Add your products in ' : 'To list products, add them in '}
-                <Link to="/stock/new">Stock</Link>{isPurchase ? ' first.' : '. Or just type the amount below.'}
+                {isPurchase ? t('record.addInStockBuy') : t('record.addInStockSale')}{' '}
+                <Link to="/stock/new">{t('record.goToStock')}</Link>
               </p>
             )}
             {errors.items && <div className="field-error">{errors.items}</div>}
@@ -224,12 +214,12 @@ export default function Record() {
 
         {hasLines ? (
           <div className="total-row">
-            <span>{isPurchase ? 'Total paid' : 'Total received'}</span>
+            <span>{isPurchase ? t('record.totalPaid') : t('record.totalReceived')}</span>
             <span className="total-val">GHS {money(itemTotal)}</span>
           </div>
         ) : (
           !isPurchase && (
-            <Field label={usesProducts && products.length ? 'Or type the amount received (GHS)' : amountLabel} error={errors.amount}>
+            <Field label={usesProducts && products.length ? t('record.amount.orType') : amountLabel} error={errors.amount}>
               {(p) => <input {...p} className="amount-input" type="number" inputMode="decimal" min="0" step="0.01"
                 placeholder="0.00" value={form.amount} onChange={set('amount')} autoFocus={!usesProducts} required />}
             </Field>
@@ -238,7 +228,7 @@ export default function Record() {
 
         {kind !== 'transfer' ? (
           <fieldset className="field">
-            <legend>{kind === 'sale' ? 'Where did the money go?' : 'Where did the money come from?'}</legend>
+            <legend>{kind === 'sale' ? t('record.whereTo') : t('record.whereFrom')}</legend>
             <div className="chips">
               {accounts.map((a) => (
                 <label key={a.id} className={'chip chip-lg' + (form.accountId === a.id ? ' chip-on' : '')}>
@@ -252,14 +242,14 @@ export default function Record() {
           </fieldset>
         ) : (
           <div className="grid-2">
-            <Field label="From" error={errors.accountId}>
+            <Field label={t('record.from')} error={errors.accountId}>
               {(p) => (
                 <select {...p} value={form.accountId} onChange={set('accountId')}>
                   {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               )}
             </Field>
-            <Field label="To" error={errors.toAccountId}>
+            <Field label={t('record.to')} error={errors.toAccountId}>
               {(p) => (
                 <select {...p} value={form.toAccountId} onChange={set('toAccountId')}>
                   {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -269,14 +259,14 @@ export default function Record() {
           </div>
         )}
         {kind === 'transfer' && accounts.length < 2 && (
-          <p className="muted small">You need two places for money (e.g. cash box and MoMo) to record a transfer.</p>
+          <p className="muted small">{t('record.needTwo')}</p>
         )}
 
         {(kind === 'sale' || kind === 'expense') && !hasLines && (
-          <Field label={kind === 'sale' ? 'What was sold?' : 'What was it for?'} error={errors.categoryId}>
+          <Field label={t(`record.cat.${kind}`)} error={errors.categoryId}>
             {(p) => (
               <select {...p} value={form.categoryId} onChange={set('categoryId')}>
-                <option value="">Choose…</option>
+                <option value="">{t('common.choose')}</option>
                 {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             )}
@@ -285,10 +275,10 @@ export default function Record() {
 
         {isMomo && (
           <div className="grid-2">
-            <Field label="MoMo ID (optional)" error={errors.paymentRef}>
+            <Field label={t('record.momoId')} error={errors.paymentRef}>
               {(p) => <input {...p} value={form.paymentRef} onChange={set('paymentRef')} />}
             </Field>
-            <Field label="MoMo fee (optional)" error={errors.momoFee}>
+            <Field label={t('record.momoFee')} error={errors.momoFee}>
               {(p) => <input {...p} type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00"
                 value={form.momoFee} onChange={set('momoFee')} />}
             </Field>
@@ -296,21 +286,21 @@ export default function Record() {
         )}
 
         <div className="grid-2">
-          <Field label="Date" error={errors.date}>
+          <Field label={t('common.date')} error={errors.date}>
             {(p) => <input {...p} type="date" max={todayGhana()} value={form.date} onChange={set('date')} />}
           </Field>
-          <Field label="Note (optional)" error={errors.note}>
+          <Field label={t('common.noteOptional')} error={errors.note}>
             {(p) => <input {...p} value={form.note} onChange={set('note')}
-              placeholder={kind === 'sale' ? 'e.g. Auntie Esi' : isPurchase ? 'e.g. Kejetia market' : ''} />}
+              placeholder={kind === 'sale' ? t('record.ph.sale') : isPurchase ? t('record.ph.purchase') : ''} />}
           </Field>
         </div>
 
         <button className="btn btn-primary btn-block" disabled={busy || !accounts.length || (isPurchase && !lines.length)}>
-          {busy ? 'Saving…' : isPurchase ? 'Save stock bought' : `Save ${kind}`}
+          {busy ? t('common.saving') : t(`record.save.${kind}`)}
         </button>
         <button type="button" className="btn btn-ghost btn-block" disabled={busy || !accounts.length || (isPurchase && !lines.length)}
           onClick={(e) => submit(e, true)}>
-          Save and add another
+          {t('record.saveAnother')}
         </button>
       </form>
     </main>

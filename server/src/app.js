@@ -24,6 +24,7 @@ function createApp() {
           styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
           imgSrc: ["'self'", 'data:'],
+          mediaSrc: ["'self'", 'blob:'],
         },
       },
     })
@@ -45,6 +46,10 @@ function createApp() {
 
   app.use('/api', (req, res, next) => next(new HttpError(404, 'Not found.')));
 
+  // Uploaded guide audio. File names are random, so they can be cached for a long time.
+  // express.static supports range requests, so audio can be skipped through on slow connections.
+  app.use('/media', express.static(config.mediaDir, { maxAge: '30d', immutable: true, fallthrough: false, index: false }));
+
   // In production, serve the built React app from client/dist.
   const dist = path.join(__dirname, '..', '..', 'client', 'dist');
   if (fs.existsSync(dist)) {
@@ -56,6 +61,7 @@ function createApp() {
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
     if (err.type === 'entity.parse.failed') err = new HttpError(400, 'The request was not valid JSON.');
+    if (err.type === 'entity.too.large') err = new HttpError(413, 'That file is too big. Keep recordings under 20 MB.');
     if (err.code === '23503') err = new HttpError(400, 'One of the selected items does not exist.');
     if (err.code === '22P02') err = new HttpError(400, 'One of the values is not valid.');
     const status = err.status || 500;

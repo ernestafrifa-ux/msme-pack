@@ -8,6 +8,8 @@ const config = {
   databaseUrl: process.env.DATABASE_URL,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '30d',
+  // Uploaded audio is stored here. On hosts with temporary disks, point this at a persistent volume.
+  mediaDir: process.env.MEDIA_DIR || require('path').join(__dirname, '..', 'media'),
   corsOrigins: (process.env.CORS_ORIGINS || '')
     .split(',')
     .map((s) => s.trim())

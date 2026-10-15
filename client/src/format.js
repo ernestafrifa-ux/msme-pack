@@ -11,13 +11,13 @@ export function todayGhana() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Accra' }).format(new Date());
 }
 
-// "2026-10-15" -> "Today", "Yesterday" or "Thu 15 Oct"
-export function friendlyDate(iso) {
+// "2026-10-15" -> "Today", "Yesterday" or "Thu 15 Oct". Pass t() to get the words translated.
+export function friendlyDate(iso, t) {
   const today = todayGhana();
-  if (iso === today) return 'Today';
+  if (iso === today) return t ? t('date.today') : 'Today';
   const y = new Date(today + 'T00:00:00Z');
   y.setUTCDate(y.getUTCDate() - 1);
-  if (iso === y.toISOString().slice(0, 10)) return 'Yesterday';
+  if (iso === y.toISOString().slice(0, 10)) return t ? t('date.yesterday') : 'Yesterday';
   return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC',
   });

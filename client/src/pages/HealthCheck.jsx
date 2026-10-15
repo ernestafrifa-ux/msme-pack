@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { FormError, Icon } from '../components.jsx';
+import { useT } from '../i18n.jsx';
 
 // One question per screen. Each answer is saved straight away, so
 // a dropped connection or a closed app loses nothing.
 export default function HealthCheck() {
   const { business } = useSession();
+  const { t } = useT();
   const navigate = useNavigate();
   const [check, setCheck] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -37,7 +39,7 @@ export default function HealthCheck() {
     return (
       <main className="screen">
         <FormError message={message} />
-        {!message && <p role="status">Loading questions…</p>}
+        {!message && <p role="status">{t('hc.loading')}</p>}
       </main>
     );
   }
@@ -81,21 +83,22 @@ export default function HealthCheck() {
   return (
     <main className="screen hc">
       <header className="topbar">
-        <Link to="/health" className="icon-btn" aria-label="Close. Your answers are saved."><Icon name="close" /></Link>
-        <span className="topbar-title">Question {index + 1} of {total}</span>
+        <Link to="/health" className="icon-btn" aria-label={t('hc.closeSaved')}><Icon name="close" /></Link>
+        <span className="topbar-title">{t('hc.question', { n: index + 1, total })}</span>
         <span className="icon-btn" aria-hidden="true" />
       </header>
-      <div className="bar progress" role="progressbar" aria-label="Answered" aria-valuemin={0} aria-valuemax={total} aria-valuenow={answeredCount}>
+      <div className="bar progress" role="progressbar" aria-label={t('hc.answered')} aria-valuemin={0} aria-valuemax={total} aria-valuenow={answeredCount}>
         <div style={{ width: `${(answeredCount / total) * 100}%` }} />
       </div>
 
-      <div className="area-chip">{q.areaName}</div>
+      <div className="area-chip">{t(`area.${q.areaCode}`)}</div>
+      {t('hc.englishNote') && <p className="muted small">{t('hc.englishNote')}</p>}
       <h1 ref={headingRef} tabIndex={-1} className="hc-question">{q.prompt}</h1>
       {q.help && <p className="muted">{q.help}</p>}
       <FormError message={message} />
 
       <fieldset className="hc-options">
-        <legend className="sr-only">Choose one answer</legend>
+        <legend className="sr-only">{t('hc.chooseOne')}</legend>
         {q.options.map((o) => (
           <label key={o.id} className={'option hc-option' + (chosen === o.id ? ' option-on' : '')}>
             <input type="radio" name={`q-${q.id}`} value={o.id} checked={chosen === o.id} onChange={() => choose(o.id)} />
@@ -105,11 +108,11 @@ export default function HealthCheck() {
       </fieldset>
 
       <div className="grid-2 hc-nav">
-        <button className="btn btn-ghost" disabled={index === 0} onClick={() => setIndex(index - 1)}>Back</button>
+        <button className="btn btn-ghost" disabled={index === 0} onClick={() => setIndex(index - 1)}>{t('common.back')}</button>
         {isLast ? (
-          <button className="btn btn-primary" disabled={busy || !chosen} onClick={finish}>{busy ? 'Working it out…' : 'See my result'}</button>
+          <button className="btn btn-primary" disabled={busy || !chosen} onClick={finish}>{busy ? t('hc.finishing') : t('hc.finish')}</button>
         ) : (
-          <button className="btn btn-primary" disabled={!chosen} onClick={() => setIndex(index + 1)}>Next</button>
+          <button className="btn btn-primary" disabled={!chosen} onClick={() => setIndex(index + 1)}>{t('hc.next')}</button>
         )}
       </div>
     </main>

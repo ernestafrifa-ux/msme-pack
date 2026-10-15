@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useT } from './i18n.jsx';
 
 // Label + input + error message, wired up for screen readers.
 export function Field({ label, error, hint, children, id: givenId }) {
@@ -40,6 +41,7 @@ export function Icon({ name, size = 22 }) {
     search: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>,
     chevron: <path d="M9 6l6 6-6 6" />,
     check: <path d="M5 12l5 5 9-10" />,
+    play: <path d="M7 4l13 8-13 8z" />,
     book: <><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" /><path d="M4 21V5" /></>,
     pulse: <path d="M3 12h4l2-5 4 10 2-5h6" />,
     alert: <><path d="M12 3l9 16H3z" /><path d="M12 10v4M12 17v.5" /></>,
@@ -57,22 +59,24 @@ export function Icon({ name, size = 22 }) {
 }
 
 export function BottomNav() {
+  const { t } = useT();
   return (
-    <nav className="bottom-nav" aria-label="Main">
-      <NavLink to="/" end><Icon name="home" />Home</NavLink>
-      <NavLink to="/records"><Icon name="list" />Records</NavLink>
-      <NavLink to="/record/sale" className="nav-record"><Icon name="plus" />Record</NavLink>
-      <NavLink to="/stock"><Icon name="box" />Stock</NavLink>
-      <NavLink to="/invoices"><Icon name="file" />Invoices</NavLink>
-      <NavLink to="/learn"><Icon name="book" />Learn</NavLink>
+    <nav className="bottom-nav" aria-label={t('nav.main')}>
+      <NavLink to="/" end><Icon name="home" />{t('nav.home')}</NavLink>
+      <NavLink to="/records"><Icon name="list" />{t('nav.records')}</NavLink>
+      <NavLink to="/record/sale" className="nav-record"><Icon name="plus" />{t('nav.record')}</NavLink>
+      <NavLink to="/stock"><Icon name="box" />{t('nav.stock')}</NavLink>
+      <NavLink to="/invoices"><Icon name="file" />{t('nav.invoices')}</NavLink>
+      <NavLink to="/learn"><Icon name="book" />{t('nav.learn')}</NavLink>
     </nav>
   );
 }
 
 export function TopBar({ title, back = '/', right }) {
+  const { t } = useT();
   return (
     <header className="topbar">
-      <Link to={back} className="icon-btn" aria-label="Back"><Icon name="back" /></Link>
+      <Link to={back} className="icon-btn" aria-label={t('common.back')}><Icon name="back" /></Link>
       <span className="topbar-title">{title}</span>
       {right || <span className="icon-btn" aria-hidden="true" />}
     </header>
@@ -85,17 +89,18 @@ export function StatusPill({ status, label }) {
 
 // Searchable list of products to add to a sale, stock purchase or invoice.
 export function ProductPicker({ products, onPick, onClose, priceField = 'sellingPrice', showStock = true }) {
+  const { t } = useT();
   const [q, setQ] = useState('');
   const list = products.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase()));
   return (
-    <div className="picker" role="dialog" aria-label="Choose a product">
+    <div className="picker" role="dialog" aria-label={t('picker.label')}>
       <div className="picker-head">
         <label className="search">
           <Icon name="search" size={20} />
-          <span className="sr-only">Search products</span>
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" />
+          <span className="sr-only">{t('picker.search')}</span>
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('picker.search')} />
         </label>
-        <button type="button" className="btn-link" onClick={onClose}>Done</button>
+        <button type="button" className="btn-link" onClick={onClose}>{t('picker.done')}</button>
       </div>
       <ul className="picker-list">
         {list.map((p) => (
@@ -103,12 +108,12 @@ export function ProductPicker({ products, onPick, onClose, priceField = 'selling
             <button type="button" onClick={() => onPick(p)}>
               <span className="picker-name">{p.name}</span>
               <span className="muted small">
-                GHS {p[priceField]}{showStock && p.trackStock ? ` · ${Number(p.onHand)} ${p.unit} in stock` : ''}
+                GHS {p[priceField]}{showStock && p.trackStock ? ` · ${t('picker.inStock', { qty: Number(p.onHand), unit: p.unit })}` : ''}
               </span>
             </button>
           </li>
         ))}
-        {!list.length && <li className="muted small picker-empty">No products match. Add products in Stock.</li>}
+        {!list.length && <li className="muted small picker-empty">{t('picker.none')}</li>}
       </ul>
     </div>
   );

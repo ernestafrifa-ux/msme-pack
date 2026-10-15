@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { Field, FormError, TopBar } from '../components.jsx';
+import { useT, UI_LANGUAGES } from '../i18n.jsx';
 
 export default function BusinessDetails() {
   const { business, logout } = useSession();
+  const { t, lang, setLanguage } = useT();
+  const [langMessage, setLangMessage] = useState('');
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -78,7 +81,21 @@ export default function BusinessDetails() {
           </fieldset>
         </form>
       )}
-      <button className="btn btn-ghost btn-block log-out" onClick={logout}>Log out</button>
+      <section className="card lang-card">
+        <h2>{t('settings.language')}</h2>
+        <p className="muted small">{t('settings.languageHint')}</p>
+        <div className="options" role="radiogroup" aria-label={t('settings.language')}>
+          {UI_LANGUAGES.map((code) => (
+            <label key={code} className={'option' + (lang === code ? ' option-on' : '')}>
+              <input type="radio" name="appLang" checked={lang === code}
+                onChange={() => setLanguage(code).then(() => setLangMessage('saved'), (err) => setLangMessage(err.message))} />
+              {t(`lang.${code}`)}
+            </label>
+          ))}
+        </div>
+        {langMessage && <p className="small" role="status">{langMessage === 'saved' ? t('settings.langSaved') : langMessage}</p>}
+      </section>
+      <button className="btn btn-ghost btn-block log-out" onClick={logout}>{t('settings.logout')}</button>
     </main>
   );
 }

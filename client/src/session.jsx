@@ -36,6 +36,9 @@ export function SessionProvider({ children }) {
         setToken(data.token);
         setState({ loading: false, user: data.user, businesses: data.businesses || [] });
       },
+      updateUser(u) {
+        setState((s) => ({ ...s, user: u }));
+      },
       addBusiness(b) {
         setState((s) => ({ ...s, businesses: [...s.businesses, b] }));
       },

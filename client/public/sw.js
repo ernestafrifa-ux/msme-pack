@@ -1,8 +1,8 @@
 // Minimal service worker: lets the app open without a connection.
 // - Page loads: try the network, fall back to the cached app shell.
 // - Built JS/CSS/icons: cache first (file names change on every build).
-// - /api calls: never cached here. Offline saving of records comes in a later step.
-const CACHE = 'msme-pack-v1';
+// - /api calls and /media (audio, which is fetched in ranges): never cached here.
+const CACHE = 'msme-pack-v2';
 const SHELL = ['/', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -19,7 +19,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/media/')) {
     return;
   }
   if (event.request.mode === 'navigate') {

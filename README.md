@@ -99,7 +99,8 @@ DATABASE_URL=postgres://msme:choose-a-password@localhost:5432/msme_pack_test npm
 pip install playwright && playwright install chromium
 python e2e/test_flow.py              # sign-up and cash book
 python e2e/test_stock_invoices.py    # stock and invoices
-python e2e/test_health_guides.py     # health check and guides (reset the database between each)
+python e2e/test_health_guides.py     # health check and guides
+python e2e/test_twi_audio.py         # Twi interface, Twi guides, audio (reset the database between each)
 ```
 
 ## Deploying
@@ -153,6 +154,10 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 | GET | `/api/guides` | Guide library with the user's reading progress |
 | GET | `/api/guides/:slug` | One guide (marks it started) |
 | POST | `/api/guides/:slug/complete` | Mark read or unread |
+| PATCH | `/api/auth/me` | Change name or language |
+| PUT | `/api/guides/:slug/audio?lang=tw` | Upload or replace a recording (admins; body is the audio file) |
+| PATCH | `/api/guides/:slug/audio/:lang` | Mark a recording reviewed / draft (admins) |
+| DELETE | `/api/guides/:slug/audio/:lang` | Remove a recording (admins) |
 
 `POST /transactions` also accepts `items: [{ productId, quantity, unitPrice }]` for sales and stock purchases (`kind: "purchase"`).
 
@@ -163,6 +168,25 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 - Deleting a record hides it from totals but keeps it in the audit log.
 - Each record carries an ID made on the phone (`clientRef`), so retrying a save after a dropped connection never records it twice. This is also the base for full offline saving later.
 - Only nicknames and last 4 digits of accounts are stored, never full account numbers.
+
+## Languages
+
+The app interface is available in **English** and **Asante Twi**. The Twi is a **draft for review**: the app says so in a banner, on every Twi guide, and on Twi recordings, until a fluent speaker has checked it.
+
+- Users choose a language at sign-up, on the log-in screen (English | Twi), or later in Settings (gear icon on Home). The choice is saved to their account.
+- Screens translated so far: log in, sign-up, business setup, Home, Record, Records, health check, Learn, guide reader and the language setting. Stock, invoices and business details are still in English. Messages coming from the server (e.g. form errors) are still in English.
+- Word lists: `client/src/i18n/en.js` (master) and `client/src/i18n/tw.js`. A missing Twi line falls back to English. To add a language, copy `tw.js`, translate, and add it to `DICTS` and `UI_LANGUAGES` in `client/src/i18n.jsx`.
+- Twi guides: `server/content/guides/tw/`. Three are drafted (separate business money, daily records, pricing for profit), each with `draft: true`. Remove that line once a reviewer has approved a guide, then run `npm run migrate`.
+- Readers of a Twi guide can open the English original underneath.
+- **Review workbook:** `MSME-Pack-Twi-review.xlsx` lists every Twi line next to the English, with columns for the reviewer's verdict and corrections, a key-terms sheet to settle first, and a progress count.
+
+## Guide audio
+
+Each guide can have one recording per language. A Twi reader hears the Twi recording first; a guide can have Twi audio even while its text is only in English.
+
+- **Who can add audio:** content admins. Make someone an admin (after they've signed up): `npm run make-admin -- 0244123456` in `server` (add `--remove` to undo).
+- **How:** an admin opens any guide and uses the "Audio (content admin)" box at the bottom to record straight from the phone's microphone or upload a file (MP3, M4A, OGG, WebM or WAV, up to 20 MB). New recordings are marked draft until "Mark as reviewed" is pressed. Uploading again replaces the old recording.
+- **Where files are kept:** `server/media/audio/` by default, or the folder in the `MEDIA_DIR` setting. On hosts whose disk is wiped on each deploy (e.g. Render's free tier), point `MEDIA_DIR` at a persistent disk, or the recordings will be lost.
 
 ## Editing guides and health check questions
 

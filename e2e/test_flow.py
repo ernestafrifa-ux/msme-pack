@@ -34,7 +34,7 @@ with sync_playwright() as p:
     expect(page.get_by_text("Use at least 8 characters.")).to_be_visible()
     page.screenshot(path=f"{OUT}/1-signup-error.png")
     page.get_by_label("Choose a password").fill("shito-2026")
-    page.get_by_label("Language you prefer").select_option("tw")
+    page.get_by_label("Language you prefer").select_option("ee")  # no Ewe interface yet: stays English
     page.get_by_role("button", name="Create account").click()
 
     expect(page).to_have_url(BASE + "/setup")

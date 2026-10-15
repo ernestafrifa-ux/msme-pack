@@ -41,18 +41,25 @@ async function seedContent(db, { log = () => {} } = {}) {
   for (const g of guides) {
     await db.query(
       `INSERT INTO guides (slug, language_code, area_code, title, summary, body_md, read_minutes,
-                           tool_path, tool_label, reviewed_at, is_published)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, TRUE)
+                           tool_path, tool_label, reviewed_at, is_draft, is_published)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, TRUE)
        ON CONFLICT (slug, language_code) DO UPDATE SET
          area_code = EXCLUDED.area_code, title = EXCLUDED.title, summary = EXCLUDED.summary,
          body_md = EXCLUDED.body_md, read_minutes = EXCLUDED.read_minutes,
          tool_path = EXCLUDED.tool_path, tool_label = EXCLUDED.tool_label,
-         reviewed_at = EXCLUDED.reviewed_at, is_published = TRUE,
+         reviewed_at = EXCLUDED.reviewed_at, is_draft = EXCLUDED.is_draft, is_published = TRUE,
          version = guides.version + (CASE WHEN guides.body_md IS DISTINCT FROM EXCLUDED.body_md THEN 1 ELSE 0 END),
          updated_at = now()`,
       [g.slug, g.language, g.area, g.title, g.summary, g.body, Number(g.readMinutes) || null,
-       g.toolPath || null, g.toolLabel || null, g.reviewed || null]
+       g.toolPath || null, g.toolLabel || null, g.reviewed || null, g.draft === 'true']
     );
+  }
+
+  const english = new Set(guides.filter((g) => g.language === 'en').map((g) => g.slug));
+  for (const g of guides) {
+    if (g.language !== 'en' && !english.has(g.slug)) {
+      throw new Error(`guides/${g.language}/${g.slug}.md has no English original with the same slug`);
+    }
   }
 
   // Health check questions

@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
+import { useT } from '../i18n.jsx';
 import { Field, FormError } from '../components.jsx';
+import LanguageSwitch from '../LanguageSwitch.jsx';
 
 export default function Login() {
   const { signIn } = useSession();
+  const { t } = useT();
   const [form, setForm] = useState({ phone: '', password: '' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -30,22 +33,23 @@ export default function Login() {
 
   return (
     <main className="screen auth">
+      <LanguageSwitch />
       <div className="brand-mark" aria-hidden="true" />
-      <h1>Welcome back</h1>
-      <p className="lead">Log in to see your business records.</p>
+      <h1>{t('login.title')}</h1>
+      <p className="lead">{t('login.lead')}</p>
       <form onSubmit={submit} className="stack" noValidate>
         <FormError message={message} />
-        <Field label="Phone number" error={errors.phone}>
+        <Field label={t('login.phone')} error={errors.phone}>
           {(p) => <input {...p} type="tel" inputMode="tel" autoComplete="tel" placeholder="024 123 4567"
             value={form.phone} onChange={set('phone')} required />}
         </Field>
-        <Field label="Password" error={errors.password}>
+        <Field label={t('login.password')} error={errors.password}>
           {(p) => <input {...p} type="password" autoComplete="current-password"
             value={form.password} onChange={set('password')} required />}
         </Field>
-        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
+        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? t('login.busy') : t('login.submit')}</button>
       </form>
-      <p className="switch">New here? <Link to="/signup">Create an account</Link></p>
+      <p className="switch">{t('login.new')} <Link to="/signup">{t('login.create')}</Link></p>
     </main>
   );
 }
