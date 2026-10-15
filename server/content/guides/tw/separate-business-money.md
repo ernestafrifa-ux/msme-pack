@@ -1,13 +1,12 @@
 ---
 slug: separate-business-money
-title: Tew adwuma sika ne fie sika mu
+title: Ɛnka adwuma sika ne fie sika mu
 area: FIN
 summary: Ma w'adwuma no nnya ne sika sie baabi, tua wo ho akatua pɔtee bi, na sie sika kakra ma bere a nneɛma nkɔ yie.
 readMinutes: 5
 toolLabel: Kyerɛw nnɛ adetɔn
 reviewed: 2026-10-15
-draft: true
-reviewNote: Asante Twi draft translated from the English guide. Needs review by a fluent speaker before use. Check spelling, natural phrasing and the business words kept in English (MoMo, owner pay, app).
+reviewNote: Reviewed by a fluent Asante Twi speaker, October 2026. Corrections applied.
 ---
 Sɛ adwuma sika ne fie sika wɔ kotokuo baako mu a, ɛyɛ den sɛ wobɛhunu sɛ adwuma no renya mfasoɔ anaa. Sika a wode tua sukuu ka, ayie ka anaa abusua nsɛm firi adwuma no mu ka ho kɔ, na bosome no awieeɛ no, wonhunu baabi a sika no kɔeɛ.
 
@@ -19,13 +18,13 @@ Paw baabi baako a adwuma sika nko ara na ɛbɛkɔ hɔ:
 
 - sika adaka anaa envelope a ɛyɛ adwuma no dea nko ara, anaa
 - MoMo wallet foforɔ (SIM a ɛtɔ so abien yɛ adwuma yie), anaa
-- bank akawnt a ɛwɔ adwuma no din mu.
+- bank account a ɛwɔ adwuma no din mu.
 
 Adetɔfoɔ tua sika no kɔ hɔ. Wofiri hɔ tua adwuma no ka. Biribiara nka ho.
 
 ## 2. Tua wo ho akatua pɔtee bi
 
-Si gyinaeɛ sɛ sika ahe na wobɛfa ama wo ho dapɛn biara anaa bosome biara, na fa saa sika no nko ara. Wɔ app yi mu, kyerɛw no sɛ **owner pay**, ɛnyɛ sɛ ɛka.
+Si gyinaeɛ sɛ sika ahe na wobɛfa ama wo ho dapɛn biara anaa bosome biara, na fa saa sika no nko ara. Wɔ app yi mu, kyerɛw no sɛ **Wo ho akatua**, ɛnyɛ sɛ ɛka.
 
 Fi ase kakra. Sɛ adwuma no kɔ yie bosome kakra a, wobɛtumi de bi aka ho.
 
@@ -39,7 +38,7 @@ Dapɛn biara, fa sika kakra sie baabi foforɔ, sɛ GHS 20 mpo a. Bɔ mmɔden sɛ
 
 ## Hwɛ wo ho
 
-- [ ] Adwuma no wɔ ne sika adaka, MoMo wallet anaa akawnt
+- [ ] Adwuma no wɔ ne sika adaka, MoMo wallet anaa account
 - [ ] Metua me ho sika pɔtee bi na mekyerɛw
 - [ ] Mekyerɛw biribiara a mefa firi adwuma no mu na metua bio
 - [ ] Mesie sika kakra dapɛn biara ma bere a nneɛma nkɔ yie

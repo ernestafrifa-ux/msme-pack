@@ -46,14 +46,14 @@ with sync_playwright() as p:
     page.get_by_role("button", name="Twi (draft)").click()
     expect(page.get_by_role("heading", name="Akwaaba bio")).to_be_visible()
     expect(page.locator("html")).to_have_attribute("lang", "tw")
-    page.get_by_role("link", name="Bue akawnt").click()
-    expect(page.get_by_role("heading", name="Bue w'akawnt")).to_be_visible()
+    page.get_by_role("link", name="Bue account").click()
+    expect(page.get_by_role("heading", name="Bue w'account")).to_be_visible()
     expect(page.get_by_label("Kasa a wopɛ")).to_have_value("tw")
     page.get_by_label("Wo din nyinaa").fill("Ama Mensah")
-    page.get_by_label("Fon nɔma").fill(PHONE)
+    page.get_by_label("Phone number").fill(PHONE)
     page.get_by_label("Paw password").fill("shito-2026")
     shot(page, "t1-signup-twi.png")
-    page.get_by_role("button", name="Bue akawnt").click()
+    page.get_by_role("button", name="Bue account").click()
 
     expect(page.get_by_role("heading", name="Ka w'adwuma ho asɛm kyerɛ yɛn")).to_be_visible()
     page.get_by_label("Adwuma no din").fill("Ama's Shito & Spices")
@@ -71,10 +71,11 @@ with sync_playwright() as p:
     # --- Record a sale in Twi ---------------------------------------------------------
     nav.get_by_role("link", name="Kyerɛw", exact=True).click()
     expect(page.get_by_role("tab", name="Adetɔn")).to_have_attribute("aria-selected", "true")
+    expect(page.get_by_role("tab", name="Sika a akɔ baabi foforɔ")).to_be_visible()
     page.get_by_label("Sika ahe na wonyaeɛ? (GHS)").fill("50")
     shot(page, "t3-record-twi.png")
     page.get_by_role("button", name="Kora adetɔn no").click()
-    expect(page.get_by_text("Woakora adetɔn GHS 50.00.")).to_be_visible()
+    expect(page.get_by_text("Adetɔn a woakora GHS 50.00.")).to_be_visible()
     nav = page.get_by_role("navigation", name="Akwan titiriw")
     nav.get_by_role("link", name="Akontaa", exact=True).click()
     expect(page.get_by_role("heading", name="Nnɛ")).to_be_visible()
@@ -82,14 +83,16 @@ with sync_playwright() as p:
 
     # --- Twi draft guides ---------------------------------------------------------------
     page.get_by_role("navigation", name="Akwan titiriw").get_by_role("link", name="Sua", exact=True).click()
-    twi_title = "Tew adwuma sika ne fie sika mu"
+    twi_title = "Ɛnka adwuma sika ne fie sika mu"
     row = page.locator(".product-row", has_text=twi_title)
-    expect(row.locator(".draft-tag")).to_be_visible()
+    expect(row.locator(".draft-tag")).to_have_count(0)  # reviewed and approved
+    expect(page.locator(".product-row", has_text="Kyerɛw wo akontaa da biara").locator(".draft-tag")).to_be_visible()  # one line still open
     expect(page.get_by_text("Tax basics for small businesses")).to_be_visible()  # not translated yet: English
     shot(page, "t4-learn-twi.png")
     row.click()
     expect(page.get_by_role("heading", level=1)).to_have_text(twi_title)
-    expect(page.locator(".draft-box")).to_contain_text("Draft a yɛrehwɛ mu")
+    expect(page.locator(".draft-box")).to_have_count(0)
+    expect(page.locator(".md")).to_contain_text("Wo ho akatua")
     page.get_by_role("button", name="Kyerɛ Borɔfo deɛ no").click()
     expect(page.get_by_role("region", name="Borɔfo deɛ no")).to_contain_text("Separate business and personal money")
     page.get_by_role("button", name="Fa Borɔfo deɛ no sie").click()
@@ -152,13 +155,19 @@ with sync_playwright() as p:
     # Narrow phones in Twi
     overflow = {}
     page.set_viewport_size({"width": 320, "height": 640})
-    for path in ["/", "/record/sale", "/records", "/learn", "/health", "/learn/price-for-profit", "/settings"]:
+    for path in ["/", "/record/sale", "/record/transfer", "/records", "/learn", "/health", "/learn/price-for-profit", "/learn/keep-daily-records", "/settings"]:
         page.goto(BASE + path)
         page.wait_for_timeout(400)
         overflow[path] = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
     page.goto(BASE + "/")
     page.wait_for_timeout(300)
     page.screenshot(path=f"{OUT}/t6-home-twi-320.png")
+    page.goto(BASE + "/record/transfer")
+    page.wait_for_timeout(300)
+    page.screenshot(path=f"{OUT}/t7-transfer-twi-320.png")
+    page.goto(BASE + "/records")
+    page.wait_for_timeout(300)
+    page.screenshot(path=f"{OUT}/t8-records-twi-320.png")
     browser.close()
 
 print("page errors:", errors)

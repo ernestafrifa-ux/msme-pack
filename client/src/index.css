@@ -387,3 +387,8 @@ fieldset.plain { border: none; padding: 0; margin: 0; min-width: 0; }
 .file-btn.disabled { opacity: .6; }
 .lang-card { margin-top: 24px; }
 .lang-card .options { margin-top: 10px; }
+
+/* Longer translated labels: let tab and filter buttons wrap instead of overflowing. */
+.segmented button { white-space: normal; line-height: 1.15; padding: 4px 4px; overflow-wrap: anywhere; hyphens: auto; }
+.segmented.filters { display: flex; flex-wrap: wrap; }
+.segmented.filters button { flex: 1 1 auto; min-width: 64px; padding: 4px 10px; }

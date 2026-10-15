@@ -7,7 +7,7 @@ readMinutes: 4
 toolLabel: Kyerɛw adetɔn seesei
 reviewed: 2026-10-15
 draft: true
-reviewNote: Asante Twi draft translated from the English guide. Needs review by a fluent speaker before use. The app's button names are given in English in brackets so readers can match them to the screen; check whether that helps or confuses.
+reviewNote: Reviewed by a fluent Asante Twi speaker, October 2026. One heading ("## Hwɛ bosome no") still to confirm, so this stays a draft.
 ---
 Akontaa pa nnyɛ akontaabu a ɛyɛ den. Ɛma wunya nsɛmmisa mmiɛnsa yi ho mmuaeɛ:
 
@@ -24,7 +24,7 @@ Wɔ app yi mu:
 - **Adetɔn (Sale)**: bere biara a sika ba wɔ nneɛma anaa adwuma bi ho.
 - **Ɛka (Expense)**: bere biara a sika fi adwuma no mu kɔ: dan ka, kaa ka, kanea ka, data, nneɛma a wode kyekyere.
 - **Tɔ nneɛma (Buy stock)**: bere a wotɔ nneɛma a wode bɛtɔn, sɛnea ɛbɛma wo stock akontaa akɔ soro.
-- **Sika tu (Transfer)**: bere a wotu sika fi baabi kɔ baabi, te sɛ sika a wode kɔto MoMo mu. Ɛnyɛ adetɔn anaa ɛka.
+- **Sika a akɔ baabi foforɔ (Transfer)**: bere a wotu sika fi baabi kɔ baabi, te sɛ sika a wode kɔto MoMo mu. Ɛnyɛ adetɔn anaa ɛka.
 
 ## Sika nketewa ho hia
 

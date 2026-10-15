@@ -51,9 +51,11 @@ test('switching to Twi shows the Twi drafts, marked as drafts, and English for t
 
   r = await get(user, '/guides');
   const bySlug = Object.fromEntries(r.body.guides.map((g) => [g.slug, g]));
-  assert.equal(bySlug['separate-business-money'].title, 'Tew adwuma sika ne fie sika mu');
+  assert.equal(bySlug['separate-business-money'].title, 'Ɛnka adwuma sika ne fie sika mu');
   assert.equal(bySlug['separate-business-money'].language, 'tw');
-  assert.equal(bySlug['separate-business-money'].isDraft, true);
+  assert.equal(bySlug['separate-business-money'].isDraft, false, 'reviewed and approved');
+  assert.equal(bySlug['price-for-profit'].isDraft, false, 'reviewed and approved');
+  assert.equal(bySlug['keep-daily-records'].isDraft, true, 'one line still open');
   assert.equal(bySlug['tax-basics'].language, 'en');
   assert.equal(bySlug['tax-basics'].isDraft, false);
 

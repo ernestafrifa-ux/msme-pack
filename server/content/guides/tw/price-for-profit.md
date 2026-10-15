@@ -6,8 +6,7 @@ summary: Hwehwɛ biribiara a ɛgye wo sika wɔ adeɛ baako ho, na bɔ boɔ a ɛb
 readMinutes: 6
 toolLabel: Fa adeɛ ka ho ne ne boɔ
 reviewed: 2026-10-15
-draft: true
-reviewNote: Asante Twi draft translated from the English guide. Needs review by a fluent speaker before use. Check the shito example words (mako, ngo, nnuhwam, toa, gyabidie) and the words for cost, price and profit.
+reviewNote: Reviewed by a fluent Asante Twi speaker, October 2026. Approved as written.
 ---
 Nnwumayɛfoɔ pii fa boɔ a ɔfoforɔ a ɔbɛn wɔn bɔ no na wɔde bɔ wɔn deɛ. Nanso wo ka nyɛ pɛ sɛ wɔn deɛ. Sɛ wo boɔ ntumi nka wo ka nyinaa a, wobɛtumi ayɛ adwuma da biara na woahwere sika.
 

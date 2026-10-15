@@ -108,7 +108,7 @@ export default function Records() {
       <main className="screen with-nav">
         <h1>{t('records.title')}</h1>
         <DraftLanguageBanner />
-        <div className="segmented" role="group" aria-label={t('records.show')}>
+        <div className="segmented filters" role="group" aria-label={t('records.show')}>
           {FILTERS.map(([value, key]) => (
             <button key={value} aria-pressed={kind === value} onClick={() => setKind(value)}>{t(key)}</button>
           ))}
