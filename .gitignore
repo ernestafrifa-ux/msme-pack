@@ -4,3 +4,4 @@
   *.log
   e2e/screenshots/
   .DS_Store
+server/media/
