@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { pool } = require('../src/db');
 const { seedContent } = require('./seed');
+const { normaliseGhanaPhone } = require('../src/phone');
 
 async function migrate({ log = console.log } = {}) {
   const client = await pool.connect();
@@ -39,6 +40,15 @@ async function migrate({ log = console.log } = {}) {
     } catch (err) {
       await client.query('ROLLBACK');
       throw new Error(`Loading content failed: ${err.message}`);
+    }
+    // Content admins named in the ADMIN_PHONES setting (handy on hosts without a terminal).
+    for (const raw of (process.env.ADMIN_PHONES || '').split(',').map((x) => x.trim()).filter(Boolean)) {
+      const phone = normaliseGhanaPhone(raw);
+      if (!phone) { log(`ADMIN_PHONES: "${raw}" is not a Ghana phone number, skipped.`); continue; }
+      const { rowCount } = await client.query(
+        `UPDATE users SET platform_role = 'admin', updated_at = now() WHERE phone = $1 AND platform_role <> 'admin'`, [phone]
+      );
+      if (rowCount) log(`${phone} is now a content admin.`);
     }
     log('Database is up to date.');
   } finally {

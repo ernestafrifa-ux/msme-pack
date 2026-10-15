@@ -1,0 +1,13 @@
+{
+  "name": "msme-pack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MSME Enterprise Resource Pack: builds the React app and runs the API that serves it (used by Railway).",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "build": "npm ci --prefix server --omit=dev && npm ci --prefix client --include=dev && npm run build --prefix client",
+    "start": "npm run migrate --prefix server && npm start --prefix server"
+  }
+}

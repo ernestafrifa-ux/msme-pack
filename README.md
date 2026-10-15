@@ -114,6 +114,22 @@ cd ../server && npm install --omit=dev && npm run migrate && npm start
 
 Set `NODE_ENV=production`, `DATABASE_URL` and a long random `JWT_SECRET` in the host's environment settings (never commit `.env`). Serve over HTTPS; the PWA install and offline features need it.
 
+### Railway
+
+The root `package.json` and `railway.json` do the above automatically: `npm run build` installs both parts and builds the client; `npm start` runs migrations, then the server. Health check: `/api/health`.
+
+1. New project from this GitHub repo, plus a PostgreSQL database.
+2. Add a volume to the app service, mounted at `/data`.
+3. Variables on the app service:
+   - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}`
+   - `JWT_SECRET` = a random string of 64+ characters
+   - `NODE_ENV` = `production`
+   - `MEDIA_DIR` = `/data/media`
+   - `ADMIN_PHONES` = your phone number (after you sign up), to upload guide audio
+4. Settings → Networking → Generate Domain.
+
+Every push to `main` redeploys; new migrations and guide edits are applied on start.
+
 ## API overview
 
 All routes except sign-up and login need `Authorization: Bearer <token>`.
