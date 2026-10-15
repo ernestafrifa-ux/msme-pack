@@ -124,6 +124,9 @@ export default function Home() {
               </div></div>
           </div>
           <p className="muted small">{t('home.profitNote')}</p>
+          {Number(data?.summary.ownerPay) > 0 && (
+            <p className="owner-pay small">{t('home.ownerPay', { amount: money(data.summary.ownerPay) })}</p>
+          )}
         </section>
 
         <section>

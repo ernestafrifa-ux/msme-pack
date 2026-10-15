@@ -11,6 +11,7 @@ const FILTERS = [
   ['expense', 'records.expenses'],
   ['purchase', 'records.stock'],
   ['transfer', 'records.transfers'],
+  ['owner_draw', 'records.ownerPay'],
 ];
 
 export function TxnRow({ txn, showDate, onDelete }) {

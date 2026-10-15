@@ -79,10 +79,18 @@ with sync_playwright() as p:
     shot(page, "t3-record-twi.png")
     page.get_by_role("button", name="Sie adetɔn no").click()
     expect(page.get_by_text("Adetɔn a woasie GHS 50.00.")).to_be_visible()
+    # Owner pay in Twi
+    page.get_by_role("navigation", name="Akwan titiriw").get_by_role("link", name="Kyerɛw", exact=True).click()
+    page.get_by_role("tab", name="Wo ho akatua").click()
+    page.get_by_label("Sika ahe na wofaa maa wo ho? (GHS)").fill("20")
+    page.get_by_role("button", name="Sie wo ho akatua no").click()
+    expect(page.get_by_text("Wo ho akatua a woasie GHS 20.00.")).to_be_visible()
+    expect(page.get_by_text("Wo ho akatua bosome yi: GHS 20.00.")).to_be_visible()
     nav = page.get_by_role("navigation", name="Akwan titiriw")
     nav.get_by_role("link", name="Akontaa", exact=True).click()
     expect(page.get_by_role("heading", name="Nnɛ")).to_be_visible()
-    expect(page.locator(".txn .small").first).to_contain_text("Adetɔn")
+    expect(page.locator(".txn .small", has_text="Adetɔn")).to_have_count(1)
+    expect(page.locator(".txn .small", has_text="Wo ho akatua")).to_have_count(1)
 
     # --- Twi guides (all three reviewed) -----------------------------------------------
     page.get_by_role("navigation", name="Akwan titiriw").get_by_role("link", name="Sua", exact=True).click()
@@ -158,7 +166,7 @@ with sync_playwright() as p:
     # Narrow phones in Twi
     overflow = {}
     page.set_viewport_size({"width": 320, "height": 640})
-    for path in ["/", "/record/sale", "/record/transfer", "/records", "/learn", "/health", "/learn/price-for-profit", "/learn/keep-daily-records", "/settings"]:
+    for path in ["/", "/record/sale", "/record/transfer", "/record/owner_draw", "/records", "/learn", "/health", "/learn/price-for-profit", "/learn/keep-daily-records", "/settings"]:
         page.goto(BASE + path)
         page.wait_for_timeout(400)
         overflow[path] = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")

@@ -392,7 +392,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
     ),
     query(
       `SELECT sales, other_income, expenses, stock_purchases, momo_fees,
-              cost_of_sales, gross_profit, net_profit_estimate
+              cost_of_sales, gross_profit, net_profit_estimate, owner_pay
          FROM v_monthly_summary WHERE business_id = $1 AND month = $2::date`,
       [req.businessId, monthStart]
     ),
@@ -427,6 +427,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
       costOfSales: s.cost_of_sales || '0.00',
       grossProfit: s.gross_profit || '0.00',
       netProfitEstimate: s.net_profit_estimate || '0.00',
+      ownerPay: Number(s.owner_pay || 0).toFixed(2),
     },
     recent: recent.rows.map(publicTxn),
     lowStock: lowStock.rows.map((p) => ({

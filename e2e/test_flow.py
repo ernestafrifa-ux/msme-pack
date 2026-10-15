@@ -103,9 +103,31 @@ with sync_playwright() as p:
     page.get_by_role("navigation", name="Main").get_by_role("link", name="Home").click()
     expect(page.get_by_text("GHS 1,572.50")).to_be_visible()
 
+    # Owner pay: money leaves the cash box, profit stays the same
+    expect(page.get_by_text("872.50", exact=True)).to_be_visible()  # 875 - 2.50
+    expect(page.locator(".owner-pay")).to_have_count(0)
+    page.get_by_role("navigation", name="Main").get_by_role("link", name="Record", exact=True).click()
+    page.get_by_role("tab", name="Owner pay").click()
+    expect(page.get_by_text("It is not a business expense")).to_be_visible()
+    page.get_by_label("How much did you take for yourself? (GHS)").fill("100")
+    page.get_by_label("Cash box").check()
+    shot(page, "6b-owner-pay.png")
+    page.get_by_role("button", name="Save owner pay").click()
+    expect(page).to_have_url(BASE + "/")
+    expect(page.get_by_text("Owner pay of GHS 100.00 saved.")).to_be_visible()
+    expect(page.get_by_text("GHS 1,472.50")).to_be_visible()
+    expect(page.get_by_text("872.50", exact=True)).to_be_visible()  # unchanged
+    expect(page.get_by_text("You paid yourself GHS 100.00 this month.")).to_be_visible()
+    page.get_by_role("navigation", name="Main").get_by_role("link", name="Records").click()
+    page.get_by_role("button", name="Owner pay", exact=True).click()
+    expect(page.locator(".txn")).to_have_count(1)
+    expect(page.locator(".txn").first).to_contain_text("100.00")
+    page.get_by_role("navigation", name="Main").get_by_role("link", name="Home").click()
+
     # Reload keeps you logged in; log out and back in
     page.reload()
     expect(page.get_by_text("Ama's Shito & Spices")).to_be_visible()
+    expect(page.get_by_text("GHS 1,472.50")).to_be_visible()
     page.get_by_role("link", name="Business details and log out").click()
     page.get_by_role("button", name="Log out").click()
     expect(page).to_have_url(BASE + "/login")
@@ -115,12 +137,16 @@ with sync_playwright() as p:
     expect(page.get_by_text("Phone number or password is not correct.")).to_be_visible()
     page.get_by_label("Password").fill("shito-2026")
     page.get_by_role("button", name="Log in").click()
-    expect(page.get_by_text("GHS 1,572.50")).to_be_visible()
+    expect(page.get_by_text("GHS 1,472.50")).to_be_visible()
 
     # Narrow phone check: nothing wider than the screen
     page.set_viewport_size({"width": 320, "height": 640})
     overflow = page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
     page.screenshot(path=f"{OUT}/7-home-320.png")
+    page.goto(BASE + "/record/owner_draw")
+    page.wait_for_timeout(300)
+    overflow = overflow or page.evaluate("document.documentElement.scrollWidth > window.innerWidth")
+    page.screenshot(path=f"{OUT}/8-owner-pay-320.png")
     b.close()
 
 print("console errors:", errors)

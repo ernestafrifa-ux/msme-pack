@@ -6,7 +6,7 @@ import { Field, FormError, Icon, ProductPicker } from '../components.jsx';
 import { money, qty, todayGhana } from '../format';
 import { useT } from '../i18n.jsx';
 
-const TABS = ['sale', 'expense', 'purchase', 'transfer'];
+const TABS = ['sale', 'expense', 'purchase', 'transfer', 'owner_draw'];
 const CATEGORY_KIND = { sale: 'income', expense: 'expense' };
 
 function emptyForm(accounts) {
@@ -149,7 +149,7 @@ export default function Record() {
         <span className="icon-btn" aria-hidden="true" />
       </header>
 
-      <div className="segmented segmented-4" role="tablist" aria-label={t('record.type')}>
+      <div className="segmented record-tabs" role="tablist" aria-label={t('record.type')}>
         {TABS.map((k) => (
           <button key={k} role="tab" aria-selected={kind === k} onClick={() => switchTab(k)}>{t(`record.tab.${k}`)}</button>
         ))}
@@ -158,6 +158,7 @@ export default function Record() {
       <form onSubmit={submit} className="stack" noValidate>
         <FormError message={message} />
         {saved && <div className="flash" role="status">{saved}</div>}
+        {kind === 'owner_draw' && <p className="muted small">{t('record.help.owner_draw')}</p>}
 
         {usesProducts && (
           <section className="field" aria-label={isPurchase ? t('record.productsBought') : t('record.productsSold')}>
@@ -291,7 +292,7 @@ export default function Record() {
           </Field>
           <Field label={t('common.noteOptional')} error={errors.note}>
             {(p) => <input {...p} value={form.note} onChange={set('note')}
-              placeholder={kind === 'sale' ? t('record.ph.sale') : isPurchase ? t('record.ph.purchase') : ''} />}
+              placeholder={kind === 'sale' ? t('record.ph.sale') : isPurchase ? t('record.ph.purchase') : kind === 'owner_draw' ? t('record.ph.owner_draw') : ''} />}
           </Field>
         </div>
 

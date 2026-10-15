@@ -192,3 +192,29 @@ test('list with paging and filter, then delete', async () => {
   assert.equal(d.body.summary.expenses, '0.00');
   assert.equal(d.body.accounts.find((a) => a.name === 'Cash box').balance, '500.00'); // 410 + 40 back + 50
 });
+
+test('owner pay leaves the accounts but does not lower profit', async () => {
+  const auth = `Bearer ${ama}`;
+  const before = (await request(app).get(`/api/businesses/${biz}/dashboard`).set('Authorization', auth)).body;
+  assert.equal(before.summary.ownerPay, '0.00');
+
+  let r = await request(app).post(`/api/businesses/${biz}/transactions`).set('Authorization', auth)
+    .send({ kind: 'owner_draw', amount: 120, accountId: cash.id, note: 'weekly pay' });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.equal(r.body.transaction.kind, 'owner_draw');
+
+  r = await request(app).post(`/api/businesses/${biz}/transactions`).set('Authorization', auth)
+    .send({ kind: 'owner_draw', amount: 10, accountId: cash.id, categoryId: transportCat });
+  assert.equal(r.status, 400, 'owner pay takes no category');
+
+  const after = (await request(app).get(`/api/businesses/${biz}/dashboard`).set('Authorization', auth)).body;
+  assert.equal(after.summary.ownerPay, '120.00');
+  assert.equal(after.summary.netProfitEstimate, before.summary.netProfitEstimate, 'profit unchanged');
+  assert.equal(after.summary.expenses, before.summary.expenses);
+  assert.equal(after.accounts.find((a) => a.name === 'Cash box').balance, '380.00'); // 500 − 120
+  assert.equal(Number(after.totalBalance), Number(before.totalBalance) - 120);
+
+  r = await request(app).get(`/api/businesses/${biz}/transactions?kind=owner_draw`).set('Authorization', auth);
+  assert.equal(r.body.transactions.length, 1);
+  assert.equal(r.body.transactions[0].note, 'weekly pay');
+});

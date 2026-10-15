@@ -392,3 +392,9 @@ fieldset.plain { border: none; padding: 0; margin: 0; min-width: 0; }
 .segmented button { white-space: normal; line-height: 1.15; padding: 4px 4px; overflow-wrap: anywhere; hyphens: auto; }
 .segmented.filters { display: flex; flex-wrap: wrap; }
 .segmented.filters button { flex: 1 1 auto; min-width: 64px; padding: 4px 10px; }
+
+/* Record type tabs: five types in two rows (3 + 2) so long Twi labels still fit. */
+.segmented.record-tabs { grid-auto-flow: row; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.segmented.record-tabs button { grid-column: span 2; font-size: 14px; }
+.segmented.record-tabs button:nth-child(n+4) { grid-column: span 3; }
+.owner-pay { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--line, #E6EAE6); color: var(--text, inherit); }
