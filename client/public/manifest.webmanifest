@@ -1,0 +1,12 @@
+{
+  "name": "MSME Pack",
+  "short_name": "MSME Pack",
+  "description": "Keep your business records, see your money, and learn to grow.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F6F2",
+  "theme_color": "#1D5C45",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
