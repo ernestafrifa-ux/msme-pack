@@ -5,6 +5,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 const { todayInGhana, addDays } = require('../src/dates');
 
 const app = createApp();
@@ -20,10 +21,9 @@ before(async () => {
   if (!rows[0].db.endsWith('_test')) throw new Error(`Refusing to run tests against "${rows[0].db}".`);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  token = (await request(app).post('/api/auth/signup').send({ fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' })).body.token;
-  other = (await request(app).post('/api/auth/signup').send({ fullName: 'Kofi', phone: '0209998888', password: 'kofi-pass-1' })).body.token;
-  biz = (await request(app).post('/api/businesses').set('Authorization', `Bearer ${token}`)
-    .send({ name: 'Adom Books', cashOpeningBalance: 500, momo: { provider: 'MTN', openingBalance: 200 } })).body.business.id;
+  token = await userToken(app, { fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' });
+  other = await userToken(app, { fullName: 'Kofi', phone: '0209998888', password: 'kofi-pass-1' });
+  biz = (await createBusinessFor(app, token, { name: 'Adom Books', cashOpeningBalance: 500, momo: { provider: 'MTN', openingBalance: 200 } })).body.business.id;
   const accts = (await api('get', '/accounts')).body.accounts;
   cash = accts.find((a) => a.kind === 'cash').id;
   momo = accts.find((a) => a.kind === 'mobile_money').id;

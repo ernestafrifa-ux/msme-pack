@@ -5,6 +5,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 
 const app = createApp();
 let token, other, biz, firstId, questions;
@@ -20,12 +21,12 @@ before(async () => {
   if (!rows[0].db.endsWith('_test')) throw new Error(`Refusing to run tests against "${rows[0].db}".`);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  let r = await request(app).post('/api/auth/signup').send({ fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' });
+  let r = { body: { token: await userToken(app, { fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' }) } };
   token = r.body.token;
   api = as(token);
-  r = await request(app).post('/api/auth/signup').send({ fullName: 'Kofi', phone: '0209998888', password: 'kofi-pass-1' });
+  r = { body: { token: await userToken(app, { fullName: 'Kofi', phone: '0209998888', password: 'kofi-pass-1' }) } };
   other = r.body.token;
-  r = await api('post', '/businesses', { name: "Ama's Shito" });
+  r = await createBusinessFor(app, token, { name: "Ama's Shito" });
   biz = r.body.business.id;
 });
 after(() => pool.end());
@@ -49,8 +50,7 @@ test('guide library lists all guides, opening one marks it started', async () =>
 });
 
 test('a guide in the user\'s language falls back to English when none exists', async () => {
-  const twi = as((await request(app).post('/api/auth/signup')
-    .send({ fullName: 'Yaw Twi', phone: '0277000111', password: 'yaw-pass-1', preferredLanguage: 'tw' })).body.token);
+  const twi = as(await userToken(app, { fullName: 'Yaw Twi', phone: '0277000111', password: 'yaw-pass-1', preferredLanguage: 'tw' }));
   const r = await twi('get', '/guides/tax-basics');
   assert.equal(r.status, 200);
   assert.equal(r.body.guide.language, 'en');

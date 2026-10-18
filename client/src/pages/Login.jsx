@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
@@ -13,6 +13,8 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
+  useEffect(() => { api('/auth/status').then((d) => setSignupOpen(d.signupOpen)).catch(() => {}); }, []);
 
   async function submit(e) {
     e.preventDefault();
@@ -49,7 +51,9 @@ export default function Login() {
         </Field>
         <button className="btn btn-primary btn-block" disabled={busy}>{busy ? t('login.busy') : t('login.submit')}</button>
       </form>
-      <p className="switch">{t('login.new')} <Link to="/signup">{t('login.create')}</Link></p>
+      {signupOpen
+        ? <p className="switch">{t('login.firstRun')} <Link to="/signup">{t('login.createAdmin')}</Link></p>
+        : <p className="muted small switch">{t('login.noSignup')}</p>}
     </main>
   );
 }

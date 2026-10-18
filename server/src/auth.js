@@ -21,12 +21,23 @@ async function requireAuth(req, res, next) {
     return next(new HttpError(401, 'Your session has ended. Please log in again.'));
   }
   const { rows } = await query(
-    `SELECT id, full_name, phone, email, preferred_language, platform_role
+    `SELECT id, full_name, phone, email, preferred_language, platform_role, must_change_password
        FROM users WHERE id = $1 AND is_active`,
     [payload.sub]
   );
   if (!rows[0]) return next(new HttpError(401, 'Please log in.'));
   req.user = rows[0];
+  // Someone given a temporary password must choose their own before anything else.
+  if (rows[0].must_change_password && !PENDING_OK.has(`${req.method} ${req.originalUrl.split('?')[0]}`)) {
+    return next(new HttpError(403, 'Please choose a new password first.', undefined, 'PASSWORD_CHANGE_REQUIRED'));
+  }
+  next();
+}
+
+const PENDING_OK = new Set(['GET /api/auth/me', 'POST /api/auth/change-password', 'PATCH /api/auth/me']);
+
+function requireAdmin(req, res, next) {
+  if (req.user?.platform_role !== 'admin') return next(new HttpError(403, 'Only the MSME Pack admin can do this.'));
   next();
 }
 
@@ -55,4 +66,4 @@ function requireMember(roles = ['owner', 'manager', 'staff', 'advisor']) {
   };
 }
 
-module.exports = { signToken, requireAuth, requireMember };
+module.exports = { signToken, requireAuth, requireMember, requireAdmin };

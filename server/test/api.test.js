@@ -33,31 +33,31 @@ test('phone numbers are normalised to +233 format', () => {
   assert.equal(normaliseGhanaPhone('0841234567'), null);
 });
 
-test('sign up, reject duplicate, log in', async () => {
-  let r = await request(app).post('/api/auth/signup')
-    .send({ fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' });
-  assert.equal(r.status, 201);
-  assert.equal(r.body.user.phone, '+233241112222');
-  ama = r.body.token;
+let admin;
+const as = (token) => (method, path, body) => {
+  const r = request(app)[method](`/api${path}`).set('Authorization', `Bearer ${token}`);
+  return body === undefined ? r : r.send(body);
+};
+async function chooseOwnPassword(phone, temp, mine) {
+  const t = (await request(app).post('/api/auth/login').send({ phone, password: temp })).body.token;
+  const r = await as(t)('post', '/auth/change-password', { currentPassword: temp, newPassword: mine });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  return (await request(app).post('/api/auth/login').send({ phone, password: mine })).body.token;
+}
 
-  r = await request(app).post('/api/auth/signup')
-    .send({ fullName: 'Ama Again', phone: '+233241112222', password: 'another-pass' });
-  assert.equal(r.status, 409);
+test('the first sign-up makes the admin, then sign-up closes', async () => {
+  assert.equal((await request(app).get('/api/auth/status')).body.signupOpen, true);
+  let r = await request(app).post('/api/auth/signup').send({ fullName: 'Ernest Admin', phone: '0551110000', password: 'admin-pass-1' });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.equal(r.body.user.isAdmin, true);
+  admin = r.body.token;
+  assert.equal((await request(app).get('/api/auth/status')).body.signupOpen, false);
 
+  r = await request(app).post('/api/auth/signup').send({ fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' });
+  assert.equal(r.status, 403, 'anyone with the link can no longer sign up');
   r = await request(app).post('/api/auth/signup').send({ fullName: 'A', phone: '123', password: 'short' });
   assert.equal(r.status, 400);
   assert.ok(r.body.fields.phone && r.body.fields.password && r.body.fields.fullName);
-
-  r = await request(app).post('/api/auth/login').send({ phone: '024 111 2222', password: 'wrong-pass' });
-  assert.equal(r.status, 401);
-
-  r = await request(app).post('/api/auth/login').send({ phone: '024 111 2222', password: 'shito-2026' });
-  assert.equal(r.status, 200);
-  assert.deepEqual(r.body.businesses, []);
-
-  r = await request(app).post('/api/auth/signup')
-    .send({ fullName: 'Kofi Boateng', phone: '0209998888', password: 'kofi-pass-1' });
-  kofi = r.body.token;
 });
 
 test('protected routes need a valid token', async () => {
@@ -65,30 +65,136 @@ test('protected routes need a valid token', async () => {
   assert.equal((await request(app).get('/api/auth/me').set('Authorization', 'Bearer nonsense')).status, 401);
 });
 
-test('create a business with cash and MoMo accounts', async () => {
-  const lookups = await request(app).get('/api/businesses/lookups').set('Authorization', `Bearer ${ama}`);
+test('the admin creates a business with its owner, who must choose a password', async () => {
+  const lookups = await as(admin)('get', '/businesses/lookups');
   assert.equal(lookups.body.regions.length, 16);
-
-  const r = await request(app).post('/api/businesses').set('Authorization', `Bearer ${ama}`).send({
+  const body = {
     name: "Ama's Shito & Spices", sectorCode: 'AGRO', regionCode: 'ASH', town: 'Kumasi',
-    legalForm: 'sole_proprietorship', cashOpeningBalance: 500, momo: { provider: 'MTN', openingBalance: '200' },
-  });
+    legalForm: 'sole_proprietorship', withMoney: true, cashOpeningBalance: 500, momo: { provider: 'MTN', openingBalance: '200' },
+    owner: { fullName: 'Ama Mensah', phone: '024 111 2222' },
+  };
+  let r = await as(admin)('post', '/admin/businesses', body);
+  assert.equal(r.status, 400, 'a new owner needs a temporary password');
+  assert.ok(r.body.fields['owner.password']);
+  r = await as(admin)('post', '/admin/businesses', { ...body, owner: { ...body.owner, password: 'temp-pass-1' } });
   assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.equal(r.body.owner.isNew, true);
   biz = r.body.business.id;
 
-  const me = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${ama}`);
-  assert.equal(me.body.businesses[0].role, 'owner');
+  // The admin does not see the business's records.
+  assert.equal((await as(admin)('get', `/businesses/${biz}/dashboard`)).status, 404);
 
-  const accts = await request(app).get(`/api/businesses/${biz}/accounts`).set('Authorization', `Bearer ${ama}`);
+  r = await request(app).post('/api/auth/login').send({ phone: '024 111 2222', password: 'wrong-pass' });
+  assert.equal(r.status, 401);
+  r = await request(app).post('/api/auth/login').send({ phone: '024 111 2222', password: 'temp-pass-1' });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.user.mustChangePassword, true);
+  const temp = as(r.body.token);
+  r = await temp('get', `/businesses/${biz}`);
+  assert.equal(r.status, 403);
+  assert.equal(r.body.code, 'PASSWORD_CHANGE_REQUIRED');
+  assert.equal((await temp('post', '/auth/change-password', { currentPassword: 'nope', newPassword: 'shito-2026' })).status, 400);
+  assert.equal((await temp('post', '/auth/change-password', { currentPassword: 'temp-pass-1', newPassword: 'temp-pass-1' })).status, 400);
+  ama = await chooseOwnPassword('0241112222', 'temp-pass-1', 'shito-2026');
+
+  const me = await as(ama)('get', '/auth/me');
+  assert.equal(me.body.user.mustChangePassword, false);
+  assert.equal(me.body.businesses[0].role, 'owner');
+  assert.equal(me.body.businesses[0].setupDone, true);
+
+  // Owners cannot create businesses or use the admin screens.
+  assert.equal((await as(ama)('post', '/businesses', { name: 'Second shop' })).status, 403);
+  assert.equal((await as(ama)('get', '/admin/businesses')).status, 403);
+
+  const accts = await as(ama)('get', `/businesses/${biz}/accounts`);
   assert.equal(accts.body.accounts.length, 2);
   cash = accts.body.accounts.find((a) => a.kind === 'cash');
   momo = accts.body.accounts.find((a) => a.kind === 'mobile_money');
   assert.equal(cash.balance, '500.00');
   assert.equal(momo.name, 'MTN MoMo');
 
-  const cats = await request(app).get(`/api/businesses/${biz}/categories`).set('Authorization', `Bearer ${ama}`);
+  const cats = await as(ama)('get', `/businesses/${biz}/categories`);
   transportCat = cats.body.categories.find((c) => c.name === 'Transport').id;
   salesCat = cats.body.categories.find((c) => c.name === 'Product sales').id;
+
+  // Kofi owns another business.
+  r = await as(admin)('post', '/admin/businesses', { name: 'Kofi Electricals', withMoney: true,
+    owner: { fullName: 'Kofi Boateng', phone: '0209998888', password: 'temp-kofi-1' } });
+  assert.equal(r.status, 201);
+  kofi = await chooseOwnPassword('0209998888', 'temp-kofi-1', 'kofi-pass-1');
+});
+
+test('a business created without balances: the owner enters them at first login', async () => {
+  let r = await as(admin)('post', '/admin/businesses', { name: 'Esi Fashions',
+    owner: { fullName: 'Esi Owusu', phone: '0271234567', password: 'temp-esi-01' } });
+  assert.equal(r.status, 201);
+  const esiBiz = r.body.business.id;
+  const esi = as(await chooseOwnPassword('0271234567', 'temp-esi-01', 'esi-pass-01'));
+  r = await esi('get', '/auth/me');
+  assert.equal(r.body.businesses[0].setupDone, false);
+  assert.equal((await esi('get', `/businesses/${esiBiz}/accounts`)).body.accounts.length, 0);
+  r = await esi('post', `/businesses/${esiBiz}/setup`, { cashOpeningBalance: 300, bank: { name: 'GCB', openingBalance: 1000 } });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.business.setupDone, true);
+  assert.equal((await esi('get', `/businesses/${esiBiz}/dashboard`)).body.totalBalance, '1300.00');
+  assert.equal((await esi('post', `/businesses/${esiBiz}/setup`, { cashOpeningBalance: 1 })).status, 409);
+});
+
+test('the owner adds people to the business, and only to it', async () => {
+  const owner = as(ama);
+  let r = await owner('post', `/businesses/${biz}/members`, { fullName: 'Yaa Asantewaa', phone: '0245556666', role: 'staff' });
+  assert.equal(r.status, 400, 'a new person needs a temporary password');
+  r = await owner('post', `/businesses/${biz}/members`, { fullName: 'Yaa Asantewaa', phone: '0245556666', role: 'owner', password: 'temp-yaa-01' });
+  assert.equal(r.status, 400, 'owners are made by the admin');
+  r = await owner('post', `/businesses/${biz}/members`, { fullName: 'Yaa Asantewaa', phone: '0245556666', role: 'staff', password: 'temp-yaa-01' });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.equal(r.body.isNew, true);
+  const yaaId = r.body.members.find((m) => m.fullName === 'Yaa Asantewaa').userId;
+  assert.equal((await owner('post', `/businesses/${biz}/members`, { fullName: 'Yaa', phone: '0245556666', role: 'staff' })).status, 409);
+
+  const yaa = as(await chooseOwnPassword('0245556666', 'temp-yaa-01', 'yaa-pass-01'));
+  r = await yaa('get', '/auth/me');
+  assert.deepEqual(r.body.businesses.map((b) => [b.name, b.role]), [["Ama's Shito & Spices", 'staff']]);
+  assert.equal((await yaa('post', `/businesses/${biz}/transactions`, { kind: 'sale', amount: 5, accountId: cash.id })).status, 201);
+  assert.equal((await yaa('post', `/businesses/${biz}/members`, { fullName: 'X Y', phone: '0240000001', role: 'staff', password: 'temp-pass-9' })).status, 403);
+  assert.equal((await yaa('get', `/businesses/${biz}/members`)).body.members.length, 2);
+  const sale = (await yaa('get', `/businesses/${biz}/transactions`)).body.transactions[0];
+  assert.equal((await owner('delete', `/businesses/${biz}/transactions/${sale.id}`)).status, 204);
+
+  r = await owner('patch', `/businesses/${biz}/members/${yaaId}`, { role: 'manager' });
+  assert.equal(r.body.members.find((m) => m.userId === yaaId).role, 'manager');
+  r = await owner('post', `/businesses/${biz}/members/${yaaId}/reset-password`, { password: 'temp-yaa-02' });
+  assert.equal(r.status, 200);
+  r = await request(app).post('/api/auth/login').send({ phone: '0245556666', password: 'temp-yaa-02' });
+  assert.equal(r.body.user.mustChangePassword, true);
+
+  const amaId = (await owner('get', '/auth/me')).body.user.id;
+  assert.equal((await owner('delete', `/businesses/${biz}/members/${amaId}`)).status, 409, 'not yourself');
+
+  // Someone with an account already (Kofi owns another business) keeps his own password.
+  r = await owner('post', `/businesses/${biz}/members`, { fullName: 'Kofi', phone: '0209998888', role: 'advisor' });
+  assert.equal(r.status, 201);
+  assert.equal(r.body.isNew, false);
+  const kofiId = r.body.members.find((m) => m.phone === '+233209998888').userId;
+  assert.equal((await owner('post', `/businesses/${biz}/members/${kofiId}/reset-password`, { password: 'hijack-pass' })).status, 409);
+  assert.equal((await as(kofi)('get', `/businesses/${biz}/dashboard`)).status, 200);
+  assert.equal((await as(kofi)('post', `/businesses/${biz}/transactions`, { kind: 'sale', amount: 5, accountId: cash.id })).status, 403);
+  assert.equal((await owner('delete', `/businesses/${biz}/members/${kofiId}`)).status, 200);
+});
+
+test('the admin lists businesses, resets passwords and switches accounts off', async () => {
+  const r = await as(admin)('get', '/admin/businesses');
+  assert.equal(r.body.businesses.length, 3);
+  const ama1 = r.body.businesses.find((b) => b.id === biz);
+  assert.equal(ama1.owners[0].fullName, 'Ama Mensah');
+  assert.equal(ama1.people, 2);
+  const yaaId = (await as(ama)('get', `/businesses/${biz}/members`)).body.members.find((m) => m.role === 'manager').userId;
+
+  assert.equal((await as(admin)('patch', `/admin/users/${yaaId}`, { isActive: false })).status, 200);
+  assert.equal((await request(app).post('/api/auth/login').send({ phone: '0245556666', password: 'temp-yaa-02' })).status, 401);
+  await as(admin)('patch', `/admin/users/${yaaId}`, { isActive: true });
+  assert.equal((await as(admin)('post', `/admin/users/${yaaId}/reset-password`, { password: 'temp-yaa-03' })).status, 200);
+  assert.equal((await request(app).post('/api/auth/login').send({ phone: '0245556666', password: 'temp-yaa-03' })).status, 200);
 });
 
 test('another user cannot see or change this business', async () => {

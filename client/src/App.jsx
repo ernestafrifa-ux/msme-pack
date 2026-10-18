@@ -30,6 +30,10 @@ import Loans from './pages/Loans.jsx';
 import LoanDetail from './pages/LoanDetail.jsx';
 import Tax from './pages/Tax.jsx';
 import Registrations from './pages/Registrations.jsx';
+import ChangePassword from './pages/ChangePassword.jsx';
+import NoBusiness from './pages/NoBusiness.jsx';
+import Admin from './pages/Admin.jsx';
+import AdminNewBusiness from './pages/AdminNewBusiness.jsx';
 
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
@@ -66,9 +70,32 @@ export default function App() {
     );
   }
 
+  // A temporary password from the admin or the owner must be replaced first.
+  if (user.mustChangePassword) return <ChangePassword required />;
+
+  const adminRoutes = user.isAdmin ? [
+    <Route key="a" path="/admin" element={<Admin />} />,
+    <Route key="n" path="/admin/new" element={<AdminNewBusiness />} />,
+  ] : [];
+
   if (!business) {
+    if (user.isAdmin) {
+      return (
+        <Routes>
+          {adminRoutes}
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
+      );
+    }
+    return <NoBusiness />;
+  }
+
+  // A business the admin created without balances: the owner enters them first.
+  if (!business.setupDone) {
+    if (business.role !== 'owner') return <NoBusiness waiting />;
     return (
       <Routes>
+        {adminRoutes}
         <Route path="/setup" element={<Setup />} />
         <Route path="*" element={<Navigate to="/setup" replace />} />
       </Routes>
@@ -101,6 +128,8 @@ export default function App() {
       <Route path="/invoices/:invoiceId" element={<Invoice />} />
       <Route path="/invoices/:invoiceId/edit" element={<InvoiceForm />} />
       <Route path="/settings" element={<BusinessDetails />} />
+      <Route path="/settings/password" element={<ChangePassword />} />
+      {adminRoutes}
       <Route path="/health" element={<Health />} />
       <Route path="/health/check" element={<HealthCheck />} />
       <Route path="/learn" element={<Learn />} />

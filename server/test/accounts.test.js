@@ -5,6 +5,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 
 const app = createApp();
 let token, biz;
@@ -18,12 +19,12 @@ before(async () => {
   if (!rows[0].db.endsWith('_test')) throw new Error(`Refusing to run tests against "${rows[0].db}".`);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  token = (await request(app).post('/api/auth/signup').send({ fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' })).body.token;
+  token = await userToken(app, { fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' });
 });
 after(() => pool.end());
 
 test('a bank account can be set up with the business', async () => {
-  const r = await request(app).post('/api/businesses').set('Authorization', `Bearer ${token}`).send({
+  const r = await createBusinessFor(app, token, {
     name: 'Adom Books', cashOpeningBalance: 500, momo: { provider: 'MTN', openingBalance: 200 },
     bank: { name: 'GCB', openingBalance: 1000 },
   });

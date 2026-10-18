@@ -4,6 +4,7 @@
 import os
 import re
 from playwright.sync_api import sync_playwright, expect
+from common import onboard_to_setup, log_out, first_login
 
 BASE = os.environ.get("BASE_URL", "http://localhost:4000")
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshots")
@@ -23,12 +24,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2)
     page.on("pageerror", lambda e: errors.append(str(e)))
 
-    page.goto(BASE + "/signup")
-    page.get_by_label("Your full name").fill("Adwoa Mensah")
-    page.get_by_label("Phone number").fill("0244560077")
-    page.get_by_label("Choose a password").fill("books-2026")
-    page.get_by_role("button", name="Create account").click()
-    page.get_by_label("Business name").fill("Adom Books & Stationery")
+    onboard_to_setup(page, BASE, "Adwoa Mensah", "0244560077", "books-2026", "Adom Books & Stationery")
     page.get_by_label("Cash in the business box today (GHS)").fill("1000")
     expect(page.get_by_text(re.compile("No bank account yet\\? That is fine"))).to_be_visible()
     page.get_by_role("button", name="Start keeping records").click()

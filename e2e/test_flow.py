@@ -5,6 +5,7 @@
 import os
 import re
 from playwright.sync_api import sync_playwright, expect
+from common import ADMIN_PHONE, ADMIN_PASSWORD, admin_creates_business, log_out, first_login
 
 BASE = os.environ.get("BASE_URL", "http://localhost:4000")
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshots")
@@ -27,23 +28,32 @@ with sync_playwright() as p:
 
     page.goto(BASE + "/")
     expect(page).to_have_url(BASE + "/login")
-    page.get_by_role("link", name="Create an account").click()
-    page.get_by_label("Your full name").fill("Ama Mensah")
-    page.get_by_label("Phone number").fill("024 555 0101")
+    # First run: the only sign-up allowed creates the admin
+    page.get_by_role("link", name="Create the admin account").click()
+    page.get_by_label("Your full name").fill("MSME Pack Admin")
+    page.get_by_label("Phone number").fill(ADMIN_PHONE)
     page.get_by_label("Choose a password").fill("short")
     page.get_by_role("button", name="Create account").click()
     expect(page.get_by_text("Use at least 8 characters.")).to_be_visible()
     page.screenshot(path=f"{OUT}/1-signup-error.png")
-    page.get_by_label("Choose a password").fill("shito-2026")
-    page.get_by_label("Language you prefer").select_option("ee")  # no Ewe interface yet: stays English
+    page.get_by_label("Choose a password").fill(ADMIN_PASSWORD)
     page.get_by_role("button", name="Create account").click()
+    expect(page.get_by_role("link", name=re.compile("Set up a new business"))).to_be_visible()
 
+    # The admin sets up the business and its owner (Ewe preferred: no Ewe interface yet, stays English)
+    admin_creates_business(page, BASE, "Ama's Shito & Spices", "Ama Mensah", "024 555 0101", "temp-pass-1",
+                           language="ee", sector="Agro-processing", region="Ashanti", town="Kumasi",
+                           legal="Yes, sole proprietorship")
+    shot(page, "1b-admin.png")
+    log_out(page, BASE)
+
+    # Sign-up is closed now
+    expect(page.get_by_role("link", name="Create the admin account")).to_have_count(0)
+    expect(page.get_by_text(re.compile("Your account is made for you"))).to_be_visible()
+
+    # The owner logs in with the temporary password, chooses her own, then counts the money
+    first_login(page, BASE, "024 555 0101", "temp-pass-1", "shito-2026")
     expect(page).to_have_url(BASE + "/setup")
-    page.get_by_label("Business name").fill("Ama's Shito & Spices")
-    page.get_by_text("Agro-processing", exact=True).click()
-    page.get_by_label("Region").select_option(label="Ashanti")
-    page.get_by_label("Town").fill("Kumasi")
-    page.get_by_text("Yes, sole proprietorship").click()
     page.get_by_label("Cash in the business box today (GHS)").fill("500")
     page.get_by_label("Balance today (GHS)").fill("200")
     shot(page, "2-setup.png")

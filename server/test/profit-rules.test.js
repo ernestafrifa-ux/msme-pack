@@ -6,6 +6,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 
 const app = createApp();
 let token, biz, cash;
@@ -21,9 +22,8 @@ before(async () => {
   if (!rows[0].db.endsWith('_test')) throw new Error(`Refusing to run tests against "${rows[0].db}".`);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  token = (await request(app).post('/api/auth/signup').send({ fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' })).body.token;
-  biz = (await request(app).post('/api/businesses').set('Authorization', `Bearer ${token}`)
-    .send({ name: 'Adom Books', cashOpeningBalance: 500 })).body.business.id;
+  token = await userToken(app, { fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' });
+  biz = (await createBusinessFor(app, token, { name: 'Adom Books', cashOpeningBalance: 500 })).body.business.id;
   cash = (await api('get', '/accounts')).body.accounts[0].id;
   ids.book = (await api('post', '/products', { name: 'Exercise book', costPrice: 10, sellingPrice: 20, openingQty: 50 })).body.product.id;
   ids.copy = (await api('post', '/products', { name: 'Photocopying', kind: 'service', unit: 'page', sellingPrice: 0.5 })).body.product.id;

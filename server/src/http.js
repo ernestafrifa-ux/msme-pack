@@ -1,10 +1,11 @@
 // Small helpers shared by the routes: a typed HTTP error and request validation.
 
 class HttpError extends Error {
-  constructor(status, message, details) {
+  constructor(status, message, details, code) {
     super(message);
     this.status = status;
     this.details = details;
+    this.code = code;
   }
 }
 

@@ -10,6 +10,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 const { sniffAudio } = require('../src/routes/guides');
 
 const app = createApp();
@@ -32,8 +33,8 @@ before(async () => {
   if (!rows[0].db.endsWith('_test')) throw new Error(`Refusing to run tests against "${rows[0].db}".`);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  user = (await request(app).post('/api/auth/signup').send({ fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' })).body.token;
-  admin = (await request(app).post('/api/auth/signup').send({ fullName: 'Content Admin', phone: '0501112222', password: 'admin-pass-1' })).body.token;
+  user = await userToken(app, { fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' });
+  admin = await userToken(app, { fullName: 'Content Admin', phone: '0501112222', password: 'admin-pass-1' });
   await pool.query(`UPDATE users SET platform_role = 'admin' WHERE phone = '+233501112222'`);
 });
 after(async () => {

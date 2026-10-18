@@ -3,6 +3,25 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.12 · 19 October 2026 · Closed sign-up: the admin sets up businesses, owners add their people
+
+- **No more open sign-up.** Anyone who finds the site can no longer create an account. The login page tells new people that their account is made for them.
+- **The first account is the admin.** On a new installation, the login page offers "Create the admin account" until an admin exists (when `ADMIN_PHONES` is set, only those numbers may create it). Numbers in `ADMIN_PHONES` are made admins at every start, as before.
+- **Admin screen** (Settings → MSME Pack admin, or the home screen for an admin with no business of their own):
+  - **Set up a new business**: business details, the owner's name, phone, language and a temporary password. Today's balances can be entered then (sitting with the owner) or left for the owner.
+  - Every business with its owner, number of people, last record and "waiting for owner" until balances are entered.
+  - Give an owner a new temporary password, or switch an account off and on.
+  - The admin does not see any business's records.
+- **Temporary passwords**: anyone given an account (by the admin or an owner) must choose their own password at first login before they can do anything else. "Change my password" is in Settings for everyone.
+- **First login for an owner**: after choosing a password, the owner counts the cash box, MoMo and bank and starts keeping records.
+- **People who use this business** (Settings), for the owner only:
+  - Add a manager, staff member or advisor with their phone number, language and a temporary password. Someone who already has an account keeps their own password.
+  - Change a person's role, give a new temporary password, or remove them. Each person sees only the businesses they were added to.
+  - An owner can reset passwords only for people who use their business alone, so no owner can take over an account used elsewhere.
+- Login protection now counts only failed attempts, so a shop where several people log in is not locked out.
+- The new screens are in English for now.
+- Deploy: database change `010_access_control.sql`. Check that **ADMIN_PHONES** on Railway holds your number: after this version, it is how the admin account is recognised.
+
 ## 0.11 · 19 October 2026 · Registrations: bank account and VAT later
 
 - A business can start with only the cash box and MoMo. Setup now says a bank account and VAT can come later.

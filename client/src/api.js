@@ -2,10 +2,11 @@
 const TOKEN_KEY = 'msme.token';
 
 export class ApiError extends Error {
-  constructor(status, message, fields) {
+  constructor(status, message, fields, code) {
     super(message);
     this.status = status;
     this.fields = fields || {};
+    this.code = code;
   }
 }
 
@@ -52,7 +53,7 @@ export async function api(path, { method = 'GET', body, query } = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 401 && token) onUnauthorized();
-    throw new ApiError(res.status, data.error || 'Something went wrong. Please try again.', data.fields);
+    throw new ApiError(res.status, data.error || 'Something went wrong. Please try again.', data.fields, data.code);
   }
   return data;
 }

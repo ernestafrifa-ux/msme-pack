@@ -42,6 +42,9 @@ export function SessionProvider({ children }) {
       addBusiness(b) {
         setState((s) => ({ ...s, businesses: [...s.businesses, b] }));
       },
+      updateBusiness(b) {
+        setState((s) => ({ ...s, businesses: s.businesses.map((x) => (x.id === b.id ? { ...x, ...b } : x)) }));
+      },
       logout,
       retry: load,
     }),

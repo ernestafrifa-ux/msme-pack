@@ -473,3 +473,10 @@ fieldset.plain { border: none; padding: 0; margin: 0; min-width: 0; }
 .card.stack { gap: 12px; }
 .card.stack > p, .stack-tight > p { margin: 0; }
 .check-row input[type='checkbox'] { min-height: 0; height: 22px; padding: 0; margin: 1px 0 0; flex: none; }
+
+/* People and admin */
+.member-list { list-style: none; margin: 8px 0 12px; padding: 0; }
+.member { display: flex; flex-direction: column; gap: 4px; padding: 10px 0; border-bottom: 1px solid #E3E8E4; }
+.member-main { display: flex; flex-direction: column; }
+.member .asset-actions select { min-height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 0 6px; font-size: 14px; background: var(--surface); }
+.biz-row { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-bottom: 1px solid #E3E8E4; }

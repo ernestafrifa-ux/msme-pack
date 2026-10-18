@@ -9,6 +9,7 @@ import struct
 import subprocess
 import wave
 from playwright.sync_api import sync_playwright, expect
+from common import onboard_to_setup
 
 BASE = os.environ.get("BASE_URL", "http://localhost:4000")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -46,17 +47,12 @@ with sync_playwright() as p:
     page.get_by_role("button", name="Twi", exact=True).click()
     expect(page.get_by_role("heading", name="Akwaaba bio")).to_be_visible()
     expect(page.locator("html")).to_have_attribute("lang", "tw")
-    page.get_by_role("link", name="Bue account").click()
-    expect(page.get_by_role("heading", name="Bue w'account")).to_be_visible()
-    expect(page.get_by_label("Kasa a wopɛ")).to_have_value("tw")
-    page.get_by_label("Wo din nyinaa").fill("Ama Mensah")
-    page.get_by_label("Phone number").fill(PHONE)
-    page.get_by_label("Paw password").fill("shito-2026")
-    shot(page, "t1-signup-twi.png")
-    page.get_by_role("button", name="Bue account").click()
+    shot(page, "t1-login-twi.png")
+    page.get_by_role("button", name="English", exact=True).click()  # the admin works in English
 
-    expect(page.get_by_role("heading", name="Ka w'adwuma ho asɛm kyerɛ yɛn")).to_be_visible()
-    page.get_by_label("Adwuma no din").fill("Ama's Shito & Spices")
+    # Admin sets up the business with a Twi-speaking owner; she logs in and gets Twi
+    onboard_to_setup(page, BASE, "Ama Mensah", PHONE, "shito-2026", "Ama's Shito & Spices", language="tw")
+    expect(page.get_by_role("heading", name="Ama's Shito & Spices")).to_be_visible()
     page.get_by_label("Sika a ɛwɔ adwuma adaka no mu nnɛ (GHS)").fill("100")
     page.get_by_role("button", name="Fi ase kyerɛw akontaa").click()
 

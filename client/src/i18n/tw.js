@@ -62,8 +62,6 @@ export default {
   'login.new': 'Woyɛ foforɔ?',
   'login.create': 'Bue account',
 
-  'signup.title': "Bue w'account",
-  'signup.lead': "Nnwinnadeɛ ne akwankyerɛ a wontua hwee, de boa w'adwuma ma ɛnyini.",
   'signup.name': 'Wo din nyinaa',
   'signup.phoneHint': 'Wode yei na ɛbɛbra mu.',
   'signup.password': 'Paw password',

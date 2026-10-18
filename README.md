@@ -104,6 +104,7 @@ python e2e/test_twi_audio.py         # Twi interface, Twi guides, audio (reset t
 python e2e/test_reports_loans.py     # statements, loans, equipment, bank accounts
 python e2e/test_vat_wht.py           # VAT on invoices, withholding tax, Tax screen
 python e2e/test_registrations.py     # starting without a bank or VAT, registering later
+python e2e/test_people.py            # admin sets up businesses, owner adds staff
 ```
 
 ## Deploying
@@ -179,6 +180,13 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 | DELETE | `/api/guides/:slug/audio/:lang` | Remove a recording (admins) |
 
 `POST /transactions` also accepts `items: [{ productId, quantity, unitPrice }]` for sales and stock purchases (`kind: "purchase"`).
+
+## Who can create accounts
+
+- Sign-up is closed. The only public sign-up creates the **first admin** on a new installation (limited to the numbers in `ADMIN_PHONES` when that is set).
+- The **admin** creates each business with its owner (Settings → MSME Pack admin), resets owners' passwords and switches accounts off. The admin does not see business records.
+- The **owner** adds managers, staff and advisors to their own business (Settings → People who use this business).
+- Accounts made for someone else start with a temporary password, which the API refuses to use for anything except choosing a new one (`PASSWORD_CHANGE_REQUIRED`).
 
 ## How it protects data
 

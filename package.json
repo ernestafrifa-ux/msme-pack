@@ -1,6 +1,6 @@
 {
   "name": "msme-pack",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": true,
   "description": "MSME Enterprise Resource Pack: builds the React app and runs the API that serves it (used by Railway).",
   "engines": {

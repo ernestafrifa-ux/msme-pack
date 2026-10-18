@@ -6,6 +6,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 const { vatOn, vatFromInclusive, whtOn } = require('../src/tax');
 
 const app = createApp();
@@ -22,9 +23,8 @@ before(async () => {
   if (!rows[0].db.endsWith('_test')) throw new Error(`Refusing to run tests against "${rows[0].db}".`);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  token = (await request(app).post('/api/auth/signup').send({ fullName: 'Ama Owusu', phone: '0244111222', password: 'print-2026' })).body.token;
-  biz = (await request(app).post('/api/businesses').set('Authorization', `Bearer ${token}`)
-    .send({ name: 'Owusu Print House', cashOpeningBalance: 1000 })).body.business.id;
+  token = await userToken(app, { fullName: 'Ama Owusu', phone: '0244111222', password: 'print-2026' });
+  biz = (await createBusinessFor(app, token, { name: 'Owusu Print House', cashOpeningBalance: 1000 })).body.business.id;
   cash = (await api('get', '/accounts')).body.accounts[0].id;
   ids.print = (await ok(api('post', '/products', { name: 'Banner printing', kind: 'service', unit: 'job', sellingPrice: 2000 }))).product.id;
   ids.paper = (await ok(api('post', '/products', { name: 'A4 paper ream', costPrice: 10, sellingPrice: 20, openingQty: 200 }))).product.id;

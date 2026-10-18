@@ -5,6 +5,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 const { todayInGhana, addDays } = require('../src/dates');
 
 const app = createApp();
@@ -24,12 +25,11 @@ before(async () => {
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
 
-  let r = await request(app).post('/api/auth/signup').send({ fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' });
+  let r = { body: { token: await userToken(app, { fullName: 'Ama Mensah', phone: '0241112222', password: 'shito-2026' }) } };
   token = r.body.token;
-  r = await request(app).post('/api/auth/signup').send({ fullName: 'Kofi', phone: '0209998888', password: 'kofi-pass-1' });
+  r = { body: { token: await userToken(app, { fullName: 'Kofi', phone: '0209998888', password: 'kofi-pass-1' }) } };
   other = r.body.token;
-  r = await request(app).post('/api/businesses').set('Authorization', `Bearer ${token}`)
-    .send({ name: "Ama's Shito", cashOpeningBalance: 1000, momo: { provider: 'MTN', openingBalance: 0 } });
+  r = await createBusinessFor(app, token, { name: "Ama's Shito", cashOpeningBalance: 1000, momo: { provider: 'MTN', openingBalance: 0 } });
   biz = r.body.business.id;
   const accts = (await api('get', '/accounts')).body.accounts;
   cash = accts.find((a) => a.kind === 'cash').id;

@@ -39,6 +39,7 @@ function createApp() {
 
   app.use('/api/auth', auth.router);
   app.use('/api/businesses', requireAuth, businesses.router);
+  app.use('/api/admin', requireAuth, require('./routes/admin').router);
   app.use('/api/guides', requireAuth, require('./routes/guides').router);
   // Customer-facing invoice links: no login, read-only, rate-limited.
   app.use('/api/public', rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false }),
@@ -69,6 +70,7 @@ function createApp() {
     res.status(status).json({
       error: status >= 500 ? 'Something went wrong on our side. Please try again.' : err.message,
       ...(err.details ? { fields: err.details } : {}),
+      ...(err instanceof HttpError && err.code ? { code: err.code } : {}),
     });
   });
 

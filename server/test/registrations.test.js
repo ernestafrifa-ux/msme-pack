@@ -5,6 +5,7 @@ const request = require('supertest');
 const { createApp } = require('../src/app');
 const { pool } = require('../src/db');
 const { migrate } = require('../db/migrate');
+const { userToken, createBusinessFor } = require('./helpers');
 const { todayInGhana } = require('../src/dates');
 
 const app = createApp();
@@ -21,9 +22,8 @@ before(async () => {
   if (!rows[0].db.endsWith('_test')) throw new Error(`Refusing to run tests against "${rows[0].db}".`);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
   await migrate({ log: () => {} });
-  token = (await request(app).post('/api/auth/signup').send({ fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' })).body.token;
-  biz = (await request(app).post('/api/businesses').set('Authorization', `Bearer ${token}`)
-    .send({ name: 'Adom Books & Stationery', cashOpeningBalance: 1000 })).body.business.id;
+  token = await userToken(app, { fullName: 'Adwoa Mensah', phone: '0244567890', password: 'books-2026' });
+  biz = (await createBusinessFor(app, token, { name: 'Adom Books & Stationery', cashOpeningBalance: 1000 })).body.business.id;
   cash = (await api('get', '/accounts')).body.accounts[0].id;
   await ok(api('post', '/transactions', { kind: 'sale', accountId: cash, amount: 500 }), 201);
 });
@@ -88,6 +88,6 @@ test('VAT: registered with GRA switches VAT on for invoices', async () => {
 });
 
 test('someone outside the business cannot change them', async () => {
-  staff = (await request(app).post('/api/auth/signup').send({ fullName: 'Kojo', phone: '0201112222', password: 'kojo-pass-1' })).body.token;
+  staff = await userToken(app, { fullName: 'Kojo', phone: '0201112222', password: 'kojo-pass-1' });
   assert.equal((await api('patch', '/registrations/bank', { status: 'in_progress' }, staff)).status, 404);
 });

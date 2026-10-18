@@ -60,6 +60,7 @@ function publicBusiness(b, role) {
     email: b.email,
     digitalAddress: b.digital_address,
     vatRegistered: b.vat_registered,
+    setupDone: b.setup_done,
     vatNumber: b.vat_number,
     vatEffectiveDate: b.vat_effective_date,
     tin: b.tin,
@@ -78,50 +79,70 @@ router.get('/lookups', async (req, res) => {
   res.json({ regions: regions.rows, sectors: sectors.rows, languages: languages.rows });
 });
 
-// Create a business, make the current user its owner, and set up the
-// places money is kept (cash box, and MoMo if they use it).
-router.post('/', validate(createSchema), async (req, res) => {
-  const b = req.valid.body;
-  const today = todayInGhana();
-  const business = await withTransaction(async (db) => {
-    const { rows } = await db.query(
-      `INSERT INTO businesses (name, sector_code, region_code, town, legal_form, size_tier, phone, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [b.name, b.sectorCode || null, b.regionCode || null, b.town || null,
-       b.legalForm, b.sizeTier, req.user.phone, req.user.id]
-    );
-    const biz = rows[0];
+// Only the admin creates businesses (see routes/admin.js).
+router.post('/', (req, res) => {
+  throw new HttpError(403, 'Businesses are set up by the MSME Pack admin.');
+});
+
+// Inserts the places money is kept: the cash box, and MoMo and a bank account if used.
+async function addMoneyAccounts(db, businessId, b, today) {
+  await db.query(
+    `INSERT INTO payment_accounts (business_id, name, kind, opening_balance, opening_date, is_default)
+     VALUES ($1, 'Cash box', 'cash', $2, $3, TRUE)`,
+    [businessId, b.cashOpeningBalance || 0, today]
+  );
+  if (b.momo) {
     await db.query(
-      `INSERT INTO business_members (business_id, user_id, role) VALUES ($1, $2, 'owner')`,
-      [biz.id, req.user.id]
+      `INSERT INTO payment_accounts (business_id, name, kind, provider, opening_balance, opening_date)
+       VALUES ($1, $2, 'mobile_money', $3, $4, $5)`,
+      [businessId, `${b.momo.provider} MoMo`, b.momo.provider, b.momo.openingBalance, today]
     );
+  }
+  if (b.bank) {
     await db.query(
-      `INSERT INTO payment_accounts (business_id, name, kind, opening_balance, opening_date, is_default)
-       VALUES ($1, 'Cash box', 'cash', $2, $3, TRUE)`,
-      [biz.id, b.cashOpeningBalance, today]
+      `INSERT INTO payment_accounts (business_id, name, kind, provider, opening_balance, opening_date)
+       VALUES ($1, $2, 'bank', $3, $4, $5)`,
+      [businessId, bankAccountName(b.bank.name), b.bank.name, b.bank.openingBalance, today]
     );
-    if (b.momo) {
-      await db.query(
-        `INSERT INTO payment_accounts (business_id, name, kind, provider, opening_balance, opening_date)
-         VALUES ($1, $2, 'mobile_money', $3, $4, $5)`,
-        [biz.id, `${b.momo.provider} MoMo`, b.momo.provider, b.momo.openingBalance, today]
-      );
-    }
-    if (b.bank) {
-      await db.query(
-        `INSERT INTO payment_accounts (business_id, name, kind, provider, opening_balance, opening_date)
-         VALUES ($1, $2, 'bank', $3, $4, $5)`,
-        [biz.id, bankAccountName(b.bank.name), b.bank.name, b.bank.openingBalance, today]
-      );
-    }
-    await db.query(
-      `INSERT INTO audit_log (business_id, user_id, action, entity, entity_id)
-       VALUES ($1, $2, 'create', 'business', $1)`,
-      [biz.id, req.user.id]
-    );
-    return biz;
+  }
+}
+
+// Creates a business with `ownerId` as its owner. With `withMoney`, today's balances are set
+// now; otherwise the owner enters them at first login.
+async function createBusiness(db, b, { ownerId, ownerPhone, createdBy, withMoney }) {
+  const { rows } = await db.query(
+    `INSERT INTO businesses (name, sector_code, region_code, town, legal_form, size_tier, phone, created_by, setup_done)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+    [b.name, b.sectorCode || null, b.regionCode || null, b.town || null,
+     b.legalForm, b.sizeTier, ownerPhone, createdBy, !!withMoney]
+  );
+  const biz = rows[0];
+  await db.query(
+    `INSERT INTO business_members (business_id, user_id, role, invited_by) VALUES ($1, $2, 'owner', $3)`,
+    [biz.id, ownerId, createdBy]
+  );
+  if (withMoney) await addMoneyAccounts(db, biz.id, b, todayInGhana());
+  await db.query(
+    `INSERT INTO audit_log (business_id, user_id, action, entity, entity_id)
+     VALUES ($1, $2, 'create', 'business', $1)`,
+    [biz.id, createdBy]
+  );
+  return biz;
+}
+
+const setupSchema = createSchema.pick({ cashOpeningBalance: true, momo: true, bank: true });
+
+// The owner's first step on a business the admin created: where money is kept today.
+router.post('/:businessId/setup', requireMember(['owner']), validate(setupSchema), async (req, res) => {
+  const v = req.valid.body;
+  const biz = await withTransaction(async (db) => {
+    const { rows } = await db.query('SELECT * FROM businesses WHERE id = $1 FOR UPDATE', [req.businessId]);
+    if (rows[0].setup_done) throw new HttpError(409, 'This business is already set up.');
+    await addMoneyAccounts(db, req.businessId, v, todayInGhana());
+    const u = await db.query('UPDATE businesses SET setup_done = TRUE, updated_at = now() WHERE id = $1 RETURNING *', [req.businessId]);
+    return u.rows[0];
   });
-  res.status(201).json({ business: publicBusiness(business, 'owner') });
+  res.json({ business: publicBusiness(biz, req.memberRole) });
 });
 
 router.get('/:businessId', requireMember(), async (req, res) => {
@@ -171,5 +192,6 @@ router.use('/:businessId', require('./reports').router);
 router.use('/:businessId', require('./loans').router);
 router.use('/:businessId', require('./tax').router);
 router.use('/:businessId', require('./registrations').router);
+router.use('/:businessId', require('./members').router);
 
-module.exports = { router };
+module.exports = { router, createSchema, createBusiness, publicBusiness };
