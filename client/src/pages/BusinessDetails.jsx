@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
-import { Field, FormError, TopBar } from '../components.jsx';
+import { Link } from 'react-router-dom';
+import { Field, FormError, Icon, TopBar } from '../components.jsx';
 import { useT, UI_LANGUAGES } from '../i18n.jsx';
 import AccountsSection from './AccountsSection.jsx';
 
@@ -48,6 +49,13 @@ export default function BusinessDetails() {
   return (
     <main className="screen">
       <TopBar title="Business details" back="/invoices" />
+      <Link to="/registrations" className="card report-link reg-link">
+        <span className="txn-main">
+          <span className="txn-title wrap">Registrations: bank account &amp; VAT</span>
+          <span className="small muted">No bank account or VAT yet? See what to bring, and switch them on when they are done.</span>
+        </span>
+        <Icon name="chevron" size={18} />
+      </Link>
       <p className="lead">These appear at the top of your invoices.</p>
       {form && (
         <form className="stack" onSubmit={submit} noValidate>

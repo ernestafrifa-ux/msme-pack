@@ -88,6 +88,7 @@ export default {
   'setup.reg.company_ltd_shares': 'Yes, limited company',
   "setup.useBank": "The business has a bank account",
   "setup.bankName": "Bank name",
+  "setup.bankLater": "No bank account yet? That is fine. You can open one later: Settings → Registrations shows what to bring and adds it when it is open. VAT works the same way.",
   "setup.bankNamePh": "e.g. GCB, Ecobank, Fidelity",
   "setup.bankBalance": "Balance today (GHS)",
   "settings.accounts": "Where you keep money",

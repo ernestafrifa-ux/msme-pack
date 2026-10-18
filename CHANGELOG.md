@@ -3,6 +3,20 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.11 · 19 October 2026 · Registrations: bank account and VAT later
+
+- A business can start with only the cash box and MoMo. Setup now says a bank account and VAT can come later.
+- New **Registrations** screen (Settings → Registrations, or Reports → Registrations), with one card each for a **business bank account** and **VAT registration with GRA**:
+  - Status: not started, in progress (since when) or done.
+  - **What to bring**: a checklist of documents (Ghana Card, ORC business registration certificate, TIN, proof of address, photos, first deposit; for VAT also sales records and bank details). Ticks are saved, so the owner can gather them over weeks.
+  - **Does the business have to register for VAT?** The owner says whether it sells goods, services or both (the app suggests "both" when the product list has a service such as photocopying). Services: must register whatever the sales. Goods: the app compares sales for the last 12 months (or the yearly pace for a newer business) with GHS 750,000, shows how close the business is, and warns from 80%.
+  - Steps to register with GRA, and to take to the bank.
+  - **The account is open**: enter the bank and balance, and it is added as a place the business keeps money from today.
+  - **GRA has registered us**: enter the VAT number and start date from the certificate, and VAT switches on for new invoices (the VAT number is also used as the TIN if none was set).
+- A bank account added any other way, or VAT ticked in Business details, shows as done here too.
+- The screen is in English for now.
+- Deploy: database change `009_registrations.sql`.
+
 ## 0.10 · 19 October 2026 · VAT and withholding tax
 
 - **VAT-registered businesses**: tick "registered for VAT" in Settings → Business details. New invoices then add **NHIL 2.5%, GETFund 2.5% and VAT 15%** (20% in all, on the price before tax, as from January 2026) and show each on its own line. It can be switched off for one invoice.

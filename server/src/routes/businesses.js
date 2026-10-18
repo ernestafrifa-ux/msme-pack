@@ -60,6 +60,8 @@ function publicBusiness(b, role) {
     email: b.email,
     digitalAddress: b.digital_address,
     vatRegistered: b.vat_registered,
+    vatNumber: b.vat_number,
+    vatEffectiveDate: b.vat_effective_date,
     tin: b.tin,
     invoicePrefix: b.invoice_prefix,
     role,
@@ -168,5 +170,6 @@ router.use('/:businessId', require('./health').router);
 router.use('/:businessId', require('./reports').router);
 router.use('/:businessId', require('./loans').router);
 router.use('/:businessId', require('./tax').router);
+router.use('/:businessId', require('./registrations').router);
 
 module.exports = { router };

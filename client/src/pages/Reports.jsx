@@ -42,6 +42,15 @@ export default function Reports() {
             <Icon name="chevron" size={18} />
           </Link>
         </li>
+        <li>
+          <Link to="/registrations" className="txn report-link">
+            <span className="txn-main">
+              <span className="txn-title wrap">Registrations: bank account &amp; VAT</span>
+              <span className="small muted">Get ready to open a bank account or register for VAT, step by step.</span>
+            </span>
+            <Icon name="chevron" size={18} />
+          </Link>
+        </li>
       </ul>
     </main>
   );

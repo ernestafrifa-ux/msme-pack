@@ -103,6 +103,7 @@ python e2e/test_health_guides.py     # health check and guides
 python e2e/test_twi_audio.py         # Twi interface, Twi guides, audio (reset the database between each)
 python e2e/test_reports_loans.py     # statements, loans, equipment, bank accounts
 python e2e/test_vat_wht.py           # VAT on invoices, withholding tax, Tax screen
+python e2e/test_registrations.py     # starting without a bank or VAT, registering later
 ```
 
 ## Deploying

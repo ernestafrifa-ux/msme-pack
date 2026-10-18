@@ -142,6 +142,7 @@ export default function Setup() {
           <input type="checkbox" checked={form.useBank} onChange={set('useBank')} />
           {t('setup.useBank')}
         </label>
+        {!form.useBank && <p className="muted small">{t('setup.bankLater')}</p>}
         {form.useBank && (
           <div className="grid-2">
             <Field label={t('setup.bankName')} error={errors['bank.name']}>

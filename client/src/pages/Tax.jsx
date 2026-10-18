@@ -153,8 +153,8 @@ export default function Tax() {
         <>
           {!s.vatRegistered && (
             <p className="muted small">
-              Not registered for VAT. If you are, tick "registered for VAT" in <Link to="/settings">Business details</Link> and
-              new invoices will add NHIL, GETFund and VAT.
+              Not registered for VAT. See whether the business must register, and what to bring, in{' '}
+              <Link to="/registrations">Registrations</Link>. Once GRA registers you, new invoices add NHIL, GETFund and VAT.
             </p>
           )}
 
