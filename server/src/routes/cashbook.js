@@ -337,7 +337,7 @@ const listSchema = z.object({
   from: isoDate.optional(),
   to: isoDate.optional(),
   kind: z.enum(['sale', 'other_income', 'expense', 'purchase', 'transfer', 'owner_draw', 'owner_capital',
-    'loan_received', 'loan_repayment', 'equipment']).optional(),
+    'loan_received', 'loan_repayment', 'equipment', 'wht', 'vat_payment']).optional(),
   accountId: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   // Keyset pagination: pass the last row's date and id to get the next page.

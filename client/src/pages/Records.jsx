@@ -21,14 +21,14 @@ export function TxnRow({ txn, showDate, onDelete }) {
   const dir = txn.isCredit ? 0 : direction(txn.kind);
   const sign = dir > 0 ? '+' : dir < 0 ? '−' : '';
   const kindLabel = txn.isCredit ? t('kind.purchase_credit', { supplier: txn.lender || '' }) : t(`kind.${txn.kind}`);
-  const where = txn.kind === 'transfer' ? `${txn.accountName} → ${txn.toAccountName}` : txn.accountName;
+  const where = txn.kind === 'transfer' ? `${txn.accountName} → ${txn.toAccountName}` : txn.kind === 'wht' ? t('records.whtWhere') : txn.accountName;
   const title = txn.invoiceNumber
     ? `${t('records.payment', { number: txn.invoiceNumber })}${txn.contactName ? ` · ${txn.contactName}` : ''}`
     : txn.itemsSummary || txn.categoryName || txn.assetName || txn.note || kindLabel;
   return (
     <li className="txn">
       <div className={'txn-dot ' + (dir > 0 ? 'in' : dir < 0 ? 'out' : 'move')} aria-hidden="true">
-        <Icon name={dir > 0 ? 'plus' : dir < 0 ? 'minus' : txn.isCredit ? 'box' : 'swap'} size={18} />
+        <Icon name={dir > 0 ? 'plus' : dir < 0 ? 'minus' : txn.isCredit ? 'box' : txn.kind === 'wht' ? 'file' : 'swap'} size={18} />
       </div>
       <div className="txn-main">
         <div className="txn-title">{title}</div>

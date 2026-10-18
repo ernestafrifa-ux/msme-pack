@@ -3,6 +3,17 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.10 · 19 October 2026 · VAT and withholding tax
+
+- **VAT-registered businesses**: tick "registered for VAT" in Settings → Business details. New invoices then add **NHIL 2.5%, GETFund 2.5% and VAT 15%** (20% in all, on the price before tax, as from January 2026) and show each on its own line. It can be switched off for one invoice.
+- **Tax on invoices is not income.** Profit and loss, Home and the balance sheet leave out the tax share of each invoice payment; the balance sheet shows **VAT, NHIL & GETFund owed to GRA**. This also applies to any tax line on older invoices.
+- **Withholding tax on invoice payments**: tick "The customer kept back withholding tax" when recording money received. Buttons suggest goods 3% or services 7.5% of the amount before tax (only above GHS 2,000). The tax withheld settles the invoice, counts as income, moves no money, and appears on the balance sheet as a credit against income tax.
+- New **Reports → Tax** screen: tax charged on invoices for the month, payments to GRA (record them here), what is owed, tax withheld by customers, and a **VAT & WHT calculator** that follows GRA's computation sheet (amount with or before tax, goods or services, what to pay a supplier).
+- Receipts and payments shows "VAT, NHIL & GETFund paid to GRA". Records label withheld tax and VAT payments.
+- The tax guide is updated: 2026 rates, services must register for VAT whatever their sales, goods from GHS 750,000, and withholding tax explained.
+- Not yet covered: VAT on everyday sales recorded without an invoice, and VAT paid on purchases (input VAT).
+- Deploy: database change `008_vat_and_wht.sql`.
+
 ## 0.9 · 19 October 2026 · Bank accounts
 
 - **Bank account at setup**: alongside the cash box and MoMo, tick "The business has a bank account" and enter the bank's name (for example GCB) and today's balance. It appears as "GCB account".

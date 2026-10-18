@@ -59,6 +59,7 @@ function publicBusiness(b, role) {
     phone: b.phone,
     email: b.email,
     digitalAddress: b.digital_address,
+    vatRegistered: b.vat_registered,
     tin: b.tin,
     invoicePrefix: b.invoice_prefix,
     role,
@@ -134,6 +135,7 @@ const settingsSchema = z.object({
   digitalAddress: z.string().trim().max(20).optional().nullable(),
   tin: z.string().trim().max(20).optional().nullable(),
   invoicePrefix: z.string().trim().regex(/^[A-Za-z0-9]{1,8}$/, 'Letters and numbers only, up to 8.').optional(),
+  vatRegistered: z.boolean().optional(),
 });
 
 // Business details shown on invoices (owner and manager).
@@ -145,7 +147,7 @@ router.patch('/:businessId', requireMember(['owner', 'manager']), validate(setti
     v.phone = p;
   }
   const cols = { name: v.name, phone: v.phone, email: v.email, town: v.town,
-    digital_address: v.digitalAddress, tin: v.tin, invoice_prefix: v.invoicePrefix?.toUpperCase() };
+    digital_address: v.digitalAddress, tin: v.tin, invoice_prefix: v.invoicePrefix?.toUpperCase(), vat_registered: v.vatRegistered };
   const sets = [];
   const params = [req.businessId];
   for (const [col, val] of Object.entries(cols)) {
@@ -165,5 +167,6 @@ router.use('/:businessId', require('./invoices').router);
 router.use('/:businessId', require('./health').router);
 router.use('/:businessId', require('./reports').router);
 router.use('/:businessId', require('./loans').router);
+router.use('/:businessId', require('./tax').router);
 
 module.exports = { router };

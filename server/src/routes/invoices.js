@@ -13,6 +13,7 @@ const { requireMember } = require('../auth');
 const { HttpError, validate } = require('../http');
 const { todayInGhana, addDays } = require('../dates');
 const { normaliseGhanaPhone } = require('../phone');
+const { vatOn, TOTAL_RATE } = require('../tax');
 const { refreshInvoiceStatus } = require('../invoiceStatus');
 const { insertTransaction, checkAccounts, checkDate, TXN_SELECT, publicTxn } = require('./cashbook');
 
@@ -103,6 +104,8 @@ const invoiceSchema = z
     discount: money.default(0),
     taxLabel: z.string().trim().max(40).optional().nullable(),
     taxRate: z.coerce.number().min(0).max(100).default(0),
+    // 'vat': NHIL + GETFund + VAT (20%) for VAT-registered businesses; 'custom': taxLabel + taxRate.
+    taxScheme: z.enum(['none', 'vat', 'custom']).optional(),
     notes: z.string().trim().max(1000).optional().nullable(),
     paymentTerms: z.string().trim().max(500).optional().nullable(),
   })
@@ -115,18 +118,35 @@ const invoiceSchema = z
     }
   });
 
+function taxLabelFor(totals, v) {
+  if (totals.scheme === 'vat') return 'VAT, NHIL & GETFund';
+  if (totals.scheme === 'custom') return v.taxLabel || 'Tax';
+  return null;
+}
+
 // All money is worked out here, never trusted from the phone.
-function computeTotals(items, discount, taxRate) {
+function computeTotals(items, discount, taxRate, scheme = taxRate > 0 ? 'custom' : 'none') {
   const cents = (n) => Math.round(n * 100);
   const subtotal = items.reduce((s, i) => s + cents(i.quantity * i.unitPrice), 0);
   if (cents(discount) > subtotal) {
     throw new HttpError(400, 'The discount is more than the invoice total.', { discount: 'Too large.' });
   }
   const taxable = subtotal - cents(discount);
-  const tax = Math.round((taxable * taxRate) / 100);
+  if (scheme === 'vat') {
+    const v = vatOn(taxable / 100);
+    return {
+      scheme, subtotal: subtotal / 100, discount: cents(discount) / 100, taxLabel: 'VAT, NHIL & GETFund',
+      taxRate: TOTAL_RATE, nhil: v.nhil, getfund: v.getfund, vat: v.vat, taxAmount: v.tax, total: v.inclusive,
+    };
+  }
+  const rate = scheme === 'custom' ? taxRate : 0;
+  const tax = Math.round((taxable * rate) / 100);
   return {
+    scheme: rate > 0 ? 'custom' : 'none',
     subtotal: subtotal / 100,
     discount: cents(discount) / 100,
+    taxRate: rate,
+    nhil: 0, getfund: 0, vat: 0,
     taxAmount: tax / 100,
     total: (taxable + tax) / 100,
   };
@@ -217,6 +237,11 @@ async function invoiceDetail(businessId, id) {
     taxLabel: inv.tax_label,
     taxRate: inv.tax_rate,
     taxAmount: inv.tax_amount,
+    taxScheme: inv.tax_scheme,
+    nhil: inv.nhil_amount,
+    getfund: inv.getfund_amount,
+    vat: inv.vat_amount,
+    taxable: (Number(inv.subtotal) - Number(inv.discount)).toFixed(2),
     total: inv.total,
     paid: Number(inv.paid).toFixed(2),
     outstanding: Math.max(0, Number(inv.total) - Number(inv.paid)).toFixed(2),
@@ -282,12 +307,16 @@ router.get('/invoices', canView, validate(listSchema, 'query'), async (req, res)
 // The payment details on the last invoice, so a new one can start with them.
 router.get('/invoices/defaults', canView, async (req, res) => {
   const { rows } = await query(
-    `SELECT payment_terms, tax_label, tax_rate FROM invoices
+    `SELECT payment_terms, tax_label, tax_rate, tax_scheme FROM invoices
       WHERE business_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1`,
     [req.businessId]
   );
+  const { rows: biz } = await query('SELECT vat_registered FROM businesses WHERE id = $1', [req.businessId]);
   const today = todayInGhana();
   res.json({
+    vatRegistered: biz[0].vat_registered,
+    // A VAT-registered business adds VAT unless its last invoice did not.
+    taxScheme: biz[0].vat_registered ? (rows[0] && rows[0].tax_scheme !== 'vat' ? rows[0].tax_scheme : 'vat') : (rows[0]?.tax_scheme === 'custom' ? 'custom' : 'none'),
     issueDate: today,
     dueDate: addDays(today, 14),
     paymentTerms: rows[0]?.payment_terms || '',
@@ -300,7 +329,7 @@ router.post('/invoices', canRecord, validate(invoiceSchema), async (req, res) =>
   const v = req.valid.body;
   const issueDate = v.issueDate || todayInGhana();
   checkDate(issueDate);
-  const totals = computeTotals(v.items, v.discount, v.taxRate);
+  const totals = computeTotals(v.items, v.discount, v.taxRate, v.taxScheme);
   const id = await withTransaction(async (db) => {
     await checkLineProducts(db, req.businessId, v.items);
     const contactId = await resolveContact(db, req.businessId, v);
@@ -314,11 +343,12 @@ router.post('/invoices', canRecord, validate(invoiceSchema), async (req, res) =>
     const { rows } = await db.query(
       `INSERT INTO invoices (business_id, doc_type, number, contact_id, issue_date, due_date, status,
                              subtotal, discount, tax_label, tax_rate, tax_amount, total, notes, payment_terms,
-                             share_token, created_by)
-       VALUES ($1,'invoice',$2,$3,$4,$5,'draft',$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+                             share_token, created_by, tax_scheme, nhil_amount, getfund_amount, vat_amount)
+       VALUES ($1,'invoice',$2,$3,$4,$5,'draft',$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id`,
       [req.businessId, number, contactId, issueDate, v.dueDate || null, totals.subtotal, totals.discount,
-       v.taxRate > 0 ? v.taxLabel || 'Tax' : null, v.taxRate, totals.taxAmount, totals.total,
-       v.notes || null, v.paymentTerms || null, crypto.randomBytes(16).toString('base64url'), req.user.id]
+       taxLabelFor(totals, v), totals.taxRate, totals.taxAmount, totals.total,
+       v.notes || null, v.paymentTerms || null, crypto.randomBytes(16).toString('base64url'), req.user.id,
+       totals.scheme, totals.nhil, totals.getfund, totals.vat]
     );
     await replaceItems(db, rows[0].id, v.items);
     await db.query(
@@ -338,7 +368,7 @@ router.get('/invoices/:invoiceId', canView, async (req, res) => {
 // Edit a draft (replaces customer, dates, items and extras).
 router.put('/invoices/:invoiceId', canRecord, validate(invoiceSchema), async (req, res) => {
   const v = req.valid.body;
-  const totals = computeTotals(v.items, v.discount, v.taxRate);
+  const totals = computeTotals(v.items, v.discount, v.taxRate, v.taxScheme);
   await withTransaction(async (db) => {
     const inv = await loadInvoice(req.businessId, req.params.invoiceId, db);
     if (inv.status !== 'draft') throw new HttpError(409, 'Only draft invoices can be edited.');
@@ -347,11 +377,11 @@ router.put('/invoices/:invoiceId', canRecord, validate(invoiceSchema), async (re
     await db.query(
       `UPDATE invoices SET contact_id = $2, issue_date = $3, due_date = $4, subtotal = $5, discount = $6,
               tax_label = $7, tax_rate = $8, tax_amount = $9, total = $10, notes = $11, payment_terms = $12,
-              updated_at = now()
+              tax_scheme = $13, nhil_amount = $14, getfund_amount = $15, vat_amount = $16, updated_at = now()
         WHERE id = $1`,
       [inv.id, contactId, v.issueDate || inv.issue_date, v.dueDate || null, totals.subtotal, totals.discount,
-       v.taxRate > 0 ? v.taxLabel || 'Tax' : null, v.taxRate, totals.taxAmount, totals.total,
-       v.notes || null, v.paymentTerms || null]
+       taxLabelFor(totals, v), totals.taxRate, totals.taxAmount, totals.total,
+       v.notes || null, v.paymentTerms || null, totals.scheme, totals.nhil, totals.getfund, totals.vat]
     );
     await replaceItems(db, inv.id, v.items);
   });
@@ -378,6 +408,8 @@ router.post('/invoices/:invoiceId/send',
 
 const paymentSchema = z.object({
   amount: z.coerce.number().positive('Enter the amount received.').max(1e11).transform((n) => Math.round(n * 100) / 100),
+  // Withholding tax the customer kept back (they give a WHT certificate). Settles the invoice; no money moves.
+  wht: z.coerce.number().min(0, 'Cannot be negative.').max(1e11).default(0).transform((n) => Math.round(n * 100) / 100),
   accountId: z.uuid('Choose where the money went.'),
   date: isoDate.optional(),
   paymentRef: z.string().trim().max(80).optional().nullable(),
@@ -408,8 +440,11 @@ router.post('/invoices/:invoiceId/payments', canRecord, validate(paymentSchema),
     if (inv.status === 'void') throw new HttpError(409, 'This invoice was cancelled.');
     const outstanding = Math.round((Number(inv.total) - Number(inv.paid)) * 100) / 100;
     if (outstanding <= 0) throw new HttpError(409, 'This invoice is already fully paid.');
-    if (p.amount > outstanding) {
-      throw new HttpError(400, `Only GHS ${outstanding.toFixed(2)} is still owed.`, { amount: `At most ${outstanding.toFixed(2)}.` });
+    if (Math.round((p.amount + p.wht) * 100) > Math.round(outstanding * 100)) {
+      const msg = p.wht > 0
+        ? `Only GHS ${outstanding.toFixed(2)} is still owed. Money received plus tax withheld cannot be more than that.`
+        : `Only GHS ${outstanding.toFixed(2)} is still owed.`;
+      throw new HttpError(400, msg, { amount: `At most ${outstanding.toFixed(2)}${p.wht > 0 ? ' with the tax withheld' : ''}.` });
     }
     if (date < inv.issue_date) {
       throw new HttpError(400, 'The payment date is before the invoice date.', { date: `On or after ${inv.issue_date}.` });
@@ -424,6 +459,13 @@ router.post('/invoices/:invoiceId/payments', canRecord, validate(paymentSchema),
       paymentRef: p.paymentRef, momoFee: p.momoFee, note: p.note || `Payment for ${inv.number}`,
       clientRef: p.clientRef,
     });
+    if (p.wht > 0) {
+      await insertTransaction(db, {
+        businessId: req.businessId, userId: req.user.id, kind: 'wht', date, amount: p.wht,
+        accountId: p.accountId, contactId: inv.contact_id, invoiceId: inv.id,
+        note: `Tax withheld on ${inv.number}`,
+      });
+    }
     await refreshInvoiceStatus(db, inv.id);
   });
   res.status(201).json({ invoice: await invoiceDetail(req.businessId, req.params.invoiceId) });
@@ -482,6 +524,7 @@ publicRouter.get('/invoices/:token', async (req, res) => {
       customer: d.contact ? { name: d.contact.name, phone: d.contact.phone, address: d.contact.address } : null,
       items: d.items.map(({ description, quantity, unitPrice, lineTotal, unit }) => ({ description, quantity, unitPrice, lineTotal, unit })),
       subtotal: d.subtotal, discount: d.discount, taxLabel: d.taxLabel, taxAmount: d.taxAmount,
+      taxScheme: d.taxScheme, nhil: d.nhil, getfund: d.getfund, vat: d.vat, taxable: d.taxable,
       total: d.total, paid: d.paid, outstanding: d.outstanding,
       notes: d.notes, paymentTerms: d.paymentTerms,
     },

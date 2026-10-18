@@ -34,7 +34,7 @@ const businessHeader = (businessId) =>
 const EFFECT_SQL = `
   CASE
     WHEN t.account_id = a.id AND t.kind IN ('sale','other_income','owner_capital','loan_received') THEN t.amount - t.momo_fee
-    WHEN t.account_id = a.id AND t.kind IN ('expense','purchase','owner_draw','transfer','loan_repayment','equipment')
+    WHEN t.account_id = a.id AND t.kind IN ('expense','purchase','owner_draw','transfer','loan_repayment','equipment','vat_payment')
       THEN -(t.amount + t.momo_fee)
     WHEN t.to_account_id = a.id AND t.kind = 'transfer' THEN t.amount
   END`;
@@ -90,6 +90,28 @@ function debtBalances(businessId, asOf) {
   ).then((r) => r.rows.map((d) => ({ ...d, balance: num(d.amount) - num(d.repaid) })));
 }
 
+// Tax at the end of `asOf`: tax charged on invoices sent by then less what was paid to GRA
+// (owed, a liability), and tax customers withheld (a credit against income tax, an asset).
+async function taxPosition(businessId, asOf) {
+  const { rows } = await query(
+    `SELECT
+       (SELECT COALESCE(SUM(tax_amount), 0) FROM invoices
+         WHERE business_id = $1 AND doc_type = 'invoice' AND deleted_at IS NULL
+           AND status NOT IN ('draft', 'void') AND issue_date <= $2) AS charged,
+       (SELECT COALESCE(SUM(amount), 0) FROM transactions
+         WHERE business_id = $1 AND deleted_at IS NULL AND kind = 'vat_payment' AND txn_date <= $2) AS paid,
+       (SELECT COALESCE(SUM(amount), 0) FROM transactions
+         WHERE business_id = $1 AND deleted_at IS NULL AND kind = 'wht' AND txn_date <= $2) AS wht`,
+    [businessId, asOf]
+  );
+  const r = rows[0];
+  return {
+    charged: num(r.charged), paid: num(r.paid),
+    owed: Math.round((num(r.charged) - num(r.paid)) * 100) / 100,
+    whtCredit: num(r.wht),
+  };
+}
+
 // ---- Receipts and payments ---------------------------------------------------
 
 router.get('/reports/receipts-payments', canView, validate(periodSchema, 'query'), async (req, res) => {
@@ -109,7 +131,7 @@ router.get('/reports/receipts-payments', canView, validate(periodSchema, 'query'
          FROM transactions t
          LEFT JOIN categories c ON c.id = t.category_id
         WHERE t.business_id = $1 AND t.deleted_at IS NULL AND t.is_credit = FALSE
-          AND t.kind <> 'transfer' AND t.txn_date BETWEEN $2 AND $3
+          AND t.kind NOT IN ('transfer', 'wht') AND t.txn_date BETWEEN $2 AND $3
         GROUP BY 1, 2, 3
         ORDER BY 1 DESC, 2, SUM(t.amount) DESC`,
       [req.businessId, from, to]
@@ -138,7 +160,7 @@ router.get('/reports/receipts-payments', canView, validate(periodSchema, 'query'
   }
   // Order the lines the way a receipts and payments account reads.
   const RECEIPT_ORDER = ['sale', 'invoice', 'other_income', 'owner_capital', 'loan_received'];
-  const PAYMENT_ORDER = ['purchase', 'expense', 'momo_fees', 'loan_repayment', 'equipment', 'owner_draw'];
+  const PAYMENT_ORDER = ['purchase', 'expense', 'momo_fees', 'vat_payment', 'loan_repayment', 'equipment', 'owner_draw'];
   const sortBy = (order) => (x, y) => order.indexOf(x.line) - order.indexOf(y.line);
   receipts.sort(sortBy(RECEIPT_ORDER));
   payments.sort(sortBy(PAYMENT_ORDER));
@@ -177,11 +199,17 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
   const args = [req.businessId, from, to];
   const [income, expenses, other, cogs, losses, business] = await Promise.all([
     query(
+      // Tax on invoices belongs to GRA, so each payment's share of it is left out.
+      // Tax a customer withheld (wht) settled part of the invoice, so it counts.
       `SELECT CASE WHEN t.invoice_id IS NOT NULL THEN 'invoice' ELSE t.kind END AS line,
-              CASE WHEN t.invoice_id IS NULL THEN c.name END AS category, SUM(t.amount) AS total
+              CASE WHEN t.invoice_id IS NULL THEN c.name END AS category,
+              SUM(t.amount - COALESCE(t.amount * inv.tax_amount / NULLIF(inv.total, 0), 0)) AS total,
+              SUM(COALESCE(t.amount * inv.tax_amount / NULLIF(inv.total, 0), 0)) AS tax,
+              SUM(t.amount) FILTER (WHERE t.kind = 'wht') AS wht
          FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+         LEFT JOIN invoices inv ON inv.id = t.invoice_id
         WHERE t.business_id = $1 AND t.deleted_at IS NULL AND NOT t.is_credit
-          AND t.kind IN ('sale', 'other_income') AND t.txn_date BETWEEN $2 AND $3
+          AND t.kind IN ('sale', 'other_income', 'wht') AND t.txn_date BETWEEN $2 AND $3
         GROUP BY 1, 2 ORDER BY 1 DESC, 3 DESC`,
       args
     ),
@@ -212,7 +240,7 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
             JOIN (SELECT ii.invoice_id, SUM(-m.quantity * COALESCE(m.unit_cost, 0)) AS cost
                     FROM stock_movements m JOIN invoice_items ii ON ii.id = m.invoice_item_id
                    WHERE m.reason = 'sale' GROUP BY ii.invoice_id) ic ON ic.invoice_id = t.invoice_id
-           WHERE t.business_id = $1 AND t.deleted_at IS NULL AND t.kind = 'sale'
+           WHERE t.business_id = $1 AND t.deleted_at IS NULL AND t.kind IN ('sale', 'wht')
              AND t.txn_date BETWEEN $2 AND $3) AS invoiced`,
       args
     ),
@@ -227,7 +255,7 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
   ]);
 
   const incomeLines = income.rows.map((r) => ({ line: r.line, category: r.category, amount: money(r.total) }));
-  const incomeTotal = sum(income.rows, 'total');
+  const incomeTotal = Math.round(sum(income.rows, 'total') * 100) / 100;
   const costOfSales = Math.round((num(cogs.rows[0].direct) + num(cogs.rows[0].invoiced)) * 100) / 100;
   const grossProfit = incomeTotal - costOfSales;
   const o = other.rows[0];
@@ -252,6 +280,9 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
     },
     expenses: expenseLines,
     ownerPay: money(o.owner_pay),
+    // For the notes under the statement.
+    taxLeftOut: money(sum(income.rows, 'tax')),
+    whtIncluded: money(sum(income.rows, 'wht')),
   });
 });
 
@@ -395,7 +426,7 @@ router.get('/reports/sales-by-product', canView, validate(periodSchema, 'query')
 
 router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), async (req, res) => {
   const asOf = req.valid.query.asOf || todayInGhana();
-  const [accounts, stock, invoices, equipment, debts, business] = await Promise.all([
+  const [accounts, stock, invoices, equipment, debts, business, tax] = await Promise.all([
     accountBalances(req.businessId, asOf, asOf),
     query(
       `SELECT COALESCE(SUM(q.qty * q.cost_price), 0) AS value FROM (
@@ -415,6 +446,7 @@ router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), asy
     ),
     debtBalances(req.businessId, asOf),
     businessHeader(req.businessId),
+    taxPosition(req.businessId, asOf),
   ]);
   const cashLines = accounts.map((a) => ({ name: a.name, amount: money(a.closing) }));
   const cashTotal = sum(accounts, 'closing');
@@ -422,9 +454,11 @@ router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), asy
   const debtorsTotal = sum(invoices, 'outstanding');
   const equipmentLines = equipment.rows.map((e) => ({ name: e.name, amount: money(e.current_value) }));
   const equipmentTotal = sum(equipment.rows, 'current_value');
-  const assetsTotal = cashTotal + stockValue + debtorsTotal + equipmentTotal;
+  const whtCredit = tax.whtCredit;
+  const assetsTotal = cashTotal + stockValue + debtorsTotal + equipmentTotal + whtCredit;
   const debtLines = debts.filter((d) => d.balance > 0.004).map((d) => ({ name: d.lender, kind: d.kind, amount: money(d.balance) }));
-  const liabilitiesTotal = sum(debtLines, 'amount');
+  const taxOwed = tax.owed;
+  const liabilitiesTotal = sum(debtLines, 'amount') + taxOwed;
   res.json({
     business, asOf,
     assets: {
@@ -432,11 +466,12 @@ router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), asy
       stock: money(stockValue),
       debtors: money(debtorsTotal),
       equipment: equipmentLines, equipmentTotal: money(equipmentTotal),
+      whtCredit: money(whtCredit),
       total: money(assetsTotal),
     },
-    liabilities: { debts: debtLines, total: money(liabilitiesTotal) },
+    liabilities: { debts: debtLines, taxOwed: money(taxOwed), total: money(liabilitiesTotal) },
     equity: money(assetsTotal - liabilitiesTotal),
   });
 });
 
-module.exports = { router, debtBalances };
+module.exports = { router, debtBalances, taxPosition };

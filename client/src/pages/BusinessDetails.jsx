@@ -21,6 +21,7 @@ export default function BusinessDetails() {
       .then(({ business: b }) => setForm({
         name: b.name, phone: (b.phone || '').replace(/^\+233/, '0'), email: b.email || '', town: b.town || '',
         digitalAddress: b.digitalAddress || '', tin: b.tin || '', invoicePrefix: b.invoicePrefix || 'INV',
+        vatRegistered: !!b.vatRegistered,
       }))
       .catch((err) => setMessage(err.message));
   }, [business.id]);
@@ -75,6 +76,12 @@ export default function BusinessDetails() {
                 {(p) => <input {...p} value={form.tin} onChange={set('tin')} />}
               </Field>
             </div>
+            <label className="check-row top">
+              <input type="checkbox" checked={form.vatRegistered} onChange={(e) => setForm({ ...form, vatRegistered: e.target.checked })} />
+              <span>The business is registered for VAT with GRA
+                <span className="small muted block">New invoices then add NHIL 2.5%, GETFund 2.5% and VAT 15% (20% in all). Businesses that provide services must register whatever their sales; those selling goods must register once sales pass GHS 750,000 a year.</span>
+              </span>
+            </label>
             <Field label="Invoice number starts with" error={errors.invoicePrefix} hint="e.g. INV gives INV-0001">
               {(p) => <input {...p} value={form.invoicePrefix} onChange={set('invoicePrefix')} maxLength={8} />}
             </Field>

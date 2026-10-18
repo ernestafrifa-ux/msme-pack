@@ -56,7 +56,14 @@ export default function InvoicePaper({ business, invoice, customer }) {
       <div className="paper-totals">
         <div><span>Subtotal</span><span>{money(invoice.subtotal)}</span></div>
         {Number(invoice.discount) > 0 && <div><span>Discount</span><span>−{money(invoice.discount)}</span></div>}
-        {Number(invoice.taxAmount) > 0 && <div><span>{invoice.taxLabel || 'Tax'}</span><span>{money(invoice.taxAmount)}</span></div>}
+        {invoice.taxScheme === 'vat' ? (
+          <>
+            {Number(invoice.discount) > 0 && <div><span>Before tax</span><span>{money(invoice.taxable)}</span></div>}
+            <div><span>NHIL (2.5%)</span><span>{money(invoice.nhil)}</span></div>
+            <div><span>GETFund (2.5%)</span><span>{money(invoice.getfund)}</span></div>
+            <div><span>VAT (15%)</span><span>{money(invoice.vat)}</span></div>
+          </>
+        ) : Number(invoice.taxAmount) > 0 && <div><span>{invoice.taxLabel || 'Tax'}</span><span>{money(invoice.taxAmount)}</span></div>}
         <div className="paper-grand"><span>Total (GHS)</span><span>{money(invoice.total)}</span></div>
         {Number(invoice.paid) > 0 && <div><span>Paid</span><span>−{money(invoice.paid)}</span></div>}
         {Number(invoice.paid) > 0 && <div className="paper-strong"><span>Still to pay</span><span>{money(invoice.outstanding)}</span></div>}

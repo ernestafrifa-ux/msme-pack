@@ -19,8 +19,11 @@ export default function BalanceSheet() {
       ...s.assets.cash.map((c) => [`  ${c.name}`, c.amount]),
       [`  ${t('st.bs.stock')}`, s.assets.stock], [`  ${t('st.bs.debtors')}`, s.assets.debtors],
       ...s.assets.equipment.map((e) => [`  ${e.name}`, e.amount]),
+      ...(Number(s.assets.whtCredit) > 0 ? [[`  ${t('st.bs.whtCredit')}`, s.assets.whtCredit]] : []),
       [t('st.bs.totalOwns'), s.assets.total], [],
-      [t('st.bs.owes')], ...s.liabilities.debts.map((d) => [`  ${d.name}`, d.amount]), [t('st.bs.totalOwes'), s.liabilities.total], [],
+      [t('st.bs.owes')], ...s.liabilities.debts.map((d) => [`  ${d.name}`, d.amount]),
+      ...(Number(s.liabilities.taxOwed) !== 0 ? [[`  ${t('st.bs.taxOwed')}`, s.liabilities.taxOwed]] : []),
+      [t('st.bs.totalOwes'), s.liabilities.total], [],
       [t('st.bs.equity'), s.equity],
     ]);
   }
@@ -40,10 +43,12 @@ export default function BalanceSheet() {
               <Row label={t('st.bs.stock')} amount={money(s.assets.stock)} />
               <Row label={t('st.bs.debtors')} amount={money(s.assets.debtors)} />
               {s.assets.equipment.map((e) => <Row key={e.name} label={e.name} amount={money(e.amount)} />)}
+              {Number(s.assets.whtCredit) > 0 && <Row label={t('st.bs.whtCredit')} amount={money(s.assets.whtCredit)} />}
               <Subtotal label={t('st.bs.totalOwns')} amount={money(s.assets.total)} />
               <Head>{t('st.bs.owes')}</Head>
-              {s.liabilities.debts.length ? s.liabilities.debts.map((d) => <Row key={d.name + d.kind} label={`${d.name} (${t(`loans.short.${d.kind}`)})`} amount={money(d.amount)} />)
-                : <Row label={t('rp.none')} amount="0.00" muted />}
+              {s.liabilities.debts.map((d) => <Row key={d.name + d.kind} label={`${d.name} (${t(`loans.short.${d.kind}`)})`} amount={money(d.amount)} />)}
+              {Number(s.liabilities.taxOwed) !== 0 && <Row label={t('st.bs.taxOwed')} amount={money(s.liabilities.taxOwed)} />}
+              {!s.liabilities.debts.length && Number(s.liabilities.taxOwed) === 0 && <Row label={t('rp.none')} amount="0.00" muted />}
               <Subtotal label={t('st.bs.totalOwes')} amount={money(s.liabilities.total)} />
               <Total label={t('st.bs.equity')} amount={money(s.equity)} />
             </tbody></table>

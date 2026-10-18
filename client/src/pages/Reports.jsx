@@ -9,6 +9,7 @@ const STATEMENTS = [
   ['/reports/stock', 'st.stock.title', 'st.stock.what'],
   ['/reports/debtors', 'st.debtors.title', 'st.debtors.what'],
   ['/reports/sales-by-product', 'st.sales.title', 'st.sales.what'],
+  ['/tax', 'st.tax.title', 'st.tax.what'],
 ];
 
 export default function Reports() {

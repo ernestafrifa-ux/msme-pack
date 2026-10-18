@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { Field, FormError, Icon, ProductPicker, TopBar } from '../components.jsx';
 import { money, todayGhana, addDaysIso } from '../format';
+import { vatOn } from '../tax';
 
 let lineKey = 0;
 const newLine = (over = {}) => ({ key: ++lineKey, productId: null, description: '', quantity: 1, unitPrice: '', ...over });
@@ -18,8 +19,9 @@ export default function InvoiceForm() {
   const [customer, setCustomer] = useState({ mode: 'existing', contactId: '', name: '', phone: '' });
   const [form, setForm] = useState({
     issueDate: todayGhana(), dueDate: addDaysIso(todayGhana(), 14), discount: '', taxLabel: '', taxRate: '',
-    notes: '', paymentTerms: '',
+    notes: '', paymentTerms: '', taxScheme: 'none',
   });
+  const [vatRegistered, setVatRegistered] = useState(false);
   const [lines, setLines] = useState([]);
   const [picking, setPicking] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -29,8 +31,10 @@ export default function InvoiceForm() {
 
   useEffect(() => {
     const base = `/businesses/${business.id}`;
-    Promise.all([api(`${base}/contacts`), api(`${base}/products`), editing ? api(`${base}/invoices/${invoiceId}`) : api(`${base}/invoices/defaults`)])
-      .then(([c, p, third]) => {
+    Promise.all([api(`${base}/contacts`), api(`${base}/products`), editing ? api(`${base}/invoices/${invoiceId}`) : null, api(`${base}/invoices/defaults`)])
+      .then(([c, p, detail, defaults]) => {
+        const third = editing ? detail : defaults;
+        setVatRegistered(!!defaults.vatRegistered || (editing && detail.invoice.taxScheme === 'vat'));
         setContacts(c.contacts);
         setProducts(p.products);
         if (!c.contacts.length) setCustomer((s) => ({ ...s, mode: 'new' }));
@@ -42,12 +46,15 @@ export default function InvoiceForm() {
             issueDate: inv.issueDate, dueDate: inv.dueDate || '', discount: Number(inv.discount) ? inv.discount : '',
             taxLabel: inv.taxLabel || '', taxRate: Number(inv.taxRate) ? Number(inv.taxRate) : '',
             notes: inv.notes || '', paymentTerms: inv.paymentTerms || '',
+            taxScheme: inv.taxScheme || (Number(inv.taxRate) ? 'custom' : 'none'),
           });
           setLines(inv.items.map((i) => newLine({ productId: i.productId, description: i.description, quantity: Number(i.quantity), unitPrice: i.unitPrice })));
-          if (Number(inv.taxRate) || inv.notes) setShowMore(true);
+          if (inv.taxScheme === 'custom' || inv.notes) setShowMore(true);
         } else {
-          setForm((f) => ({ ...f, paymentTerms: third.paymentTerms, taxLabel: third.taxLabel, taxRate: third.taxRate || '' }));
-          if (third.taxRate) setShowMore(true);
+          const scheme = third.taxScheme || (third.taxRate ? 'custom' : 'none');
+          setForm((f) => ({ ...f, paymentTerms: third.paymentTerms, taxScheme: scheme,
+            taxLabel: scheme === 'custom' ? third.taxLabel : '', taxRate: scheme === 'custom' ? third.taxRate || '' : '' }));
+          if (scheme === 'custom') setShowMore(true);
         }
       })
       .catch((err) => setMessage(err.message));
@@ -59,7 +66,9 @@ export default function InvoiceForm() {
   const cents = (n) => Math.round(Number(n || 0) * 100);
   const subtotal = lines.reduce((s, l) => s + cents(Number(l.quantity || 0) * Number(l.unitPrice || 0)), 0);
   const taxable = Math.max(0, subtotal - cents(form.discount));
-  const tax = Math.round((taxable * Number(form.taxRate || 0)) / 100);
+  const vat = form.taxScheme === 'vat' ? vatOn(taxable / 100) : null;
+  const customRate = form.taxScheme === 'custom' ? Number(form.taxRate || 0) : 0;
+  const tax = vat ? cents(vat.tax) : Math.round((taxable * customRate) / 100);
   const total = (taxable + tax) / 100;
 
   function addProduct(p) {
@@ -76,8 +85,9 @@ export default function InvoiceForm() {
       dueDate: form.dueDate || null,
       items: lines.map((l) => ({ productId: l.productId, description: l.description, quantity: l.quantity, unitPrice: l.unitPrice || 0 })),
       discount: form.discount || 0,
-      taxLabel: form.taxLabel || null,
-      taxRate: form.taxRate || 0,
+      taxScheme: form.taxScheme,
+      taxLabel: form.taxScheme === 'custom' ? form.taxLabel || null : null,
+      taxRate: form.taxScheme === 'custom' ? form.taxRate || 0 : 0,
       notes: form.notes || null,
       paymentTerms: form.paymentTerms || null,
     };
@@ -207,29 +217,45 @@ export default function InvoiceForm() {
             placeholder="MoMo 024 123 4567 (Ama Mensah)" />}
         </Field>
 
+        {vatRegistered && (
+          <label className="check-row top">
+            <input type="checkbox" checked={form.taxScheme === 'vat'}
+              onChange={(e) => setForm({ ...form, taxScheme: e.target.checked ? 'vat' : 'none' })} />
+            <span>Add VAT, NHIL &amp; GETFund (20%)
+              <span className="small muted block">NHIL 2.5% + GETFund 2.5% + VAT 15% on the price before tax. You pay this to GRA.</span>
+            </span>
+          </label>
+        )}
+
         {showMore ? (
           <>
-            <div className="grid-2">
+            {form.taxScheme !== 'vat' && <div className="grid-2">
               <Field label="Tax name" error={errors.taxLabel} hint="Only if you are registered">
                 {(p) => <input {...p} value={form.taxLabel} onChange={set('taxLabel')} placeholder="e.g. VAT" />}
               </Field>
               <Field label="Tax rate (%)" error={errors.taxRate} hint="Ask your tax office">
                 {(p) => <input {...p} type="number" inputMode="decimal" min="0" max="100" step="0.01" value={form.taxRate}
-                  onChange={set('taxRate')} placeholder="0" />}
+                  onChange={(e) => setForm({ ...form, taxRate: e.target.value, taxScheme: Number(e.target.value) > 0 ? 'custom' : 'none' })} placeholder="0" />}
               </Field>
-            </div>
+            </div>}
             <Field label="Note to customer (optional)" error={errors.notes}>
               {(p) => <textarea {...p} rows={2} value={form.notes} onChange={set('notes')} placeholder="Thank you for your business." />}
             </Field>
           </>
         ) : (
-          <button type="button" className="btn-link align-start" onClick={() => setShowMore(true)}>+ Tax or a note to the customer</button>
+          <button type="button" className="btn-link align-start" onClick={() => setShowMore(true)}>{vatRegistered ? '+ A note to the customer, or another tax' : '+ Tax or a note to the customer'}</button>
         )}
 
         <div className="totals card">
           <div><span>Subtotal</span><span>{money(subtotal / 100)}</span></div>
           {cents(form.discount) > 0 && <div><span>Discount</span><span>−{money(form.discount)}</span></div>}
-          {tax > 0 && <div><span>{form.taxLabel || 'Tax'} ({Number(form.taxRate)}%)</span><span>{money(tax / 100)}</span></div>}
+          {vat ? (
+            <>
+              <div><span>NHIL (2.5%)</span><span>{money(vat.nhil)}</span></div>
+              <div><span>GETFund (2.5%)</span><span>{money(vat.getfund)}</span></div>
+              <div><span>VAT (15%)</span><span>{money(vat.vat)}</span></div>
+            </>
+          ) : tax > 0 && <div><span>{form.taxLabel || 'Tax'} ({Number(form.taxRate)}%)</span><span>{money(tax / 100)}</span></div>}
           <div className="totals-grand"><span>Total</span><span>GHS {money(total)}</span></div>
         </div>
 

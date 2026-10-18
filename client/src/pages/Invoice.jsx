@@ -5,6 +5,7 @@ import { useSession } from '../session.jsx';
 import { Field, FormError, Icon, StatusPill, TopBar } from '../components.jsx';
 import InvoicePaper from '../InvoicePaper.jsx';
 import { money, longDate, todayGhana, friendlyDate, INVOICE_STATUS, whatsappLink } from '../format';
+import { WHT, whtOn } from '../tax';
 
 export default function Invoice() {
   const { invoiceId } = useParams();
@@ -19,7 +20,8 @@ export default function Invoice() {
     location.state?.justSaved ? (location.state.openSend ? 'Saved. Now send it to your customer.' : 'Draft saved.') : ''
   );
   const [paying, setPaying] = useState(false);
-  const [pay, setPay] = useState({ amount: '', accountId: '', date: todayGhana(), paymentRef: '', momoFee: '' });
+  const [pay, setPay] = useState({ amount: '', accountId: '', date: todayGhana(), paymentRef: '', momoFee: '', wht: '' });
+  const [withheld, setWithheld] = useState(false);
   const [payRef, setPayRef] = useState(newClientRef);
   const [payErrors, setPayErrors] = useState({});
   const [payMessage, setPayMessage] = useState('');
@@ -53,7 +55,8 @@ export default function Invoice() {
 
   function startPayment() {
     const def = accounts.find((a) => a.isDefault) || accounts[0];
-    setPay({ amount: inv.outstanding, accountId: def?.id || '', date: todayGhana(), paymentRef: '', momoFee: '' });
+    setPay({ amount: inv.outstanding, accountId: def?.id || '', date: todayGhana(), paymentRef: '', momoFee: '', wht: '' });
+    setWithheld(false);
     setPayRef(newClientRef());
     setPayErrors({});
     setPayMessage('');
@@ -68,7 +71,7 @@ export default function Invoice() {
     try {
       const d = await api(`${base}/invoices/${invoiceId}/payments`, {
         method: 'POST',
-        body: { ...pay, momoFee: pay.momoFee || 0, paymentRef: pay.paymentRef || null, clientRef: payRef },
+        body: { ...pay, momoFee: pay.momoFee || 0, wht: withheld ? pay.wht || 0 : 0, paymentRef: pay.paymentRef || null, clientRef: payRef },
       });
       setInv(d.invoice);
       setPaying(false);
@@ -196,6 +199,43 @@ export default function Invoice() {
                 </Field>
               </div>
             )}
+            <label className="check-row">
+              <input type="checkbox" checked={withheld} onChange={(e) => {
+                setWithheld(e.target.checked);
+                if (!e.target.checked) setPay({ ...pay, wht: '', amount: inv.outstanding });
+              }} />
+              <span>The customer kept back withholding tax</span>
+            </label>
+            {withheld && (() => {
+              // WHT is worked out on the price before VAT, NHIL and GETFund.
+              const owedShare = Number(inv.total) > 0 ? Number(inv.outstanding) / Number(inv.total) : 0;
+              const exclusive = Math.round(Number(inv.taxable ?? inv.total) * owedShare * 100) / 100;
+              const below = Number(inv.taxable ?? inv.total) <= WHT.threshold;
+              const suggest = (kind) => {
+                const w = Math.round(exclusive * WHT[kind]) / 100;
+                setPay({ ...pay, wht: w.toFixed(2), amount: (Number(inv.outstanding) - w).toFixed(2) });
+              };
+              return (
+                <div className="stack">
+                  <p className="muted small">
+                    {below
+                      ? `This invoice is GHS ${money(WHT.threshold)} or less before tax, so customers usually do not withhold tax on it.`
+                      : `Withholding tax is worked out on the amount before tax (GHS ${money(exclusive)} still owed). Ask the customer for the WHT certificate: it counts against your income tax.`}
+                  </p>
+                  {!below && (
+                    <div className="grid-2">
+                      <button type="button" className="btn btn-ghost" onClick={() => suggest('goods')}>Goods 3%: {money(whtOn(exclusive, 'goods'))}</button>
+                      <button type="button" className="btn btn-ghost" onClick={() => suggest('services')}>Services 7.5%: {money(whtOn(exclusive, 'services'))}</button>
+                    </div>
+                  )}
+                  <Field label="Tax withheld (GHS)" error={payErrors.wht}>
+                    {(p) => <input {...p} type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00"
+                      value={pay.wht} onChange={(e) => setPay({ ...pay, wht: e.target.value })} />}
+                  </Field>
+                  <p className="muted small">Money received {money(pay.amount || 0)} + tax withheld {money(pay.wht || 0)} = {money(Number(pay.amount || 0) + Number(pay.wht || 0))} of {money(inv.outstanding)} owed.</p>
+                </div>
+              );
+            })()}
             <Field label="Date" error={payErrors.date}>
               {(p) => <input {...p} type="date" min={inv.issueDate} max={todayGhana()} value={pay.date}
                 onChange={(e) => setPay({ ...pay, date: e.target.value })} />}
@@ -231,12 +271,12 @@ export default function Invoice() {
           <ul className="txn-list">
             {inv.payments.map((p) => (
               <li key={p.id} className="txn">
-                <div className="txn-dot in" aria-hidden="true"><Icon name="plus" size={18} /></div>
+                <div className={'txn-dot ' + (p.kind === 'wht' ? 'move' : 'in')} aria-hidden="true"><Icon name={p.kind === 'wht' ? 'file' : 'plus'} size={18} /></div>
                 <div className="txn-main">
-                  <div className="txn-title">{p.accountName}</div>
-                  <div className="muted small">{friendlyDate(p.date)}{p.paymentRef ? ` · ${p.paymentRef}` : ''}</div>
+                  <div className="txn-title">{p.kind === 'wht' ? 'Tax withheld by customer' : p.accountName}</div>
+                  <div className="muted small">{friendlyDate(p.date)}{p.paymentRef ? ` · ${p.paymentRef}` : ''}{p.kind === 'wht' ? ' · WHT certificate' : ''}</div>
                 </div>
-                <div className="txn-amt pos">+{money(p.amount)}</div>
+                <div className={'txn-amt' + (p.kind === 'wht' ? '' : ' pos')}>{p.kind === 'wht' ? '' : '+'}{money(p.amount)}</div>
               </li>
             ))}
           </ul>

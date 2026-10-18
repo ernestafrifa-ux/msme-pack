@@ -62,6 +62,8 @@ export default function ProfitLoss() {
             {owner > 0 && <p className="paper-muted small">{t('st.pl.ownerPay', { amount: money(owner) })}</p>}
             {owner > 0 && kept < 0 && <p className="warn-text small">{t('st.pl.tooMuch')}</p>}
             <p className="paper-muted small">{t('st.pl.note')}</p>
+            {Number(s.taxLeftOut) > 0 && <p className="paper-muted small">{t('st.pl.taxNote', { amount: money(s.taxLeftOut) })}</p>}
+            {Number(s.whtIncluded) > 0 && <p className="paper-muted small">{t('st.pl.whtNote', { amount: money(s.whtIncluded) })}</p>}
           </article>
           <StatementActions onCsv={csv} />
         </>

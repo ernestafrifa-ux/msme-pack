@@ -28,6 +28,7 @@ import Debtors from './pages/Debtors.jsx';
 import SalesByProduct from './pages/SalesByProduct.jsx';
 import Loans from './pages/Loans.jsx';
 import LoanDetail from './pages/LoanDetail.jsx';
+import Tax from './pages/Tax.jsx';
 
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
@@ -85,6 +86,7 @@ export default function App() {
       <Route path="/reports/stock" element={<StockReport />} />
       <Route path="/reports/debtors" element={<Debtors />} />
       <Route path="/reports/sales-by-product" element={<SalesByProduct />} />
+      <Route path="/tax" element={<Tax />} />
       <Route path="/loans" element={<Loans />} />
       <Route path="/loans/:debtId" element={<LoanDetail />} />
       <Route path="/stock" element={<Stock />} />

@@ -101,6 +101,8 @@ python e2e/test_flow.py              # sign-up and cash book
 python e2e/test_stock_invoices.py    # stock and invoices
 python e2e/test_health_guides.py     # health check and guides
 python e2e/test_twi_audio.py         # Twi interface, Twi guides, audio (reset the database between each)
+python e2e/test_reports_loans.py     # statements, loans, equipment, bank accounts
+python e2e/test_vat_wht.py           # VAT on invoices, withholding tax, Tax screen
 ```
 
 ## Deploying
@@ -243,6 +245,8 @@ The month's estimated profit is money received (sales and other income), minus e
 - **Goods on an invoice**: stock leaves when the invoice is sent, but the cost counts when the customer pays, in proportion to each payment. An unpaid invoice therefore never pulls profit down, and deleting a payment takes its share of the cost back out.
 - **Stock losses**: damaged, expired and own-use stock, and stock-count differences, count at cost price. A count that finds more than the records reduces the losses.
 - **Services** can be sold from the product list; they have no stock and no stock cost.
+- **Tax on invoices** (VAT, NHIL & GETFund, or another tax line) belongs to GRA: each payment's share of it is left out of sales, and the balance sheet shows it as owed until a payment to GRA is recorded.
+- **Withholding tax** a customer kept back is income (a `wht` record that settles the invoice but moves no money); it shows on the balance sheet as a credit against income tax. The rates are in `server/src/tax.js` and `client/src/tax.js` (keep both in step).
 
 If a business doesn't track products, it can record stock it buys as an expense ("Stock / raw materials") instead. Do one or the other for the same goods, not both, or the cost is counted twice.
 
