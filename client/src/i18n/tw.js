@@ -2,6 +2,7 @@
 // (October 2026); all corrections and answers are applied. Save is "Sie" everywhere,
 // Transfer is "Sika a akɔ baabi foforɔ", and months use the Twi names.
 // The owner pay lines were added later and reviewed separately (October 2026).
+// Lines marked "new, to review" (profit note, stock losses) still need the reviewer's check.
 // Business words people already say in English (MoMo, invoice, stock, app,
 // password, network, balance) are kept on purpose.
 // Leave a key out to show the English instead.
@@ -116,7 +117,9 @@ export default {
   'home.expenses': 'Ɛka',
   'home.profit': 'Mfasoɔ (bɛyɛ)',
   'home.ownerPay': 'Wo tua wo ho ka bosome yi: GHS {amount}.',
-  'home.profitNote': 'Sika a ɛbaeɛ, yi ɛka, MoMo charges ne nneɛma a wotɔneeɛ no ka firi mu, bosome yi.',
+  'home.profitNote': 'Sika a ɛbaeɛ, yi ɛka, MoMo charges, nneɛma a wotɔneeɛ no ka ne nneɛma a ayera anaa asɛe firi mu, bosome yi. Nneɛma a ɛwɔ invoice so no ka ba mu bere a adetɔni no tua.', // new, to review
+  'home.stockLoss': 'Nneɛma a asɛe anaa ayera a ne boɔ yɛ GHS {amount} ka ho.', // new, to review
+  'home.stockGain': 'Nneɛma a wohunuu bi ka ho wɔ kan mu a ne boɔ yɛ GHS {amount} ka ho.', // new, to review
   'home.latest': 'Nea wokyerɛw nnansa yi',
   'home.seeAll': 'Hwɛ ne nyinaa',
   'home.empty': 'Wonnya nkyerɛw hwee. Sɛ wotɔn biribi a, mia Adetɔn.',

@@ -87,8 +87,8 @@ test('buying stock adds it and updates the cost price', async () => {
   assert.equal(r.status, 400, 'a stock purchase needs products');
   r = await api('post', '/transactions', { kind: 'expense', accountId: cash, items: [{ productId: ids.shito, quantity: 1, unitPrice: 1 }] });
   assert.equal(r.status, 400, 'expenses cannot list products');
-  r = await api('post', '/transactions', { kind: 'sale', accountId: cash, items: [{ productId: ids.catering, quantity: 1, unitPrice: 100 }] });
-  assert.equal(r.status, 400, 'services are invoiced, not stocked');
+  r = await api('post', '/transactions', { kind: 'purchase', accountId: cash, items: [{ productId: ids.catering, quantity: 1, unitPrice: 100 }] });
+  assert.equal(r.status, 400, 'services cannot be bought as stock');
 });
 
 test('adjustments, made-here stock and a stock count', async () => {
@@ -196,7 +196,9 @@ test('payments: overpaying is refused, part then full payment', async () => {
   // Sales: 280 itemised + 330 invoice payments. Cost of sales: 10×12 + 2×7 (sale) + 10×13 (invoice).
   assert.equal(d.summary.sales, '610.00');
   assert.equal(d.summary.costOfSales, '264.00');
-  assert.equal(d.summary.netProfitEstimate, '345.00'); // 610 − 264 − 1 MoMo fee
+  // Stock losses: 2 damaged jars + 3 short at the count, at 13.00 each = 65.00.
+  assert.equal(d.summary.stockLosses, '65.00');
+  assert.equal(d.summary.netProfitEstimate, '280.00'); // 610 − 264 − 1 MoMo fee − 65 losses
 });
 
 test('deleting a payment makes the invoice owed again; paid invoices cannot be voided', async () => {

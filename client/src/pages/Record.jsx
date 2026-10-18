@@ -51,7 +51,7 @@ export default function Record() {
       .then(([a, c, p]) => {
         setAccounts(a.accounts);
         setCategories(c.categories);
-        setProducts(p.products.filter((x) => x.kind === 'product'));
+        setProducts(p.products);
         // Only fill in the default accounts: keep anything typed while this was loading.
         const defaults = emptyForm(a.accounts);
         setForm((f) => ({
@@ -66,6 +66,11 @@ export default function Record() {
       .catch((err) => setMessage(err.message));
   }, [business.id, location.state?.productId]);
 
+  // Sales can include services (photocopying, repairs); buying stock is for products only.
+  const pickable = useMemo(
+    () => (isPurchase ? products.filter((x) => x.kind === 'product') : products),
+    [products, isPurchase]
+  );
   const cats = useMemo(() => categories.filter((c) => c.kind === CATEGORY_KIND[kind]), [categories, kind]);
   const account = accounts.find((a) => a.id === form.accountId);
   const isMomo = account?.kind === 'mobile_money';
@@ -127,7 +132,7 @@ export default function Record() {
         setClientRef(newClientRef());
         setSaved(msg);
         // Refresh stock numbers shown in the picker.
-        api(`/businesses/${business.id}/products`).then((p) => setProducts(p.products.filter((x) => x.kind === 'product'))).catch(() => {});
+        api(`/businesses/${business.id}/products`).then((p) => setProducts(p.products)).catch(() => {});
       } else {
         navigate('/', { state: { flash: msg } });
       }
@@ -196,14 +201,14 @@ export default function Record() {
               </ul>
             )}
             {picking ? (
-              <ProductPicker products={products} priceField={priceField} onPick={addProduct} onClose={() => setPicking(false)} />
+              <ProductPicker products={pickable} priceField={priceField} onPick={addProduct} onClose={() => setPicking(false)} />
             ) : (
               <button type="button" className="btn btn-ghost btn-block dashed" onClick={() => setPicking(true)}
-                disabled={!products.length}>
+                disabled={!pickable.length}>
                 <Icon name="plus" size={18} /> {lines.length ? t('record.addAnother') : t('record.addProducts')}
               </button>
             )}
-            {!products.length && (
+            {!pickable.length && (
               <p className="muted small">
                 {isPurchase ? t('record.addInStockBuy') : t('record.addInStockSale')}{' '}
                 <Link to="/stock/new">{t('record.goToStock')}</Link>
@@ -220,7 +225,7 @@ export default function Record() {
           </div>
         ) : (
           !isPurchase && (
-            <Field label={usesProducts && products.length ? t('record.amount.orType') : amountLabel} error={errors.amount}>
+            <Field label={usesProducts && pickable.length ? t('record.amount.orType') : amountLabel} error={errors.amount}>
               {(p) => <input {...p} className="amount-input" type="number" inputMode="decimal" min="0" step="0.01"
                 placeholder="0.00" value={form.amount} onChange={set('amount')} autoFocus={!usesProducts} required />}
             </Field>

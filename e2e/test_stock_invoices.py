@@ -94,6 +94,8 @@ with sync_playwright() as p:
     # --- Sale with products ----------------------------------------------------
     nav(page, "Record")
     page.get_by_role("button", name="Add products").click()
+    # Services can be sold from the product list too
+    expect(page.get_by_role("dialog", name="Choose a product").get_by_role("button", name=re.compile("Catering per tray"))).to_be_visible()
     page.get_by_role("dialog", name="Choose a product").get_by_role("button", name=re.compile("Shito 250ml jar")).click()
     page.get_by_role("dialog", name="Choose a product").get_by_role("button", name=re.compile("Ground pepper")).click()
     page.get_by_role("button", name="Done").click()
@@ -107,6 +109,7 @@ with sync_playwright() as p:
     # --- Buy stock -------------------------------------------------------------
     page.get_by_role("link", name="Buy stock").click()
     page.get_by_role("button", name="Add products").click()
+    expect(page.get_by_role("dialog").get_by_role("button", name=re.compile("Catering per tray"))).to_have_count(0)  # not stock
     page.get_by_role("dialog").get_by_role("button", name=re.compile("Ground pepper")).click()
     page.get_by_role("button", name="Done").click()
     page.get_by_label("Quantity of Ground pepper 100g").fill("10")
@@ -186,6 +189,8 @@ with sync_playwright() as p:
     page.get_by_role("button", name="Save count (1 difference)").click()
     expect(page.get_by_text("Stock count saved: 1 item(s) corrected.")).to_be_visible()
     expect(row("Shito 250ml jar").locator(".txn-amt")).to_have_text("17")
+    nav(page, "Home")
+    expect(page.get_by_text(re.compile(r"Includes GHS [0-9.,]+ of damaged or missing stock\."))).to_be_visible()
 
     # --- Records show what happened --------------------------------------------------
     nav(page, "Records")

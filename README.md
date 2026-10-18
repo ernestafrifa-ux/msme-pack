@@ -218,7 +218,12 @@ Guides about tax, SSNIT and registration were checked against GRA and SSNIT info
 
 ## How profit is counted
 
-The month's estimated profit is money received (sales and other income), minus expenses and MoMo charges, minus the cost of products that left stock that month (from itemised sales and sent invoices, at their cost price). Money is counted when it moves; the cost of goods when they leave stock.
+The month's estimated profit is money received (sales and other income), minus expenses and MoMo charges, minus the cost of the goods sold, minus stock losses. Owner pay, transfers and stock purchases are not counted against profit.
+
+- **Goods sold directly** (a sale with products): their cost counts the day of the sale.
+- **Goods on an invoice**: stock leaves when the invoice is sent, but the cost counts when the customer pays, in proportion to each payment. An unpaid invoice therefore never pulls profit down, and deleting a payment takes its share of the cost back out.
+- **Stock losses**: damaged, expired and own-use stock, and stock-count differences, count at cost price. A count that finds more than the records reduces the losses.
+- **Services** can be sold from the product list; they have no stock and no stock cost.
 
 If a business doesn't track products, it can record stock it buys as an expense ("Stock / raw materials") instead. Do one or the other for the same goods, not both, or the cost is counted twice.
 

@@ -284,8 +284,10 @@ router.post('/transactions', canRecord, validate(txnSchema), async (req, res) =>
   if (items) {
     const ids = [...new Set(items.map((i) => i.productId))];
     const { rows } = await query(
-      `SELECT id FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL AND kind = 'product'`,
-      [req.businessId, ids]
+      // A sale can include services (no stock); buying stock is for products only.
+      `SELECT id FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL
+         AND (kind = 'product' OR $3::boolean)`,
+      [req.businessId, ids, t.kind === 'sale']
     );
     if (rows.length !== ids.length) throw new HttpError(400, 'One of the products was not found.', { items: 'Check the products.' });
     total = Math.round(items.reduce((s, i) => s + Math.round(i.quantity * i.unitPrice * 100), 0)) / 100;
@@ -392,7 +394,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
     ),
     query(
       `SELECT sales, other_income, expenses, stock_purchases, momo_fees,
-              cost_of_sales, gross_profit, net_profit_estimate, owner_pay
+              cost_of_sales, gross_profit, net_profit_estimate, owner_pay, stock_losses
          FROM v_monthly_summary WHERE business_id = $1 AND month = $2::date`,
       [req.businessId, monthStart]
     ),
@@ -428,6 +430,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
       grossProfit: s.gross_profit || '0.00',
       netProfitEstimate: s.net_profit_estimate || '0.00',
       ownerPay: Number(s.owner_pay || 0).toFixed(2),
+      stockLosses: Number(s.stock_losses || 0).toFixed(2),
     },
     recent: recent.rows.map(publicTxn),
     lowStock: lowStock.rows.map((p) => ({
