@@ -436,7 +436,8 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
   const [accounts, summary, recent, lowStock, owed] = await Promise.all([
     query(
       `SELECT account_id, account_name, kind, balance FROM v_account_balances
-        WHERE business_id = $1 ORDER BY kind, account_name`,
+        WHERE business_id = $1
+        ORDER BY CASE kind WHEN 'cash' THEN 0 WHEN 'mobile_money' THEN 1 ELSE 2 END, account_name`,
       [req.businessId]
     ),
     query(

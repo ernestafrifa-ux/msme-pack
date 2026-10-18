@@ -51,7 +51,7 @@ function accountBalances(businessId, from, to) {
              AND t.deleted_at IS NULL AND t.is_credit = FALSE AND t.txn_date >= a.opening_date
       WHERE a.business_id = $1 AND a.deleted_at IS NULL AND a.opening_date <= $3
       GROUP BY a.id
-      ORDER BY a.kind, a.name`,
+      ORDER BY CASE a.kind WHEN 'cash' THEN 0 WHEN 'mobile_money' THEN 1 ELSE 2 END, a.created_at`,
     [businessId, from, to]
   ).then((r) => r.rows);
 }

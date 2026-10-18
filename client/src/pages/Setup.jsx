@@ -14,6 +14,7 @@ export default function Setup() {
   const [form, setForm] = useState({
     name: '', sectorCode: '', regionCode: '', town: '', legalForm: 'unregistered',
     cashOpeningBalance: '', useMomo: true, momoProvider: 'MTN', momoOpeningBalance: '',
+    useBank: false, bankName: '', bankOpeningBalance: '',
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -41,6 +42,7 @@ export default function Setup() {
           legalForm: form.legalForm,
           cashOpeningBalance: form.cashOpeningBalance || 0,
           momo: form.useMomo ? { provider: form.momoProvider, openingBalance: form.momoOpeningBalance || 0 } : null,
+          bank: form.useBank ? { name: form.bankName, openingBalance: form.bankOpeningBalance || 0 } : null,
         },
       });
       addBusiness(business);
@@ -132,6 +134,22 @@ export default function Setup() {
             <Field label={t('setup.momoBalance')} error={errors['momo.openingBalance']}>
               {(p) => <input {...p} type="number" inputMode="decimal" min="0" step="0.01"
                 value={form.momoOpeningBalance} onChange={set('momoOpeningBalance')} placeholder="0.00" />}
+            </Field>
+          </div>
+        )}
+
+        <label className="option toggle">
+          <input type="checkbox" checked={form.useBank} onChange={set('useBank')} />
+          {t('setup.useBank')}
+        </label>
+        {form.useBank && (
+          <div className="grid-2">
+            <Field label={t('setup.bankName')} error={errors['bank.name']}>
+              {(p) => <input {...p} value={form.bankName} onChange={set('bankName')} placeholder={t('setup.bankNamePh')} />}
+            </Field>
+            <Field label={t('setup.bankBalance')} error={errors['bank.openingBalance']}>
+              {(p) => <input {...p} type="number" inputMode="decimal" min="0" step="0.01"
+                value={form.bankOpeningBalance} onChange={set('bankOpeningBalance')} placeholder="0.00" />}
             </Field>
           </div>
         )}

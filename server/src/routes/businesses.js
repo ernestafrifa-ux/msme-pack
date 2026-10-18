@@ -32,7 +32,19 @@ const createSchema = z.object({
     })
     .optional()
     .nullable(),
+  bank: z
+    .object({
+      name: z.string().trim().min(2, 'Enter the bank name.').max(50),
+      openingBalance: money.default(0),
+    })
+    .optional()
+    .nullable(),
 });
+
+// "GCB" -> "GCB account"; "Ecobank" -> "Ecobank account"; "GCB Bank" stays "GCB Bank".
+function bankAccountName(name) {
+  return /\b(bank|account)\b/i.test(name) ? name : `${name} account`;
+}
 
 function publicBusiness(b, role) {
   return {
@@ -90,6 +102,13 @@ router.post('/', validate(createSchema), async (req, res) => {
         `INSERT INTO payment_accounts (business_id, name, kind, provider, opening_balance, opening_date)
          VALUES ($1, $2, 'mobile_money', $3, $4, $5)`,
         [biz.id, `${b.momo.provider} MoMo`, b.momo.provider, b.momo.openingBalance, today]
+      );
+    }
+    if (b.bank) {
+      await db.query(
+        `INSERT INTO payment_accounts (business_id, name, kind, provider, opening_balance, opening_date)
+         VALUES ($1, $2, 'bank', $3, $4, $5)`,
+        [biz.id, bankAccountName(b.bank.name), b.bank.name, b.bank.openingBalance, today]
       );
     }
     await db.query(

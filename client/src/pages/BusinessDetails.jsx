@@ -3,6 +3,7 @@ import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { Field, FormError, TopBar } from '../components.jsx';
 import { useT, UI_LANGUAGES } from '../i18n.jsx';
+import AccountsSection from './AccountsSection.jsx';
 
 export default function BusinessDetails() {
   const { business, logout } = useSession();
@@ -81,6 +82,8 @@ export default function BusinessDetails() {
           </fieldset>
         </form>
       )}
+      <AccountsSection />
+
       <section className="card lang-card">
         <h2>{t('settings.language')}</h2>
         <p className="muted small">{t('settings.languageHint')}</p>

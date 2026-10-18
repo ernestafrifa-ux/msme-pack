@@ -86,6 +86,24 @@ export default {
   'setup.reg.sole_proprietorship': 'Aane, me nko ara dea',
   'setup.reg.partnership': 'Aane, yɛn mmienu anaa nea ɛboro saa',
   'setup.reg.company_ltd_shares': 'Aane, limited company',
+  "setup.useBank": "Adwuma no wɔ bank account", // new, to review
+  "setup.bankName": "Bank no din", // new, to review
+  "setup.bankNamePh": "sɛ GCB, Ecobank, Fidelity", // new, to review
+  "setup.bankBalance": "Ɛnnɛ Balance (GHS)", // new, to review
+  "settings.accounts": "Baabi a wode sika no sie", // new, to review
+  "settings.accountsLead": "Fa bank account, MoMo number foforɔ anaa sika adaka foforɔ ka ho bere biara. Ne balance fi ase ɛnnɛ.", // new, to review
+  "settings.addAccount": "Fa bank account anaa MoMo ka ho", // new, to review
+  "settings.kind": "Ɛyɛ deɛn?", // new, to review
+  "settings.kind.bank": "Bank account",
+  "settings.kind.mobile_money": "Mobile Money",
+  "settings.kind.cash": "Sika adaka", // new, to review
+  "settings.accName": "Din", // new, to review
+  "settings.bankHint": "Ɛbɛda adi sɛ, nhwɛsoɔ, \"GCB account\".", // new, to review
+  "settings.momoHint": "sɛ Telecel MoMo, anaa MTN MoMo 2", // new, to review
+  "settings.cashHint": "sɛ sotoo a ɛtɔ so mmienu sika adaka", // new, to review
+  "settings.lastDigits": "Nnoma 4 a ɛdi akyire (sɛ wopɛ a)", // new, to review
+  "settings.accSave": "Fa ka ho", // new, to review
+  "settings.accSaved": "Woafa {name} aka ho. Paw no bere a wokyerɛw sika a ɛbaeɛ anaa ɛkɔeɛ.", // new, to review
   'setup.money': 'Baabi a wode sika no sie',
   'setup.cash': 'Sika a ɛwɔ adwuma adaka no mu nnɛ (GHS)',
   'setup.cashHint': 'Kan no seesei. Sɛ biribiara nni mu a, gyae no hɔ.',

@@ -44,7 +44,13 @@ with sync_playwright() as p:
     page.get_by_label("Choose a password").fill("shito-2026")
     page.get_by_role("button", name="Create account").click()
     page.get_by_label("Business name").fill("Ama's Shito & Spices")
+    # Set up with a bank account too
+    page.get_by_text("The business has a bank account").click()
+    page.get_by_label("Bank name").fill("Ecobank")
+    page.get_by_label("Balance today (GHS)").nth(1).fill("250")
+    shot(page, "h0-setup-bank.png")
     page.get_by_role("button", name="Start keeping records").click()
+    expect(page.locator(".money-account", has_text="Ecobank account")).to_contain_text("250.00")
 
     # Home invites the check
     page.get_by_role("link", name=re.compile("How healthy is your business")).click()

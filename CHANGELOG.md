@@ -3,6 +3,15 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.9 · 19 October 2026 · Bank accounts
+
+- **Bank account at setup**: alongside the cash box and MoMo, tick "The business has a bank account" and enter the bank's name (for example GCB) and today's balance. It appears as "GCB account".
+- **Add accounts later**: Settings → **Where you keep money** lists every account with its balance and adds a bank account, another MoMo number or a second cash box at any time (its balance starts from that day).
+- A bank account works everywhere the cash box and MoMo do: recording sales and expenses, transfers, invoice payments, loans and all the reports.
+- Home and the reports list accounts as cash box, MoMo, then bank. With three accounts, the third card on Home spans the full width.
+- New Twi lines for setup and Settings are waiting for review.
+- Deploy: no database change.
+
 ## 0.8.1 · 19 October 2026 · Owner pay on the profit and loss
 
 - The profit and loss statement now shows owner pay **after** the net profit, then **Profit kept in the business** (net profit − owner pay), with a plain explanation that owner pay comes out of the profit rather than being a cost.

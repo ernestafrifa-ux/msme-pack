@@ -140,9 +140,24 @@ with sync_playwright() as p:
     expect(page.get_by_text(re.compile("Bought on credit from Kejetia Wholesale"))).to_be_visible()
     expect(page.get_by_text(re.compile("^Loan repayment"))).to_be_visible()
 
+    # Add a bank account later in Settings: GCB with GHS 300
+    page.goto(BASE + "/settings")
+    page.get_by_role("button", name="Add a bank account or MoMo").click()
+    page.get_by_label("Bank name").fill("GCB")
+    page.get_by_label("Balance today (GHS)").fill("300")
+    page.get_by_role("button", name="Add", exact=True).click()
+    expect(page.get_by_text("GCB account added.", exact=False)).to_be_visible()
+    shot(page, "r9-settings-accounts.png")
+    page.goto(BASE + "/")
+    expect(page.get_by_text("GHS 1,490.00")).to_be_visible()
+    expect(page.locator(".money-account", has_text="GCB account")).to_contain_text("300.00")
+    shot(page, "r10-home-bank.png")
+    page.goto(BASE + "/record/expense")
+    expect(page.get_by_label("GCB account")).to_be_visible()
+
     overflow = {}
     page.set_viewport_size({"width": 320, "height": 640})
-    for path in ["/reports", "/reports/profit-loss", "/reports/balance-sheet", "/reports/stock", "/reports/debtors",
+    for path in ["/", "/settings", "/reports", "/reports/profit-loss", "/reports/balance-sheet", "/reports/stock", "/reports/debtors",
                  "/reports/sales-by-product", "/loans", "/record/purchase"]:
         page.goto(BASE + path)
         page.wait_for_timeout(400)
