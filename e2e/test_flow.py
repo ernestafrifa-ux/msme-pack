@@ -130,6 +130,12 @@ with sync_playwright() as p:
     expect(page.locator(".statement-table .total")).to_contain_text("1,472.50")
     expect(page.get_by_role("alert")).to_have_count(0)
     shot(page, "6c-receipts-payments.png")
+    # Profit and loss shows owner pay after the profit, and what stays in the business
+    page.goto(BASE + "/reports/profit-loss")
+    expect(page.locator(".statement-table .total")).to_contain_text("872.50")
+    expect(page.get_by_text("Less: owner pay (what you took for yourself)")).to_be_visible()
+    expect(page.locator(".statement-table tr", has_text="Profit kept in the business")).to_contain_text("772.50")
+    shot(page, "6d-profit-loss.png")
     page.goto(BASE + "/records")
     page.get_by_role("navigation", name="Main").get_by_role("link", name="Home").click()
 

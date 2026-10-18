@@ -3,6 +3,12 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.8.1 · 19 October 2026 · Owner pay on the profit and loss
+
+- The profit and loss statement now shows owner pay **after** the net profit, then **Profit kept in the business** (net profit − owner pay), with a plain explanation that owner pay comes out of the profit rather than being a cost.
+- If the owner took out more than the business made, the line reads "Taken out beyond the profit" with a short warning.
+- Deploy: no database change.
+
 ## 0.8 · 19 October 2026 · Financial statements, loans and equipment
 
 - New **Reports** screen (Records → Reports) with six statements, each for a month or chosen dates, printable or saved as PDF, and downloadable for a spreadsheet:
