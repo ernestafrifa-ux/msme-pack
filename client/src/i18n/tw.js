@@ -3,6 +3,7 @@
 // Transfer is "Sika a akɔ baabi foforɔ", and months use the Twi names.
 // The owner pay lines were added later and reviewed separately (October 2026).
 // The profit note and stock-loss lines were reviewed and approved separately (October 2026).
+// Lines marked "new, to review" (receipts and payments account) still need the reviewer's check.
 // Business words people already say in English (MoMo, invoice, stock, app,
 // password, network, balance) are kept on purpose.
 // Leave a key out to show the English instead.
@@ -185,6 +186,40 @@ export default {
   'picker.inStock': '{qty} {unit} wɔ hɔ',
   'picker.none': 'Biribiara nhyia. Fa nneɛma hyɛ Nneɛma mu.',
 
+  // Receipts and payments account
+  'rp.title': 'Sika a ɛbaeɛ ne sika a ɛkɔeɛ', // new, to review
+  'rp.statement': 'Sika a ɛbaeɛ ne sika a ɛkɔeɛ akontaa', // new, to review
+  'rp.period': '{from} kɔsi {to}', // new, to review
+  'rp.prev': 'Bosome a atwam', // new, to review
+  'rp.next': 'Bosome a ɛdi hɔ', // new, to review
+  'rp.choose': 'Paw nna', // new, to review
+  'rp.byMonth': 'San kɔ bosome', // new, to review
+  'rp.from': 'Firi',
+  'rp.to': 'Kɔsi', // new, to review
+  'rp.bf': 'Sika a na wowɔ mfiase', // new, to review
+  'rp.atSetup': 'da a wofii ase {date}', // new, to review
+  'rp.totalBf': 'Mfiase sika nyinaa', // new, to review
+  'rp.receipts': 'Sika a ɛbaeɛ',
+  'rp.totalReceipts': 'Sika a ɛbaeɛ nyinaa', // new, to review
+  'rp.available': 'Sika a na ɛwɔ hɔ nyinaa', // new, to review
+  'rp.payments': 'Sika a ɛkɔeɛ',
+  'rp.totalPayments': 'Sika a ɛkɔeɛ nyinaa', // new, to review
+  'rp.cf': 'Sika a aka awieeɛ', // new, to review
+  'rp.totalCf': 'Awieeɛ sika nyinaa', // new, to review
+  'rp.line.sale': 'Adetɔn',
+  'rp.line.invoice': 'Adetɔfoɔ a wɔtuaa invoice', // new, to review
+  'rp.line.other_income': 'Sika foforɔ a ɛbaeɛ',
+  'rp.line.owner_capital': 'Sika a wode hyɛɛ mu',
+  'rp.line.purchase': 'Nneɛma a wotɔeɛ',
+  'rp.line.expense': 'Ɛka',
+  'rp.line.momo_fees': 'MoMo charges',
+  'rp.line.owner_draw': 'Wo ho akatua',
+  'rp.none': 'Biribiara nni hɔ', // new, to review
+  'rp.transfers': "Sika a wotuu firi w'akontaa baako mu kɔɔ foforɔ mu (GHS {amount}) nnyɛ sika a ɛbaeɛ anaa ɛkɔeɛ, enti ɛnka ho.", // new, to review
+  'rp.check': 'Sika a na wowɔ mfiase + sika a ɛbaeɛ − sika a ɛkɔeɛ = sika a aka awieeɛ.', // new, to review
+  'rp.unbalanced': 'Akontaa yi nhyia. Yɛsrɛ wo, ka kyerɛ MSME Pack kuo no.', // new, to review
+  'rp.print': 'Print anaa sie sɛ PDF', // new, to review
+  'rp.csv': 'Twe sɛ spreadsheet (CSV)', // new, to review
   'records.title': 'Akontaa',
   'records.show': 'Kyerɛ',
   'records.all': 'Ne nyinaa',

@@ -398,3 +398,23 @@ fieldset.plain { border: none; padding: 0; margin: 0; min-width: 0; }
 .segmented.record-tabs button { grid-column: span 2; font-size: 14px; }
 .segmented.record-tabs button:nth-child(n+4) { grid-column: span 3; }
 .owner-pay { margin: 8px 0 0; padding-top: 8px; border-top: 1px solid var(--line, #E6EAE6); color: var(--text, inherit); }
+
+/* ---- Receipts and payments account ------------------------------------- */
+.month-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.month-step-label { flex: 1; text-align: center; font-weight: 600; }
+.month-step .icon-btn:disabled { opacity: .35; }
+.statement { margin-top: 14px; }
+.statement-head { text-align: center; margin-bottom: 14px; }
+.statement-head h1 { font-size: 18px; margin: 4px 0; }
+.statement-biz { font-weight: 700; font-size: 16px; }
+.statement-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.statement-table td, .statement-table th { padding: 5px 0; vertical-align: top; }
+.statement-table th { text-align: left; padding-top: 14px; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; color: #4A5A52; }
+.statement-table .indent { padding-left: 12px; padding-right: 8px; }
+.statement-table .num { text-align: right; white-space: nowrap; }
+.statement-table .subtotal td { font-weight: 600; border-top: 1px solid #C9D2CC; }
+.statement-table .total td { font-weight: 700; border-top: 1px solid #16211C; border-bottom: 3px double #16211C; }
+@media print {
+  .statement { margin: 0; }
+  .screen { padding: 0; max-width: none; }
+}

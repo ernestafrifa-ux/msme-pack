@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { useT, DraftLanguageBanner } from '../i18n.jsx';
@@ -107,7 +108,10 @@ export default function Records() {
   return (
     <>
       <main className="screen with-nav">
-        <h1>{t('records.title')}</h1>
+        <div className="card-head">
+          <h1>{t('records.title')}</h1>
+          <Link to="/records/receipts-payments" className="small">{t('rp.title')}</Link>
+        </div>
         <DraftLanguageBanner />
         <div className="segmented filters" role="group" aria-label={t('records.show')}>
           {FILTERS.map(([value, key]) => (

@@ -216,6 +216,10 @@ After editing, run `npm run migrate` in `server`. It loads the changes and is sa
 
 Guides about tax, SSNIT and registration were checked against GRA and SSNIT information in October 2026. Rules change, so review them at least once a year and update the `reviewed` date.
 
+## Receipts and payments account
+
+Records → **Receipts & payments** shows a cash statement for a month or chosen dates: balance brought forward, receipts, payments and balance carried forward, per account (`GET /api/businesses/:id/reports/receipts-payments?from=&to=`). It is built from the cash book, so the closing total always equals Home's money. Transfers between the business's own accounts are noted but not counted. It prints cleanly (or saves as PDF) and downloads as CSV.
+
 ## How profit is counted
 
 The month's estimated profit is money received (sales and other income), minus expenses and MoMo charges, minus the cost of the goods sold, minus stock losses. Owner pay, transfers and stock purchases are not counted against profit.

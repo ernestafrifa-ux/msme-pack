@@ -3,6 +3,14 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.7 · 19 October 2026 · Receipts and payments account
+
+- New **Receipts & payments** statement, opened from the Records screen. For any month, or any dates chosen, it shows: balance brought forward for each place money is kept, money received (sales, customer payments on invoices, other income, money put in), money paid out (stock bought, expenses by category, MoMo charges, owner pay) and balance carried forward.
+- Built from the cash book, so it always matches Home. Transfers between your own accounts are shown in a note but not counted.
+- Print it or save it as a PDF, or download it for a spreadsheet (CSV).
+- In English and Twi (the Twi lines are waiting for review).
+- Deploy: no database change.
+
 ## 0.6 · 19 October 2026 · Profit fixes and services on sales
 
 Found in the bookshop test run.

@@ -19,6 +19,7 @@ import Health from './pages/Health.jsx';
 import HealthCheck from './pages/HealthCheck.jsx';
 import Learn from './pages/Learn.jsx';
 import Guide from './pages/Guide.jsx';
+import ReceiptsPayments from './pages/ReceiptsPayments.jsx';
 
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
@@ -69,6 +70,7 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/record/:kind" element={<Record />} />
       <Route path="/records" element={<Records />} />
+      <Route path="/records/receipts-payments" element={<ReceiptsPayments />} />
       <Route path="/stock" element={<Stock />} />
       <Route path="/stock/new" element={<ProductForm />} />
       <Route path="/stock/count" element={<StockCount />} />
