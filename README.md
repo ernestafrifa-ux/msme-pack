@@ -216,6 +216,21 @@ After editing, run `npm run migrate` in `server`. It loads the changes and is sa
 
 Guides about tax, SSNIT and registration were checked against GRA and SSNIT information in October 2026. Rules change, so review them at least once a year and update the `reviewed` date.
 
+## Reports, loans and equipment
+
+Records → **Reports** holds the statements, all computed from the cash book, stock ledger and invoices (`server/src/routes/reports.js`):
+
+| Statement | Endpoint | Period |
+| --- | --- | --- |
+| Profit and loss | `GET /reports/profit-loss?from=&to=` | dates |
+| Receipts and payments | `GET /reports/receipts-payments?from=&to=` | dates |
+| Balance sheet | `GET /reports/balance-sheet?asOf=` | one date |
+| Stock report | `GET /reports/stock?from=&to=` | dates |
+| Who owes you | `GET /reports/debtors?asOf=` | one date |
+| Sales by product | `GET /reports/sales-by-product?from=&to=` | dates |
+
+**Loans & equipment** (`server/src/routes/loans.js`): debts (`/debts`, repayments with an interest part) and equipment (`/assets`). Money borrowed into an account, repayments and equipment paid from an account are cash book records of kind `loan_received`, `loan_repayment` and `equipment`; none count as income or expense except the interest part. Stock bought on credit is a purchase with `is_credit = TRUE` plus a supplier debt.
+
 ## Receipts and payments account
 
 Records → **Receipts & payments** shows a cash statement for a month or chosen dates: balance brought forward, receipts, payments and balance carried forward, per account (`GET /api/businesses/:id/reports/receipts-payments?from=&to=`). It is built from the cash book, so the closing total always equals Home's money. Transfers between the business's own accounts are noted but not counted. It prints cleanly (or saves as PDF) and downloads as CSV.

@@ -418,3 +418,36 @@ fieldset.plain { border: none; padding: 0; margin: 0; min-width: 0; }
   .statement { margin: 0; }
   .screen { padding: 0; max-width: none; }
 }
+
+/* ---- Reports, loans and equipment --------------------------------------- */
+.report-link { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+.report-link .txn-main { flex: 1; }
+.stock-lines { list-style: none; margin: 0 0 8px; padding: 0; }
+.stock-lines li { padding: 8px 0; border-bottom: 1px solid #E3E8E4; }
+.stock-line-top { display: flex; justify-content: space-between; gap: 12px; font-weight: 600; }
+.stock-line-top .num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stock-name { overflow-wrap: anywhere; }
+.tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #E6EAE6; color: #34433B; vertical-align: 1px; }
+.tag-warn { background: #FBEBD3; color: #7A4A08; }
+.age-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.age-cell { border: 1px solid #DDE2DD; border-radius: 8px; padding: 8px 10px; }
+.age-cell .num { font-weight: 700; font-variant-numeric: tabular-nums; }
+.age-cell.late { border-color: #E3A75A; background: #FDF6EC; }
+.debtor { padding: 8px 0; border-bottom: 1px solid #E3E8E4; }
+.debtor-inv { margin-top: 2px; }
+.check-row { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; min-height: 44px; }
+.check-row input { width: 22px; height: 22px; }
+.strong { font-weight: 700; }
+.inline-form { display: flex; gap: 8px; margin-top: 6px; }
+.inline-form input { flex: 1; min-width: 0; min-height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; font-size: 16px; }
+.inline-form .btn { min-height: 40px; padding: 0 14px; }
+.asset-actions { display: flex; flex-wrap: wrap; gap: 0 10px; }
+.asset-row { align-items: flex-start; }
+.danger { color: var(--danger); }
+@media print {
+  .no-print-link { color: inherit; text-decoration: none; }
+  .age-cell.late { background: none; }
+}
+
+.report-link .txn-main, .asset-row .txn-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.asset-actions .btn-link { min-height: 36px; padding-left: 0; }

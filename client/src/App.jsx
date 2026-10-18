@@ -20,6 +20,14 @@ import HealthCheck from './pages/HealthCheck.jsx';
 import Learn from './pages/Learn.jsx';
 import Guide from './pages/Guide.jsx';
 import ReceiptsPayments from './pages/ReceiptsPayments.jsx';
+import Reports from './pages/Reports.jsx';
+import ProfitLoss from './pages/ProfitLoss.jsx';
+import BalanceSheet from './pages/BalanceSheet.jsx';
+import StockReport from './pages/StockReport.jsx';
+import Debtors from './pages/Debtors.jsx';
+import SalesByProduct from './pages/SalesByProduct.jsx';
+import Loans from './pages/Loans.jsx';
+import LoanDetail from './pages/LoanDetail.jsx';
 
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
@@ -71,6 +79,14 @@ export default function App() {
       <Route path="/record/:kind" element={<Record />} />
       <Route path="/records" element={<Records />} />
       <Route path="/records/receipts-payments" element={<ReceiptsPayments />} />
+      <Route path="/reports" element={<Reports />} />
+      <Route path="/reports/profit-loss" element={<ProfitLoss />} />
+      <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
+      <Route path="/reports/stock" element={<StockReport />} />
+      <Route path="/reports/debtors" element={<Debtors />} />
+      <Route path="/reports/sales-by-product" element={<SalesByProduct />} />
+      <Route path="/loans" element={<Loans />} />
+      <Route path="/loans/:debtId" element={<LoanDetail />} />
       <Route path="/stock" element={<Stock />} />
       <Route path="/stock/new" element={<ProductForm />} />
       <Route path="/stock/count" element={<StockCount />} />

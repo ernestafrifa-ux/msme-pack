@@ -17,17 +17,18 @@ const FILTERS = [
 
 export function TxnRow({ txn, showDate, onDelete }) {
   const { t } = useT();
-  const dir = direction(txn.kind);
+  // Stock bought on credit moves no money until the supplier is paid.
+  const dir = txn.isCredit ? 0 : direction(txn.kind);
   const sign = dir > 0 ? '+' : dir < 0 ? '−' : '';
-  const kindLabel = t(`kind.${txn.kind}`);
+  const kindLabel = txn.isCredit ? t('kind.purchase_credit', { supplier: txn.lender || '' }) : t(`kind.${txn.kind}`);
   const where = txn.kind === 'transfer' ? `${txn.accountName} → ${txn.toAccountName}` : txn.accountName;
   const title = txn.invoiceNumber
     ? `${t('records.payment', { number: txn.invoiceNumber })}${txn.contactName ? ` · ${txn.contactName}` : ''}`
-    : txn.itemsSummary || txn.categoryName || txn.note || kindLabel;
+    : txn.itemsSummary || txn.categoryName || txn.assetName || txn.note || kindLabel;
   return (
     <li className="txn">
       <div className={'txn-dot ' + (dir > 0 ? 'in' : dir < 0 ? 'out' : 'move')} aria-hidden="true">
-        <Icon name={dir > 0 ? 'plus' : dir < 0 ? 'minus' : 'swap'} size={18} />
+        <Icon name={dir > 0 ? 'plus' : dir < 0 ? 'minus' : txn.isCredit ? 'box' : 'swap'} size={18} />
       </div>
       <div className="txn-main">
         <div className="txn-title">{title}</div>
@@ -110,7 +111,7 @@ export default function Records() {
       <main className="screen with-nav">
         <div className="card-head">
           <h1>{t('records.title')}</h1>
-          <Link to="/records/receipts-payments" className="small">{t('rp.title')}</Link>
+          <Link to="/reports" className="small">{t('st.title')}</Link>
         </div>
         <DraftLanguageBanner />
         <div className="segmented filters" role="group" aria-label={t('records.show')}>

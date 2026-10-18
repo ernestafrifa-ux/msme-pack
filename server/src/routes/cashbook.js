@@ -45,6 +45,11 @@ function publicTxn(t) {
     contactName: t.contact_name || null,
     createdBy: t.created_by_name,
     createdAt: t.created_at,
+    isCredit: t.is_credit,
+    debtId: t.debt_id || null,
+    lender: t.lender || null,
+    assetName: t.asset_name || null,
+    interest: t.interest_amount,
   };
 }
 
@@ -53,6 +58,7 @@ const TXN_SELECT = `
   SELECT t.*, a.name AS account_name, ta.name AS to_account_name,
          c.name AS category_name, u.full_name AS created_by_name,
          inv.number AS invoice_number, ct.name AS contact_name,
+         COALESCE(d.lender, cd.lender) AS lender, ast.name AS asset_name,
          (SELECT string_agg(p.name || ' ×' || trim_scale(i.quantity), ', ' ORDER BY p.name)
             FROM transaction_items i JOIN products p ON p.id = i.product_id
            WHERE i.transaction_id = t.id) AS items_summary
@@ -62,6 +68,9 @@ const TXN_SELECT = `
     LEFT JOIN categories c ON c.id = t.category_id
     LEFT JOIN invoices inv ON inv.id = t.invoice_id
     LEFT JOIN contacts ct ON ct.id = t.contact_id
+    LEFT JOIN debts d ON d.id = t.debt_id
+    LEFT JOIN debts cd ON cd.purchase_txn_id = t.id AND cd.deleted_at IS NULL
+    LEFT JOIN assets ast ON ast.id = t.asset_id
     JOIN users u ON u.id = t.created_by`;
 
 // ---- Accounts -------------------------------------------------------------
@@ -172,6 +181,9 @@ const txnSchema = z
     items: z.array(itemSchema).max(100).optional().nullable(),
     // Generated on the phone; makes saving safe to retry after a dropped connection.
     clientRef: z.uuid().optional().nullable(),
+    // Stock bought now and paid for later: no money moves; the supplier becomes a debt.
+    onCredit: z.object({ supplier: z.string().trim().min(2, 'Enter the supplier\'s name.').max(120) })
+      .optional().nullable(),
   })
   .superRefine((t, ctx) => {
     if (t.kind === 'transfer' && !t.toAccountId) {
@@ -189,6 +201,9 @@ const txnSchema = z
     }
     if (t.kind === 'purchase' && !hasItems) {
       ctx.addIssue({ code: 'custom', path: ['items'], message: 'Add the products you bought.' });
+    }
+    if (t.onCredit && t.kind !== 'purchase') {
+      ctx.addIssue({ code: 'custom', path: ['onCredit'], message: 'Only stock can be bought on credit.' });
     }
     if (!hasItems && t.amount === undefined) {
       ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Enter an amount.' });
@@ -221,13 +236,16 @@ function checkDate(date) {
 
 // Inserts one transaction (and its items) inside an open db transaction. Returns its id.
 async function insertTransaction(db, { businessId, userId, kind, date, amount, accountId, toAccountId,
-  categoryId, contactId, invoiceId, paymentRef, momoFee, note, clientRef, items }) {
+  categoryId, contactId, invoiceId, paymentRef, momoFee, note, clientRef, items,
+  isCredit = false, debtId = null, assetId = null, interest = 0 }) {
   const { rows } = await db.query(
     `INSERT INTO transactions (business_id, kind, txn_date, amount, account_id, to_account_id, category_id,
-                               contact_id, invoice_id, payment_ref, momo_fee, note, client_ref, created_by)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+                               contact_id, invoice_id, payment_ref, momo_fee, note, client_ref, created_by,
+                               is_credit, debt_id, asset_id, interest_amount)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING id`,
     [businessId, kind, date, amount, accountId, toAccountId || null, categoryId || null, contactId || null,
-     invoiceId || null, paymentRef || null, momoFee || 0, note || null, clientRef || null, userId]
+     invoiceId || null, paymentRef || null, momoFee || 0, note || null, clientRef || null, userId,
+     isCredit, debtId, assetId, interest || 0]
   );
   const id = rows[0].id;
   for (const it of items || []) {
@@ -294,13 +312,22 @@ router.post('/transactions', canRecord, validate(txnSchema), async (req, res) =>
     if (total <= 0) throw new HttpError(400, 'The total must be more than zero.', { items: 'Check the prices.' });
   }
 
-  const saved = await withTransaction((db) =>
-    insertTransaction(db, {
+  const saved = await withTransaction(async (db) => {
+    const id = await insertTransaction(db, {
       businessId: req.businessId, userId: req.user.id, kind: t.kind, date, amount: total,
       accountId: t.accountId, toAccountId: t.toAccountId, categoryId: t.categoryId, contactId: t.contactId,
-      paymentRef: t.paymentRef, momoFee: t.momoFee, note: t.note, clientRef: t.clientRef, items,
-    })
-  );
+      paymentRef: t.paymentRef, momoFee: t.onCredit ? 0 : t.momoFee, note: t.note, clientRef: t.clientRef, items,
+      isCredit: !!t.onCredit,
+    });
+    if (t.onCredit) {
+      await db.query(
+        `INSERT INTO debts (business_id, lender, kind, amount, start_date, purchase_txn_id, note, created_by)
+         VALUES ($1, $2, 'supplier', $3, $4, $5, $6, $7)`,
+        [req.businessId, t.onCredit.supplier, total, date, id, t.note || null, req.user.id]
+      );
+    }
+    return id;
+  });
 
   const { rows } = await query(`${TXN_SELECT} WHERE t.id = $1`, [saved]);
   res.status(201).json({ transaction: publicTxn(rows[0]) });
@@ -309,7 +336,8 @@ router.post('/transactions', canRecord, validate(txnSchema), async (req, res) =>
 const listSchema = z.object({
   from: isoDate.optional(),
   to: isoDate.optional(),
-  kind: z.enum(['sale', 'other_income', 'expense', 'purchase', 'transfer', 'owner_draw', 'owner_capital']).optional(),
+  kind: z.enum(['sale', 'other_income', 'expense', 'purchase', 'transfer', 'owner_draw', 'owner_capital',
+    'loan_received', 'loan_repayment', 'equipment']).optional(),
   accountId: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   // Keyset pagination: pass the last row's date and id to get the next page.
@@ -350,6 +378,25 @@ router.get('/transactions', canView, validate(listSchema, 'query'), async (req, 
 router.delete('/transactions/:id', canManage, async (req, res) => {
   if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) throw new HttpError(404, 'Record not found.');
   const { rowCount } = await withTransaction(async (db) => {
+    const { rows: found } = await db.query(
+      'SELECT kind, is_credit FROM transactions WHERE id = $1 AND business_id = $2 AND deleted_at IS NULL',
+      [req.params.id, req.businessId]
+    );
+    if (found[0] && ['loan_received', 'equipment'].includes(found[0].kind)) {
+      throw new HttpError(409, 'This record belongs to a loan or a piece of equipment. Change it in Loans & equipment.');
+    }
+    if (found[0]?.is_credit) {
+      // Stock bought on credit: remove the supplier debt too, unless some of it has been paid.
+      const { rows: debt } = await db.query(
+        `SELECT d.id, (SELECT COUNT(*) FROM transactions r WHERE r.debt_id = d.id AND r.deleted_at IS NULL) AS paid
+           FROM debts d WHERE d.purchase_txn_id = $1 AND d.deleted_at IS NULL`,
+        [req.params.id]
+      );
+      if (debt[0] && Number(debt[0].paid) > 0) {
+        throw new HttpError(409, 'Some of this has been paid to the supplier. Delete those payments in Loans & equipment first.');
+      }
+      if (debt[0]) await db.query('UPDATE debts SET deleted_at = now() WHERE id = $1', [debt[0].id]);
+    }
     const r = await db.query(
       `UPDATE transactions SET deleted_at = now(), updated_at = now()
         WHERE id = $1 AND business_id = $2 AND deleted_at IS NULL
@@ -423,7 +470,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
     summary: {
       sales: s.sales || '0.00',
       otherIncome: s.other_income || '0.00',
-      expenses: s.expenses || '0.00',
+      expenses: Number(s.expenses || 0).toFixed(2),
       stockPurchases: s.stock_purchases || '0.00',
       momoFees: s.momo_fees || '0.00',
       costOfSales: s.cost_of_sales || '0.00',

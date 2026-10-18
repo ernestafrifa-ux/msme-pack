@@ -47,7 +47,7 @@ export const KIND_LABEL = {
 
 // +1 money in, -1 money out, 0 moved between accounts.
 export function direction(kind) {
-  if (['sale', 'other_income', 'owner_capital'].includes(kind)) return 1;
+  if (['sale', 'other_income', 'owner_capital', 'loan_received'].includes(kind)) return 1;
   if (kind === 'transfer') return 0;
   return -1;
 }

@@ -3,6 +3,22 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.8 · 19 October 2026 · Financial statements, loans and equipment
+
+- New **Reports** screen (Records → Reports) with six statements, each for a month or chosen dates, printable or saved as PDF, and downloadable for a spreadsheet:
+  - **Profit and loss**: income, cost of goods sold, gross profit, expenses (with loan interest, MoMo charges and stock losses), net profit and gross margin. Same rules as Home.
+  - **Receipts and payments** (from 0.7), now including loans received, repayments and equipment bought.
+  - **Balance sheet**: what the business owns (cash and MoMo, stock at cost, money customers owe, equipment), what it owes (loans and suppliers) and the owner's share.
+  - **Stock report**: for each product, stock at the start, in, sold, lost, count differences, at the end and its value; flags low and not-selling items.
+  - **Who owes you** (debtors): unpaid invoices by customer, grouped as not yet due, 1–30, 31–60 and over 60 days late.
+  - **Sales by product**: quantity, sales, cost, profit and margin for each product and service.
+- New **Loans & equipment** screen:
+  - Loans from a bank, microfinance, susu, family or others: the money can go into an account, and repayments record the interest separately (interest is an expense; the rest reduces the loan).
+  - Equipment such as a photocopier: paid from an account or already owned, with a current value the owner updates.
+- **Buy stock on credit**: tick "Paid later" on Buy stock. Stock goes in, no money moves, and the supplier appears as money owed until paid.
+- The new screens are in English only for now; Twi follows after review.
+- Deploy: database change `007_loans_and_equipment.sql`.
+
 ## 0.7 · 19 October 2026 · Receipts and payments account
 
 - New **Receipts & payments** statement, opened from the Records screen. For any month, or any dates chosen, it shows: balance brought forward for each place money is kept, money received (sales, customer payments on invoices, other income, money put in), money paid out (stock bought, expenses by category, MoMo charges, owner pay) and balance carried forward.

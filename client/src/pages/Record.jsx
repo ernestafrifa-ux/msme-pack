@@ -37,6 +37,9 @@ export default function Record() {
   const [message, setMessage] = useState('');
   const [saved, setSaved] = useState('');
   const [busy, setBusy] = useState(false);
+  // Buy stock now, pay the supplier later.
+  const [credit, setCredit] = useState(false);
+  const [supplier, setSupplier] = useState('');
 
   const isPurchase = kind === 'purchase';
   const usesProducts = kind === 'sale' || isPurchase;
@@ -103,6 +106,7 @@ export default function Record() {
     setMessage('');
     setLines([]);
     setPicking(false);
+    setCredit(false);
   }
 
   async function submit(e, again) {
@@ -120,12 +124,16 @@ export default function Record() {
       } else {
         body.amount = form.amount;
       }
-      if (isMomo) {
+      const onCredit = isPurchase && credit;
+      if (onCredit) body.onCredit = { supplier };
+      if (isMomo && !onCredit) {
         body.paymentRef = form.paymentRef || null;
         body.momoFee = form.momoFee || 0;
       }
       const { transaction } = await api(`/businesses/${business.id}/transactions`, { method: 'POST', body });
-      const msg = t(`record.saved.${kind}`, { amount: money(transaction.amount) });
+      const msg = onCredit
+        ? t('record.saved.purchase_credit', { amount: money(transaction.amount), supplier })
+        : t(`record.saved.${kind}`, { amount: money(transaction.amount) });
       if (again) {
         setForm({ ...emptyForm(accounts), accountId: form.accountId, date: form.date });
         setLines([]);
@@ -232,7 +240,22 @@ export default function Record() {
           )
         )}
 
-        {kind !== 'transfer' ? (
+        {isPurchase && (
+          <div className="field">
+            <label className="check-row">
+              <input type="checkbox" checked={credit} onChange={(e) => setCredit(e.target.checked)} />
+              <span>{t('record.onCredit')}</span>
+            </label>
+            {credit && (
+              <Field label={t('record.supplier')} error={errors['onCredit.supplier'] || errors.onCredit}
+                hint={t('record.onCreditHint')}>
+                {(p) => <input {...p} value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder={t('record.ph.purchase')} />}
+              </Field>
+            )}
+          </div>
+        )}
+
+        {kind !== 'transfer' && !(isPurchase && credit) ? (
           <fieldset className="field">
             <legend>{kind === 'sale' ? t('record.whereTo') : t('record.whereFrom')}</legend>
             <div className="chips">
@@ -246,7 +269,7 @@ export default function Record() {
             </div>
             {errors.accountId && <div className="field-error">{errors.accountId}</div>}
           </fieldset>
-        ) : (
+        ) : kind !== 'transfer' ? null : (
           <div className="grid-2">
             <Field label={t('record.from')} error={errors.accountId}>
               {(p) => (
@@ -279,7 +302,7 @@ export default function Record() {
           </Field>
         )}
 
-        {isMomo && (
+        {isMomo && !(isPurchase && credit) && (
           <div className="grid-2">
             <Field label={t('record.momoId')} error={errors.paymentRef}>
               {(p) => <input {...p} value={form.paymentRef} onChange={set('paymentRef')} />}

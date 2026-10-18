@@ -145,5 +145,6 @@ router.use('/:businessId', require('./stock').router);
 router.use('/:businessId', require('./invoices').router);
 router.use('/:businessId', require('./health').router);
 router.use('/:businessId', require('./reports').router);
+router.use('/:businessId', require('./loans').router);
 
 module.exports = { router };

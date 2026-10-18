@@ -3,6 +3,7 @@
 # Run against a FRESH database with the server on :4000:  python e2e/test_flow.py
 
 import os
+import re
 from playwright.sync_api import sync_playwright, expect
 
 BASE = os.environ.get("BASE_URL", "http://localhost:4000")
@@ -123,12 +124,13 @@ with sync_playwright() as p:
     expect(page.locator(".txn")).to_have_count(1)
     expect(page.locator(".txn").first).to_contain_text("100.00")
     # Receipts and payments account adds up to the same money as Home
-    page.get_by_role("link", name="Receipts & payments").click()
+    page.get_by_role("link", name="Reports").click()
+    page.get_by_role("link", name=re.compile("^Receipts & payments")).click()
     expect(page.get_by_role("heading", name="Receipts and payments account")).to_be_visible()
     expect(page.locator(".statement-table .total")).to_contain_text("1,472.50")
     expect(page.get_by_role("alert")).to_have_count(0)
     shot(page, "6c-receipts-payments.png")
-    page.get_by_role("link", name="Back").click()
+    page.goto(BASE + "/records")
     page.get_by_role("navigation", name="Main").get_by_role("link", name="Home").click()
 
     # Reload keeps you logged in; log out and back in

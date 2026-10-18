@@ -2,24 +2,9 @@ import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { useT } from '../i18n.jsx';
-import { Icon, TopBar } from '../components.jsx';
-import { money, longDate, todayGhana, addDaysIso } from '../format';
-
-// First and last day of the month containing `iso`, the last capped at today.
-function monthRange(iso) {
-  const from = `${iso.slice(0, 7)}-01`;
-  const d = new Date(from + 'T00:00:00Z');
-  d.setUTCMonth(d.getUTCMonth() + 1);
-  const end = addDaysIso(d.toISOString().slice(0, 10), -1);
-  const today = todayGhana();
-  return { from, to: end > today ? today : end };
-}
-
-function shiftMonth(from, n) {
-  const d = new Date(from + 'T00:00:00Z');
-  d.setUTCMonth(d.getUTCMonth() + n);
-  return monthRange(d.toISOString().slice(0, 10));
-}
+import { TopBar } from '../components.jsx';
+import { money, longDate, todayGhana } from '../format';
+import { monthRange, PeriodPicker, StatementActions } from '../statements.jsx';
 
 // The words for one line of the statement, e.g. "Expenses: Rent".
 function lineLabel(row, t) {
@@ -58,7 +43,6 @@ export default function ReceiptsPayments() {
   const { business } = useSession();
   const { t } = useT();
   const [range, setRange] = useState(() => monthRange(todayGhana()));
-  const [custom, setCustom] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -69,8 +53,6 @@ export default function ReceiptsPayments() {
       .then(setData)
       .catch((err) => setError(err.message));
   }, [business.id, range.from, range.to]);
-
-  const isCurrentMonth = range.from === monthRange(todayGhana()).from;
 
   function downloadCsv() {
     const blob = new Blob(['﻿' + toCsv(data, t)], { type: 'text/csv;charset=utf-8' });
@@ -84,32 +66,9 @@ export default function ReceiptsPayments() {
 
   return (
     <main className="screen">
-      <div className="no-print"><TopBar title={t('rp.title')} back="/records" /></div>
+      <div className="no-print"><TopBar title={t('rp.title')} back="/reports" /></div>
 
-      <div className="no-print">
-        {!custom ? (
-          <div className="month-step">
-            <button type="button" className="icon-btn" aria-label={t('rp.prev')}
-              onClick={() => setRange(shiftMonth(range.from, -1))}><Icon name="back" /></button>
-            <span className="month-step-label">{t('rp.period', { from: longDate(range.from, t), to: longDate(range.to, t) })}</span>
-            <button type="button" className="icon-btn" aria-label={t('rp.next')} disabled={isCurrentMonth}
-              onClick={() => setRange(shiftMonth(range.from, 1))}><Icon name="chevron" /></button>
-          </div>
-        ) : (
-          <div className="grid-2">
-            <label className="field"><span className="field-label">{t('rp.from')}</span>
-              <input type="date" value={range.from} max={range.to}
-                onChange={(e) => setRange({ ...range, from: e.target.value })} /></label>
-            <label className="field"><span className="field-label">{t('rp.to')}</span>
-              <input type="date" value={range.to} min={range.from}
-                onChange={(e) => setRange({ ...range, to: e.target.value })} /></label>
-          </div>
-        )}
-        <button type="button" className="btn-link small" onClick={() => {
-          if (custom) setRange(monthRange(todayGhana()));
-          setCustom(!custom);
-        }}>{custom ? t('rp.byMonth') : t('rp.choose')}</button>
-      </div>
+      <PeriodPicker range={range} onChange={setRange} />
 
       {error && <div className="form-error" role="alert">{error}</div>}
 
@@ -156,12 +115,7 @@ export default function ReceiptsPayments() {
             {!data.totals.balanced && <div className="form-error" role="alert">{t('rp.unbalanced')}</div>}
           </article>
 
-          <div className="stack no-print">
-            <button type="button" className="btn btn-primary btn-block" onClick={() => window.print()}>
-              <Icon name="print" size={18} /> {t('rp.print')}
-            </button>
-            <button type="button" className="btn btn-ghost btn-block" onClick={downloadCsv}>{t('rp.csv')}</button>
-          </div>
+          <StatementActions onCsv={downloadCsv} />
         </>
       )}
     </main>
