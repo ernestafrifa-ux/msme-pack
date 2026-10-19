@@ -10,7 +10,7 @@ const KINDS = ['bank', 'microfinance', 'susu', 'supplier', 'family', 'other'];
 
 function LoanForm({ accounts, onSaved, onCancel }) {
   const { business } = useSession();
-  const { t } = useT();
+  const { t, tt } = useT();
   const [f, setF] = useState({ lender: '', kind: 'microfinance', amount: '', startDate: todayGhana(), accountId: accounts[0]?.id || '', note: '', dueDate: '' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -43,7 +43,7 @@ function LoanForm({ accounts, onSaved, onCancel }) {
           </select>
         )}
       </Field>
-      <Field label="Pay by, or next payment due (optional)" error={errors.dueDate} hint="You get a reminder on Home a week before">
+      <Field label={tt('Pay by, or next payment due (optional)')} error={errors.dueDate} hint={tt('You get a reminder on Home a week before')}>
         {(p) => <input {...p} type="date" value={f.dueDate} onChange={set('dueDate')} />}
       </Field>
       <Field label={t('common.noteOptional')}>{(p) => <input {...p} value={f.note} onChange={set('note')} />}</Field>
@@ -145,7 +145,7 @@ function AssetRow({ a, onChanged }) {
 
 export default function Loans() {
   const { business } = useSession();
-  const { t } = useT();
+  const { t, tt } = useT();
   const [debts, setDebts] = useState(null);
   const [assets, setAssets] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -186,7 +186,7 @@ export default function Loans() {
                     {t(`loans.kind.${d.kind}`)} · {t('loans.borrowedN', { amount: money(d.amount), date: longDate(d.startDate, t) })}
                   </span>
                   {d.dueDate && Number(d.balance) > 0 && (
-                    <span className={'small ' + (d.dueDate < todayGhana() ? 'warn-text' : 'muted')}>Pay by {longDate(d.dueDate, t)}</span>
+                    <span className={'small ' + (d.dueDate < todayGhana() ? 'warn-text' : 'muted')}>{tt('Pay by {date}', { date: longDate(d.dueDate, t) })}</span>
                   )}
                 </span>
                 <span className="txn-amt">{Number(d.balance) > 0 ? money(d.balance) : t('loans.paidOff')}</span>

@@ -3,6 +3,7 @@
 // Transfer is "Sika a akɔ baabi foforɔ", and months use the Twi names.
 // The owner pay lines were added later and reviewed separately (October 2026).
 // The profit note and stock-loss lines were reviewed and approved separately (October 2026).
+// Lines marked "draft, to review" were added in v0.22 and are not yet checked.
 // Lines marked "new, to review" (receipts and payments account) still need the reviewer's check.
 // Business words people already say in English (MoMo, invoice, stock, app,
 // password, network, balance) are kept on purpose.
@@ -328,4 +329,218 @@ export default {
   'settings.languageHint': 'Ɛsesa app no ne akwankyerɛ no kasa.',
   'settings.langSaved': 'Woasesa kasa no.',
   'settings.logout': 'Fi mu',
+
+  // Added in v0.22 for the screens built in v0.10 to v0.21. Drafts, not yet reviewed.
+  "login.noSignup": "Woyɛ foforɔ? Wɔbue wo account ma wo: MSME Pack kuo no bue ma adwuma wura, anaa adwuma wura bue ma n'adwumayɛfoɔ. Bisa wɔn wo login.", // draft, to review
+  "setup.bankLater": "Wonnya bank account? Ɛnyɛ hwee. Wobɛtumi abue bi akyire yi: W'adwuma ho nsɛm → Din kyerɛw kyerɛ nea ɛsɛ sɛ wode kɔ, na sɛ abue a ɛde ka ho. VAT nso yɛ saa ara.", // draft, to review
+  "setup.moneyLead": "Agoo {name}. W'adwuma no ayɛ krado. Anammɔn baako a ɛtwa toɔ: kan sika a adwuma no wɔ nnɛ, sɛdeɛ ɛbɛyɛ a w'akontaa bɛfi ase afiri sika dodoɔ a ɛteɛ so.", // draft, to review
+  "records.by": "{name} na ɔkyerɛweeɛ", // draft, to review
+  "records.receipt": "Receipt ma GHS {amount}", // draft, to review
+  "home.spending": "Ɛka", // draft, to review
+  "home.vatDue": "VAT return: bɛyɛ GHS {amount} na ɛsɛ sɛ wotua GRA ansa na {date} adu", // draft, to review
+  "home.debtDue": "Tua {name} GHS {amount} ansa na {date} adu", // draft, to review
+  "home.debtLate": "{name}: na ɛsɛ sɛ wotua GHS {amount} wɔ {date}", // draft, to review
+  "outbox.waiting": "Nkyerɛwee {n} wɔ phone yi so, ɛretwɛn network", // draft, to review
+  "outbox.send": "Fa kɔ seesei", // draft, to review
+  "outbox.sending": "Ɛrekɔ…", // draft, to review
+  "outbox.failed": "Yɛantumi amfa {what} ankɔ: {why}", // draft, to review
+  "outbox.remove": "Yi firi mu", // draft, to review
+  "home.offline": "Network nni hɔ. Yeinom ne akontaa a ɛwɔ phone yi so; wɔbɛkora nkyerɛwee foforɔ na wɔde akɔ akyire yi.", // draft, to review
+  "record.savedOffline": "Network nni hɔ: woasie GHS {amount} wɔ phone yi so. Wɔde bɛkɔ bere a network aba.", // draft, to review
+  "record.saleOnCredit": "Wɔbɛtua akyire (adetɔni no de wo ka)", // draft, to review
+  "record.saleOnCreditHint": "Nneɛma no firi stock mu seesei. Adetɔn no ka ho bere a adetɔni no tua. Hwɛ no wɔ Adetɔfoɔ a wɔde wo ka mu.", // draft, to review
+  "record.customer": "Adetɔni", // draft, to review
+  "record.newCustomer": "Adetɔni foforɔ…", // draft, to review
+  "record.customerName": "Adetɔni no din", // draft, to review
+  "record.customerPhone": "Phone (sɛ wopɛ a)", // draft, to review
+  "record.payBy": "Tua ansa na (sɛ wopɛ a)", // draft, to review
+  "record.payByHint": "Wobɛnya nkaeɛ wɔ Fie", // draft, to review
+  "record.saved.creditSale": "Woasie adetɔn GHS {amount} a wotɔn maa {name}. Ɔde wo ka kɔsi sɛ ɔbɛtua.", // draft, to review
+  "record.sendReceipt": "Fa receipt kɔ", // draft, to review
+  "record.vatSale": "VAT, NHIL ne GETFund (20%) ka boɔ no ho", // draft, to review
+  "record.vatSaleNote": "Yei mu GHS {tax} yɛ tax ma GRA; GHS {rest} yɛ w'adetɔn.", // draft, to review
+  "record.vatCost": "Nea ɔtɔn maa me no de VAT invoice maa me", // draft, to review
+  "record.vatCostNote": "GHS {tax} yɛ VAT a wobɛtumi agye asane afiri GRA; ka no yɛ GHS {rest}. Sie VAT invoice no.", // draft, to review
+  "kind.loan_received": "Bosea a wonyaeɛ", // draft, to review
+  "kind.loan_repayment": "Bosea a wotuaeɛ", // draft, to review
+  "kind.equipment": "Nnwinnade a wotɔeɛ", // draft, to review
+  "kind.purchase_credit": "Wotɔɔ firii {supplier} hɔ sɛ wobɛtua akyire", // draft, to review
+  "record.onCredit": "Wobɛtua akyire (wotɔɔ sɛ wobɛtua akyire)", // draft, to review
+  "record.supplier": "Hwan hɔ na wotɔ firiiɛ?", // draft, to review
+  "record.onCreditHint": "Sika biara mfiri w'akontaa mu seesei. Wɔde sika dodoɔ no ka Bosea ne nnwinnade ho sɛ sika a wode saa nea ɔtɔn maa wo no.", // draft, to review
+  "record.saved.purchase_credit": "Woasie nneɛma GHS {amount} a wotɔɔ sɛ wobɛtua akyire. Wode {supplier} ka.", // draft, to review
+  "rp.line.loan_received": "Bosea a wonyaeɛ", // draft, to review
+  "rp.line.loan_repayment": "Bosea a wotuaeɛ", // draft, to review
+  "rp.line.equipment": "Nnwinnade a wotɔeɛ", // draft, to review
+  "st.title": "Reports", // draft, to review
+  "st.lead": "Akontaa nkrataa a wɔayɛ afiri w'akontaa mu. Print, sie sɛ PDF anaa bue wɔ spreadsheet mu, ma wo ankasa, obi a ɔbɔ bosea anaa nhyehyɛeɛ bi.", // draft, to review
+  "st.records": "Kyerɛw nso", // draft, to review
+  "st.asOf": "Ɛbɛsi", // draft, to review
+  "st.pl.what": "Adwuma no nyaa mfasoɔ anaa? Adetɔn, ɛka ne mfasoɔ ma bosome baako.", // draft, to review
+  "st.rp.what": "Sika a ɛbaeɛ ne sika a ɛkɔeɛ, ne nea aka wɔ account biara mu.", // draft, to review
+  "st.bs.what": "Nea adwuma no wɔ, ka a ɛde, ne nea aka ma wo.", // draft, to review
+  "st.stock.what": "Stock wɔ mfiase ne awieeɛ, nea ɛbaeɛ, nea wɔtɔneeɛ ne nea ayera, ne ne boɔ.", // draft, to review
+  "st.debtors.what": "Adetɔfoɔ a wɔda so de wo ka, ne bere a atwam.", // draft, to review
+  "st.sales.what": "Nneɛma a wɔtɔn no paa ne nea ɛma mfasoɔ kɛseɛ.", // draft, to review
+  "st.loans.what": "Ka a wode (bosea, wɔn a wɔtɔn ma wo) ne nnwinnade a wowɔ. Ɛho hia ma balance sheet no.", // draft, to review
+  "st.pl.title": "Mfasoɔ ne hweree", // draft, to review
+  "st.pl.statement": "Mfasoɔ ne hweree akontaa", // draft, to review
+  "st.pl.income": "Sika a ɛbaeɛ", // draft, to review
+  "st.pl.totalIncome": "Sika a ɛbaeɛ nyinaa", // draft, to review
+  "st.pl.cogs": "Yi: nneɛma a wotɔneeɛ no ka", // draft, to review
+  "st.pl.gross": "Mfasoɔ a edi kan (gross profit)", // draft, to review
+  "st.pl.expenses": "Ɛka", // draft, to review
+  "st.pl.totalExpenses": "Ɛka nyinaa", // draft, to review
+  "st.pl.net": "Mfasoɔ ankasa (net profit)", // draft, to review
+  "st.pl.netLoss": "Hweree ankasa (net loss)", // draft, to review
+  "st.pl.line.sale": "Adetɔn", // draft, to review
+  "st.pl.line.invoice": "Sika a adetɔfoɔ tuaeɛ (invoice)", // draft, to review
+  "st.pl.line.other_income": "Sika foforɔ a ɛbaeɛ", // draft, to review
+  "st.pl.line.expense": "Ɛka", // draft, to review
+  "st.pl.line.interest": "Bosea ho mfɛntom", // draft, to review
+  "st.pl.line.momo_fees": "MoMo charges", // draft, to review
+  "st.pl.line.stock_losses": "Nneɛma a asɛe anaa ayera", // draft, to review
+  "st.pl.margin": "Gross margin: sika a ɛbaeɛ no {pct}% na aka bere a woayi nneɛma a wotɔneeɛ no ka.", // draft, to review
+  "st.pl.ownerPay": "Wofaa GHS {amount} maa wo ho wɔ saa bere yi mu. Wo ho akatua nnyɛ adwuma no ɛka: ɛfiri mfasoɔ no mu, enti ɛda adi wɔ mfasoɔ no akyi, ɛnyɛ ɛka no mu.", // draft, to review
+  "st.pl.ownerPayLine": "Yi: wo ho akatua (nea wofaa maa wo ho)", // draft, to review
+  "st.pl.kept": "Mfasoɔ a aka adwuma no mu", // draft, to review
+  "st.pl.keptNeg": "Nea wofaeɛ a ɛboro mfasoɔ no so", // draft, to review
+  "st.pl.tooMuch": "Wofaa sika boroo nea adwuma no nyaeɛ wɔ saa bere yi mu. Sɛ ɛkɔ so bosome biara a, adwuma no rete so: sika a ɛbɛtɔ nneɛma na wɔde asie no rete so.", // draft, to review
+  "st.pl.note": "Adetɔn ka ho bere a wonya sika no. Nneɛma a ɛwɔ invoice so no ka ka ho bere a adetɔni no tua.", // draft, to review
+  "st.bs.title": "Balance sheet", // draft, to review
+  "st.bs.statement": "Balance sheet", // draft, to review
+  "st.bs.asAt": "Ɛbɛsi {date}", // draft, to review
+  "st.bs.owns": "Nea adwuma no wɔ", // draft, to review
+  "st.bs.stock": "Stock (ka)", // draft, to review
+  "st.bs.debtors": "Ka a adetɔfoɔ de wo", // draft, to review
+  "st.bs.totalOwns": "Nea ɛwɔ nyinaa", // draft, to review
+  "st.bs.owes": "Ka a adwuma no de", // draft, to review
+  "st.bs.totalOwes": "Ka nyinaa", // draft, to review
+  "st.bs.equity": "Adwuma wura kyɛfa (nea aka ma wo)", // draft, to review
+  "st.bs.note": "Wɔbu stock boɔ wɔ ɛnnɛ ka so, na nnwinnade nso wɔ wo ankasa nsusuiɛ so. Adwuma wura kyɛfa = nea ɛwɔ nyinaa − ka nyinaa.", // draft, to review
+  "st.bs.whtCredit": "Tax a adetɔfoɔ akora (wɔde yi firi income tax mu)", // draft, to review
+  "st.bs.taxOwed": "VAT, NHIL ne GETFund a GRA de wo", // draft, to review
+  "st.pl.taxNote": "Sika a wonyaeɛ no mu GHS {amount} yɛ VAT, NHIL ne GETFund (anaa tax foforɔ) a ɛwɔ invoice ne adetɔn so. Ɛyɛ GRA dea, enti wɔmfa nka sika a ɛbaeɛ ho.", // draft, to review
+  "st.bs.vatCredit": "VAT a wobɛgye asane afiri GRA", // draft, to review
+  "st.pl.whtNote": "GHS {amount} a adetɔfoɔ koraa sɛ withholding tax ka ho. Ɛda so yɛ sika a ɛbaeɛ: sie WHT certificate no, ɛte wo income tax so.", // draft, to review
+  "kind.wht": "Tax a adetɔni akora", // draft, to review
+  "kind.vat_payment": "VAT a wotuaa GRA", // draft, to review
+  "records.whtWhere": "sika biara antu", // draft, to review
+  "rp.line.vat_payment": "VAT, NHIL ne GETFund a wotuaa GRA", // draft, to review
+  "st.tax.title": "Tax: VAT ne withholding", // draft, to review
+  "st.tax.what": "VAT, NHIL ne GETFund a ɛwɔ w'invoice so, ka a GRA de wo, tax a adetɔfoɔ akora, ne nkontabuo afidie.", // draft, to review
+  "st.bs.missing": "Bosea, obi a ɔtɔn maa wo a wode no ka, anaa nnwinnade bi nni mu? Fa ka ho wɔ", // draft, to review
+  "st.stock.title": "Stock amanneɛbɔ", // draft, to review
+  "st.stock.statement": "Stock amanneɛbɔ", // draft, to review
+  "st.stock.product": "Adeɛ", // draft, to review
+  "st.stock.start": "Mfiase", // draft, to review
+  "st.stock.in": "Ɛbaeɛ", // draft, to review
+  "st.stock.sold": "Wɔtɔneeɛ", // draft, to review
+  "st.stock.lost": "Ayera", // draft, to review
+  "st.stock.counted": "Kan nsonsonoeɛ", // draft, to review
+  "st.stock.end": "Awieeɛ", // draft, to review
+  "st.stock.cost": "Ka", // draft, to review
+  "st.stock.value": "Boɔ (ka)", // draft, to review
+  "st.stock.total": "Ne nyinaa", // draft, to review
+  "st.stock.flow": "Mfiase {start} · ɛbaeɛ {in} · wɔtɔneeɛ {sold} · ayera {lost} · awieeɛ {end} {unit}", // draft, to review
+  "st.stock.countedN": "kan {n}", // draft, to review
+  "st.stock.at": "baako {cost}", // draft, to review
+  "st.stock.low": "Ɛresa", // draft, to review
+  "st.stock.slow": "Wɔntɔ", // draft, to review
+  "st.stock.none": "Adeɛ biara a stock wɔ mu nni hɔ.", // draft, to review
+  "st.stock.note": "Boɔ = stock wɔ awieeɛ × ɛnnɛ ka. \"Wɔntɔ\" kyerɛ sɛ wɔantɔn bi koraa wɔ saa bere yi mu.", // draft, to review
+  "st.debtors.title": "Wɔn a wɔde wo ka", // draft, to review
+  "st.debtors.statement": "Wɔn a wɔde wo ka (debtors)", // draft, to review
+  "st.debtors.customer": "Adetɔni", // draft, to review
+  "st.debtors.invoice": "Invoice", // draft, to review
+  "st.debtors.due": "Da a ɛsɛ sɛ wɔtua", // draft, to review
+  "st.debtors.owed": "Ka a aka", // draft, to review
+  "st.debtors.age": "Bere a atwam", // draft, to review
+  "st.debtors.b.notDue": "Ne bere nnuruiɛ", // draft, to review
+  "st.debtors.b.d1_30": "Nna 1–30 atwam", // draft, to review
+  "st.debtors.b.d31_60": "Nna 31–60 atwam", // draft, to review
+  "st.debtors.b.d61": "Aboro nna 60", // draft, to review
+  "st.debtors.total": "Ka a wɔde wo nyinaa", // draft, to review
+  "st.debtors.none": "Obiara mfa wo ka. Ayekoo.", // draft, to review
+  "st.debtors.noName": "Din nni hɔ", // draft, to review
+  "st.debtors.dueOn": "ɛsɛ sɛ wɔtua {date}", // draft, to review
+  "st.debtors.noDue": "da biara nni hɔ", // draft, to review
+  "st.debtors.late": "nna {n} atwam", // draft, to review
+  "st.sales.title": "Adetɔn wɔ adeɛ biara so", // draft, to review
+  "st.sales.statement": "Adetɔn wɔ adeɛ biara so", // draft, to review
+  "st.sales.qty": "Dodoɔ", // draft, to review
+  "st.sales.sales": "Adetɔn", // draft, to review
+  "st.sales.cost": "Ka", // draft, to review
+  "st.sales.profit": "Mfasoɔ", // draft, to review
+  "st.sales.margin": "Margin %", // draft, to review
+  "st.sales.flow": "Wɔtɔn {qty} {unit} {sales} · ka {cost}", // draft, to review
+  "st.sales.marginN": "{pct}% margin", // draft, to review
+  "st.sales.none": "Wɔantɔn adeɛ biara wɔ saa bere yi mu.", // draft, to review
+  "st.sales.typed": "Adetɔn GHS {amount} na wɔkyerɛw sika dodoɔ a nneɛma nni ho, enti ɛnni list yi mu.", // draft, to review
+  "st.sales.note": "Nneɛma ka ho bere a wɔtɔneeɛ: adetɔn wɔ ne da so, invoice bere a wɔde kɔeɛ. Wɔnyi invoice so tesoɔ mfiri mu wɔ ha.", // draft, to review
+  "loans.short.bank": "bank", // draft, to review
+  "loans.short.microfinance": "microfinance", // draft, to review
+  "loans.short.susu": "susu", // draft, to review
+  "loans.short.supplier": "nea ɔtɔn ma wo", // draft, to review
+  "loans.short.family": "abusua", // draft, to review
+  "loans.short.other": "foforɔ", // draft, to review
+  "loans.title": "Bosea ne nnwinnade", // draft, to review
+  "loans.owe": "Ka a wode", // draft, to review
+  "loans.oweLead": "Bosea firi bank, microfinance, susu, abusua anaa nnamfo, ne wɔn a wɔtɔn ma wo a wobɛtua wɔn akyire.", // draft, to review
+  "loans.add": "Fa bosea anaa ka ka ho", // draft, to review
+  "loans.lender": "Hwan na ɔbɔɔ wo bosea no?", // draft, to review
+  "loans.lenderPh": "sɛ Opportunity Microfinance", // draft, to review
+  "loans.kind": "Ɛyɛ deɛn?", // draft, to review
+  "loans.kind.bank": "Bank", // draft, to review
+  "loans.kind.microfinance": "Microfinance", // draft, to review
+  "loans.kind.susu": "Susu anaa sika sie kuo", // draft, to review
+  "loans.kind.supplier": "Nea ɔtɔn ma wo (tua akyire)", // draft, to review
+  "loans.kind.family": "Abusua anaa adamfo", // draft, to review
+  "loans.kind.other": "Foforɔ", // draft, to review
+  "loans.amount": "Bosea dodoɔ (GHS)", // draft, to review
+  "loans.into": "Sika no kɔɔ he?", // draft, to review
+  "loans.intoHint": "Paw account a ɛkɔɔ mu. Sɛ wobɔɔ bosea no ansa na wofii ase de app no dii dwuma a, paw nea ɛtwa toɔ no.", // draft, to review
+  "loans.notThroughApp": "Wobɔɔ kane / ɛmfaa saa account yi so", // draft, to review
+  "loans.save": "Sie bosea no", // draft, to review
+  "loans.borrowedN": "GHS {amount} firi {date}", // draft, to review
+  "loans.paidOff": "Woatua awie", // draft, to review
+  "loans.borrowed": "Bosea", // draft, to review
+  "loans.repaid": "Nea woatua", // draft, to review
+  "loans.balance": "Ka a aka", // draft, to review
+  "loans.since": "Firi {date}", // draft, to review
+  "loans.intoN": "ɛkɔɔ {name} mu", // draft, to review
+  "loans.interestN": "mfɛntom a wotuaeɛ GHS {amount}", // draft, to review
+  "loans.fromCredit": "nneɛma a wotɔɔ sɛ wobɛtua akyire", // draft, to review
+  "loans.recordPayment": "Kyerɛw sika a wotuaeɛ", // draft, to review
+  "loans.paid": "Sika a wotuaeɛ (GHS)", // draft, to review
+  "loans.ofWhichInterest": "Mu mfɛntom (GHS)", // draft, to review
+  "loans.interestHint": "Mfɛntom yɛ adwuma no ɛka na ɛda adi wɔ mfasoɔ ne hweree mu. Nea aka no te ka a wode no so.", // draft, to review
+  "loans.savePayment": "Sie sika a wotuaeɛ no", // draft, to review
+  "loans.paidSaved": "Woasie sika GHS {amount} a wotuaeɛ.", // draft, to review
+  "loans.payments": "Sika a woatua", // draft, to review
+  "loans.noPayments": "Wonnya ntuaa hwee.", // draft, to review
+  "loans.splitN": "bosea {principal} + mfɛntom {interest}", // draft, to review
+  "loans.delete": "Popa bosea yi", // draft, to review
+  "loans.confirmDelete": "Popa bosea yi? Sɛ sika no baa account bi mu a, wɔbɛsan ayi afiri mu.", // draft, to review
+  "assets.title": "Nnwinnade", // draft, to review
+  "assets.lead": "Nneɛma a adwuma no wɔ na ɛde di dwuma, sɛ photocopier, fridge, sewing machine anaa nneɛma sie dua.", // draft, to review
+  "assets.add": "Fa nnwinnade ka ho", // draft, to review
+  "assets.name": "Ɛyɛ deɛn?", // draft, to review
+  "assets.namePh": "sɛ Photocopier", // draft, to review
+  "assets.cost": "Sika a wotuaeɛ (GHS)", // draft, to review
+  "assets.bought": "Da a wotɔeɛ", // draft, to review
+  "assets.paidFrom": "Wotuaa firi", // draft, to review
+  "assets.paidFromHint": "Sɛ woretua seesei a, paw account no. Sɛ na wowɔ dada a, gyae nea edi kan no hɔ.", // draft, to review
+  "assets.before": "Na wowɔ dada / wotuaa kane", // draft, to review
+  "assets.value": "Ne boɔ seesei (GHS)", // draft, to review
+  "assets.valueHint": "Wo ankasa nsusuiɛ. Gyae hɔ hunu na yɛde nea wotuaeɛ adi dwuma. Sesa no afe biara.", // draft, to review
+  "assets.save": "Sie nnwinnade no", // draft, to review
+  "assets.line": "Wotuaa {cost} {date}", // draft, to review
+  "assets.paidFromN": "firi {name}", // draft, to review
+  "assets.updateValue": "Sesa ne boɔ", // draft, to review
+  "assets.markGone": "Wɔatɔn anaa woatow agu", // draft, to review
+  "assets.markBack": "Mewɔ bi ara", // draft, to review
+  "assets.gone": "Wonni bio", // draft, to review
+  "assets.delete": "Popa", // draft, to review
+  "assets.confirmDelete": "Popa {name}? Fa yei di dwuma ma mfomsoɔ nko ara. Sɛ wofaa account bi so tuaeɛ a, sika no bɛsan aba.", // draft, to review
 };

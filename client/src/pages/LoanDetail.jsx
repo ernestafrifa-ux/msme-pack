@@ -10,7 +10,7 @@ export default function LoanDetail() {
   const { debtId } = useParams();
   const navigate = useNavigate();
   const { business } = useSession();
-  const { t } = useT();
+  const { t, tt } = useT();
   const [data, setData] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [f, setF] = useState({ amount: '', interest: '', accountId: '', date: todayGhana() });
@@ -68,11 +68,11 @@ export default function LoanDetail() {
         </p>
         {open && (
           <label className="field">
-            <span className="field-label">Pay by, or next payment due</span>
+            <span className="field-label">{tt('Pay by, or next payment due')}</span>
             <input type="date" value={d.dueDate || ''} onChange={async (e) => {
               const r = await api(`/businesses/${business.id}/debts/${d.id}`, { method: 'PATCH', body: { dueDate: e.target.value || null } });
               setData({ ...data, debt: r.debt });
-              setFlash(r.debt.dueDate ? `Reminder set for ${longDate(r.debt.dueDate, t)}.` : 'Reminder removed.');
+              setFlash(r.debt.dueDate ? tt('Reminder set for {date}.', { date: longDate(r.debt.dueDate, t) }) : tt('Reminder removed.'));
             }} />
           </label>
         )}

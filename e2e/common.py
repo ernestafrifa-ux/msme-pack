@@ -47,11 +47,14 @@ def first_login(page, base, phone, temp, password):
     page.get_by_label(re.compile("Phone number|Phone")).first.fill(phone)
     page.locator("input[type=password]").fill(temp)
     page.locator("form button.btn-primary").click()
-    expect(page.get_by_role("heading", name="Choose your own password")).to_be_visible()
-    page.get_by_label("Temporary password").fill(temp)
-    page.get_by_label("New password", exact=True).fill(password)
-    page.get_by_label("New password again").fill(password)
-    page.get_by_role("button", name="Save password").click()
+    # English, or the Twi drafts for a user whose language is Twi
+    heading = page.get_by_role("heading", name=re.compile("^(Choose your own password|Paw wo ankasa password)$"))
+    expect(heading).to_be_visible()
+    twi = heading.inner_text().startswith("Paw")
+    page.get_by_label("Password a ɛyɛ bere tiaa mu dea" if twi else "Temporary password", exact=True).fill(temp)
+    page.get_by_label("Password foforɔ" if twi else "New password", exact=True).fill(password)
+    page.get_by_label("San kyerɛw password foforɔ no" if twi else "New password again", exact=True).fill(password)
+    page.get_by_role("button", name="Sie password no" if twi else "Save password").click()
 
 
 def onboard_to_setup(page, base, owner, phone, password, business, **kw):

@@ -19,7 +19,7 @@ function greetingKey() {
 
 export default function Home() {
   const { user, business, logout } = useSession();
-  const { t } = useT();
+  const { t, tt } = useT();
   const location = useLocation();
   const [data, setData] = useState(null);
   const [health, setHealth] = useState(null);
@@ -40,7 +40,7 @@ export default function Home() {
           <div className="muted">{t(greetingKey())}, {user.fullName.split(' ')[0]}</div>
           <div className="home-actions">
             <Link to="/notices" className="icon-btn bell"
-              aria-label={data?.notices?.unread ? `Messages, ${data.notices.unread} new` : 'Messages'}>
+              aria-label={data?.notices?.unread ? tt('Messages, {unread} new', { unread: data.notices.unread }) : tt('Messages')}>
               <Icon name="bell" />
               {data?.notices?.unread > 0 && <span className="bell-badge" aria-hidden="true">{data.notices.unread}</span>}
             </Link>
@@ -52,7 +52,7 @@ export default function Home() {
           </div>
         </header>
         <div className="home-brand home-brand-lg">
-          <Link to="/settings" aria-label="Business logo" tabIndex={-1}><BizLogo business={business} size={84} className="biz-logo-home" /></Link>
+          <Link to="/settings" aria-label={tt('Business logo')} tabIndex={-1}><BizLogo business={business} size={84} className="biz-logo-home" /></Link>
           <h1 className="biz-name">{business.name}</h1>
         </div>
 
@@ -60,7 +60,7 @@ export default function Home() {
           <Link to="/notices" className="notice-banner">
             <Icon name="bell" size={20} />
             <span className="grow">
-              <span className="small block">New message from MSME Pack</span>
+              <span className="small block">{tt('New message from MSME Pack')}</span>
               <span className="strong">{data.notices.latest.title}</span>
             </span>
             <Icon name="chevron" size={18} />
@@ -102,8 +102,8 @@ export default function Home() {
           <Link to="/close-day" className="card close-day-card">
             <Icon name={data.countedToday ? 'check' : 'box'} size={22} />
             <span className="grow">
-              <span className="strong block-strong">{data.countedToday ? 'Day closed: cash counted today' : 'Close the day'}</span>
-              <span className="small muted">{data.countedToday ? 'Count again any time' : 'Count the cash box and check it matches the records'}</span>
+              <span className="strong block-strong">{data.countedToday ? tt('Day closed: cash counted today') : tt('Close the day')}</span>
+              <span className="small muted">{data.countedToday ? tt('Count again any time') : tt('Count the cash box and check it matches the records')}</span>
             </span>
             <Icon name="chevron" size={18} />
           </Link>

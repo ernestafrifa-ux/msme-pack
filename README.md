@@ -226,9 +226,10 @@ The app interface is available in **English** and **Asante Twi**. The Twi is a *
 - Users choose a language at sign-up, on the log-in screen (English | Twi), or later in Settings (gear icon on Home). The choice is saved to their account.
 - Screens translated so far: log in, sign-up, business setup, Home, Record, Records, health check, Learn, guide reader and the language setting. Stock, invoices and business details are still in English. Messages coming from the server (e.g. form errors) are still in English.
 - Word lists: `client/src/i18n/en.js` (master) and `client/src/i18n/tw.js`. A missing Twi line falls back to English. To add a language, copy `tw.js`, translate, and add it to `DICTS` and `UI_LANGUAGES` in `client/src/i18n.jsx`.
+- Newer screens (from 0.14) write their English text directly and wrap it in `tt('…')`. The Twi for those is in `client/src/i18n/phrases.tw.js`, looked up by the English text; if the English changes, update the matching line there too. Admin screens, the loan pack and customer-facing texts are left in English on purpose.
 - Twi guides: `server/content/guides/tw/`. Three are drafted (separate business money, daily records, pricing for profit), each with `draft: true`. Remove that line once a reviewer has approved a guide, then run `npm run migrate`.
 - Readers of a Twi guide can open the English original underneath.
-- **Review workbook:** `MSME-Pack-Twi-review.xlsx` lists every Twi line next to the English, with columns for the reviewer's verdict and corrections, a key-terms sheet to settle first, and a progress count.
+- **Review workbooks:** `msme-pack-twi-review-v0.22.xlsx` covers the lines added in 0.22 (newer screens and labels). The older `MSME-Pack-Twi-review.xlsx` lists every Twi line next to the English, with columns for the reviewer's verdict and corrections, a key-terms sheet to settle first, and a progress count.
 
 ## Guide audio
 

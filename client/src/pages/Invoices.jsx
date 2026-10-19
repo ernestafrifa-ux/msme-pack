@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { BottomNav, Icon, StatusPill } from '../components.jsx';
 import { money, longDate, INVOICE_STATUS } from '../format';
+import { useT } from '../i18n.jsx';
 
 const FILTERS = [
   ['all', 'All'],
@@ -13,6 +14,7 @@ const FILTERS = [
 ];
 
 export default function Invoices() {
+  const { tt } = useT();
   const { business } = useSession();
   const location = useLocation();
   const [status, setStatus] = useState('all');
@@ -28,23 +30,23 @@ export default function Invoices() {
     <>
       <main className="screen with-nav">
         <header className="page-head">
-          <h1>Invoices</h1>
-          <Link to="/invoices/new" className="btn btn-primary btn-small"><Icon name="plus" size={18} />Invoice</Link>
+          <h1>{tt('Invoices')}</h1>
+          <Link to="/invoices/new" className="btn btn-primary btn-small"><Icon name="plus" size={18} />{tt('Invoice')}</Link>
         </header>
         {flash && <div className="flash" role="status">{flash}</div>}
         {error && <div className="form-error" role="alert">{error}</div>}
 
         {data && (
-          <section className="money-card" aria-label="Owed to you">
-            <div className="money-label">Customers owe you</div>
+          <section className="money-card" aria-label={tt('Owed to you')}>
+            <div className="money-label">{tt('Customers owe you')}</div>
             <div className="money-total">GHS {money(data.summary.owed)}</div>
             {data.summary.overdueCount > 0 && (
-              <div className="low-note"><Icon name="alert" size={18} /> {data.summary.overdueCount} overdue</div>
+              <div className="low-note"><Icon name="alert" size={18} /> {tt('{n} overdue', { n: data.summary.overdueCount })}</div>
             )}
           </section>
         )}
 
-        <div className="segmented" role="group" aria-label="Show">
+        <div className="segmented" role="group" aria-label={tt('Show')}>
           {FILTERS.map(([value, label]) => (
             <button key={value} aria-pressed={status === value} onClick={() => setStatus(value)}>
               {label}{value === 'draft' && data?.summary.draftCount ? ` ${data.summary.draftCount}` : ''}
@@ -55,8 +57,8 @@ export default function Invoices() {
         {data && data.invoices.length === 0 && (
           <div className="empty">
             {status === 'all'
-              ? <>No invoices yet. Use an invoice when a customer will pay later, or wants a written bill.</>
-              : 'Nothing here.'}
+              ? <>{tt('No invoices yet. Use an invoice when a customer will pay later, or wants a written bill.')}</>
+              : tt('Nothing here.')}
           </div>
         )}
         <ul className="txn-list">
@@ -64,9 +66,9 @@ export default function Invoices() {
             <li key={inv.id}>
               <Link to={`/invoices/${inv.id}`} className="product-row">
                 <div className="txn-main">
-                  <div className="txn-title">{inv.contactName || 'No customer'}</div>
+                  <div className="txn-title">{inv.contactName || tt('No customer')}</div>
                   <div className="muted small">
-                    {inv.number} · {inv.status === 'paid' ? `Issued ${longDate(inv.issueDate)}` : inv.dueDate ? `Due ${longDate(inv.dueDate)}` : longDate(inv.issueDate)}
+                    {inv.number} · {inv.status === 'paid' ? tt('Issued {date}', { date: longDate(inv.issueDate) }) : inv.dueDate ? `Due ${longDate(inv.dueDate)}` : longDate(inv.issueDate)}
                   </div>
                 </div>
                 <div className="qty-col">
@@ -77,7 +79,7 @@ export default function Invoices() {
             </li>
           ))}
         </ul>
-        <p className="center small"><Link to="/customers">Customers who owe</Link> · <Link to="/settings">Business details on your invoices</Link></p>
+        <p className="center small"><Link to="/customers">{tt('Customers who owe')}</Link> · <Link to="/settings">{tt('Business details on your invoices')}</Link></p>
       </main>
       <BottomNav />
     </>

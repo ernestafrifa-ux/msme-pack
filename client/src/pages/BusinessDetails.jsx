@@ -11,7 +11,7 @@ import SharingSection from './SharingSection.jsx';
 
 export default function BusinessDetails() {
   const { user, business } = useSession();
-  const { t, lang, setLanguage } = useT();
+  const { t, lang, setLanguage, tt } = useT();
   const [langMessage, setLangMessage] = useState('');
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
@@ -40,7 +40,7 @@ export default function BusinessDetails() {
     setSaved('');
     try {
       await api(`/businesses/${business.id}`, { method: 'PATCH', body: form });
-      setSaved('Saved. New and existing invoices show these details.');
+      setSaved(tt('Saved. New and existing invoices show these details.'));
     } catch (err) {
       setErrors(err.fields || {});
       setMessage(err.message);
@@ -51,53 +51,52 @@ export default function BusinessDetails() {
 
   return (
     <main className="screen">
-      <TopBar title="Business details" back="/invoices" />
+      <TopBar title={tt('Business details')} back="/invoices" />
       <LogoSection />
       <Link to="/registrations" className="card report-link reg-link">
         <span className="txn-main">
-          <span className="txn-title wrap">Registrations: bank account &amp; VAT</span>
-          <span className="small muted">No bank account or VAT yet? See what to bring, and switch them on when they are done.</span>
+          <span className="txn-title wrap">{tt('Registrations: bank account & VAT')}</span>
+          <span className="small muted">{tt('No bank account or VAT yet? See what to bring, and switch them on when they are done.')}</span>
         </span>
         <Icon name="chevron" size={18} />
       </Link>
-      <p className="lead">These appear at the top of your invoices.</p>
+      <p className="lead">{tt('These appear at the top of your invoices.')}</p>
       {form && (
         <form className="stack" onSubmit={submit} noValidate>
           <FormError message={message} />
           {saved && <div className="flash" role="status">{saved}</div>}
           <fieldset disabled={!canManage} className="stack plain">
-            <Field label="Business name" error={errors.name}>
+            <Field label={tt('Business name')} error={errors.name}>
               {(p) => <input {...p} value={form.name} onChange={set('name')} />}
             </Field>
             <div className="grid-2">
-              <Field label="Phone" error={errors.phone}>
+              <Field label={tt('Phone')} error={errors.phone}>
                 {(p) => <input {...p} type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} />}
               </Field>
-              <Field label="Town" error={errors.town}>
+              <Field label={tt('Town')} error={errors.town}>
                 {(p) => <input {...p} value={form.town} onChange={set('town')} />}
               </Field>
             </div>
-            <Field label="Email (optional)" error={errors.email}>
+            <Field label={tt('Email (optional)')} error={errors.email}>
               {(p) => <input {...p} type="email" inputMode="email" value={form.email} onChange={set('email')} />}
             </Field>
             <div className="grid-2">
-              <Field label="Digital address" error={errors.digitalAddress} hint="GhanaPostGPS, optional">
+              <Field label={tt('Digital address')} error={errors.digitalAddress} hint={tt('GhanaPostGPS, optional')}>
                 {(p) => <input {...p} value={form.digitalAddress} onChange={set('digitalAddress')} placeholder="AK-039-5028" />}
               </Field>
-              <Field label="TIN (optional)" error={errors.tin} hint="If you have one">
+              <Field label={tt('TIN (optional)')} error={errors.tin} hint={tt('If you have one')}>
                 {(p) => <input {...p} value={form.tin} onChange={set('tin')} />}
               </Field>
             </div>
             <label className="check-row top">
               <input type="checkbox" checked={form.vatRegistered} onChange={(e) => setForm({ ...form, vatRegistered: e.target.checked })} />
-              <span>The business is registered for VAT with GRA
-                <span className="small muted block">New invoices then add NHIL 2.5%, GETFund 2.5% and VAT 15% (20% in all). Businesses that provide services must register whatever their sales; those selling goods must register once sales pass GHS 750,000 a year.</span>
+              <span>{tt('The business is registered for VAT with GRA')}<span className="small muted block">{tt('New invoices then add NHIL 2.5%, GETFund 2.5% and VAT 15% (20% in all). Businesses that provide services must register whatever their sales; those selling goods must register once sales pass GHS 750,000 a year.')}</span>
               </span>
             </label>
-            <Field label="Invoice number starts with" error={errors.invoicePrefix} hint="e.g. INV gives INV-0001">
+            <Field label={tt('Invoice number starts with')} error={errors.invoicePrefix} hint={tt('e.g. INV gives INV-0001')}>
               {(p) => <input {...p} value={form.invoicePrefix} onChange={set('invoicePrefix')} maxLength={8} />}
             </Field>
-            {canManage && <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>}
+            {canManage && <button className="btn btn-primary btn-block" disabled={busy}>{busy ? tt('Saving…') : tt('Save')}</button>}
           </fieldset>
         </form>
       )}
@@ -119,8 +118,8 @@ export default function BusinessDetails() {
         </div>
         {langMessage && <p className="small" role="status">{langMessage === 'saved' ? t('settings.langSaved') : langMessage}</p>}
       </section>
-      <Link to="/settings/password" className="btn btn-ghost btn-block">Change my password</Link>
-      {user.isAdmin && <Link to="/admin" className="btn btn-ghost btn-block">MSME Pack admin: all businesses</Link>}
+      <Link to="/settings/password" className="btn btn-ghost btn-block">{tt('Change my password')}</Link>
+      {user.isAdmin && <Link to="/admin" className="btn btn-ghost btn-block">{tt('MSME Pack admin: all businesses')}</Link>}
     </main>
   );
 }

@@ -14,7 +14,7 @@ const STATEMENTS = [
 ];
 
 export default function Reports() {
-  const { t } = useT();
+  const { t, tt } = useT();
   const { business } = useSession();
   return (
     <main className="screen">
@@ -23,8 +23,8 @@ export default function Reports() {
       {['owner', 'manager', 'advisor'].includes(business.role) && (
         <Link to="/loan-pack" className="card loan-pack-card">
           <span className="txn-main">
-            <span className="txn-title wrap">Loan-ready pack</span>
-            <span className="small muted">Everything a lender or programme asks for, on a few pages: the business, month-by-month results, what it owns and owes, and your record keeping.</span>
+            <span className="txn-title wrap">{tt('Loan-ready pack')}</span>
+            <span className="small muted">{tt('Everything a lender or programme asks for, on a few pages: the business, month-by-month results, what it owns and owes, and your record keeping.')}</span>
           </span>
           <Icon name="chevron" size={18} />
         </Link>
@@ -42,7 +42,7 @@ export default function Reports() {
           </li>
         ))}
       </ul>
-      <h2 className="date-head">Plan and grow</h2>
+      <h2 className="date-head">{tt('Plan and grow')}</h2>
       <ul className="txn-list">
         {[['/plan', 'Target & budget', 'A sales target and a spending limit for the month, with progress on Home.'],
           ['/goals', 'Savings goals', 'Save up for something, like a photocopier or next year’s rent.'],
@@ -72,8 +72,8 @@ export default function Reports() {
         <li>
           <Link to="/close-day" className="txn report-link">
             <span className="txn-main">
-              <span className="txn-title wrap">Close the day</span>
-              <span className="small muted">Count the cash box and check the MoMo balance against the records.</span>
+              <span className="txn-title wrap">{tt('Close the day')}</span>
+              <span className="small muted">{tt('Count the cash box and check the MoMo balance against the records.')}</span>
             </span>
             <Icon name="chevron" size={18} />
           </Link>
@@ -82,8 +82,8 @@ export default function Reports() {
           <li>
             <Link to="/activity" className="txn report-link">
               <span className="txn-main">
-                <span className="txn-title wrap">Who recorded what</span>
-                <span className="small muted">Records by each person, anything deleted, and cash count differences.</span>
+                <span className="txn-title wrap">{tt('Who recorded what')}</span>
+                <span className="small muted">{tt('Records by each person, anything deleted, and cash count differences.')}</span>
               </span>
               <Icon name="chevron" size={18} />
             </Link>
@@ -92,8 +92,8 @@ export default function Reports() {
         <li>
           <Link to="/customers" className="txn report-link">
             <span className="txn-main">
-              <span className="txn-title wrap">Customers who owe</span>
-              <span className="small muted">Sales paid later and unpaid invoices, customer by customer.</span>
+              <span className="txn-title wrap">{tt('Customers who owe')}</span>
+              <span className="small muted">{tt('Sales paid later and unpaid invoices, customer by customer.')}</span>
             </span>
             <Icon name="chevron" size={18} />
           </Link>
@@ -101,8 +101,8 @@ export default function Reports() {
         <li>
           <Link to="/registrations" className="txn report-link">
             <span className="txn-main">
-              <span className="txn-title wrap">Registrations: bank account &amp; VAT</span>
-              <span className="small muted">Get ready to open a bank account or register for VAT, step by step.</span>
+              <span className="txn-title wrap">{tt('Registrations: bank account & VAT')}</span>
+              <span className="small muted">{tt('Get ready to open a bank account or register for VAT, step by step.')}</span>
             </span>
             <Icon name="chevron" size={18} />
           </Link>

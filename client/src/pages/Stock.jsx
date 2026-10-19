@@ -4,8 +4,10 @@ import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { BottomNav, Icon } from '../components.jsx';
 import { money, qty } from '../format';
+import { useT } from '../i18n.jsx';
 
 export default function Stock() {
+  const { tt } = useT();
   const { business } = useSession();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
@@ -26,9 +28,9 @@ export default function Stock() {
     <>
       <main className="screen with-nav">
         <header className="page-head">
-          <h1>Stock</h1>
+          <h1>{tt('Stock')}</h1>
           {canManage && (
-            <Link to="/stock/new" className="btn btn-primary btn-small"><Icon name="plus" size={18} />Product</Link>
+            <Link to="/stock/new" className="btn btn-primary btn-small"><Icon name="plus" size={18} />{tt('Product')}</Link>
           )}
         </header>
         {flash && <div className="flash" role="status">{flash}</div>}
@@ -37,11 +39,11 @@ export default function Stock() {
         {data && (
           <div className="grid-2 tiles">
             <div className="tile">
-              <div className="muted small">Stock value (at cost)</div>
+              <div className="muted small">{tt('Stock value (at cost)')}</div>
               <div className="tile-val">GHS {money(data.summary.valueAtCost)}</div>
             </div>
             <div className={'tile' + (data.summary.lowCount ? ' tile-warn' : '')}>
-              <div className="small">Running low</div>
+              <div className="small">{tt('Running low')}</div>
               <div className="tile-val">{data.summary.lowCount} {data.summary.lowCount === 1 ? 'item' : 'items'}</div>
             </div>
           </div>
@@ -49,20 +51,20 @@ export default function Stock() {
 
         {data && data.products.length === 0 ? (
           <div className="empty">
-            <p><strong>No products yet.</strong></p>
-            <p>Add what you sell, with how many you have now. Sales and invoices will then keep the count for you.</p>
-            {canManage && <Link to="/stock/new" className="btn btn-primary">Add your first product</Link>}
+            <p><strong>{tt('No products yet.')}</strong></p>
+            <p>{tt('Add what you sell, with how many you have now. Sales and invoices will then keep the count for you.')}</p>
+            {canManage && <Link to="/stock/new" className="btn btn-primary">{tt('Add your first product')}</Link>}
           </div>
         ) : (
           <>
             <label className="search search-field">
               <Icon name="search" size={20} />
-              <span className="sr-only">Search products</span>
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" />
+              <span className="sr-only">{tt('Search products')}</span>
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tt('Search products')} />
             </label>
-            <div className="segmented" role="group" aria-label="Show">
-              <button aria-pressed={!lowOnly} onClick={() => setLowOnly(false)}>All {data?.summary.count ?? ''}</button>
-              <button aria-pressed={lowOnly} onClick={() => setLowOnly(true)}>Running low {data?.summary.lowCount ?? ''}</button>
+            <div className="segmented" role="group" aria-label={tt('Show')}>
+              <button aria-pressed={!lowOnly} onClick={() => setLowOnly(false)}>{tt('All')} {data?.summary.count ?? ''}</button>
+              <button aria-pressed={lowOnly} onClick={() => setLowOnly(true)}>{tt('Running low')} {data?.summary.lowCount ?? ''}</button>
             </div>
             <ul className="txn-list product-list">
               {products.map((p) => {
@@ -74,12 +76,12 @@ export default function Stock() {
                     <Link to={`/stock/${p.id}`} className="product-row">
                       <div className="txn-main">
                         <div className="txn-title">
-                          {p.name} {p.isLow && <span className="pill pill-overdue">Low</span>}
+                          {p.name} {p.isLow && <span className="pill pill-overdue">{tt('Low')}</span>}
                         </div>
                         {p.trackStock ? (
                           <div className="bar" aria-hidden="true"><div className={p.isLow ? 'bar-low' : ''} style={{ width: pct + '%' }} /></div>
                         ) : (
-                          <div className="muted small">Service · GHS {money(p.sellingPrice)}</div>
+                          <div className="muted small">{tt('Service')} · GHS {money(p.sellingPrice)}</div>
                         )}
                       </div>
                       {p.trackStock && (
@@ -94,9 +96,9 @@ export default function Stock() {
                 );
               })}
             </ul>
-            {data && !products.length && <div className="empty">No products match.</div>}
+            {data && !products.length && <div className="empty">{tt('No products match.')}</div>}
             {data && data.products.some((p) => p.trackStock) && (
-              <Link to="/stock/count" className="btn btn-ghost btn-block dashed">Do a stock count</Link>
+              <Link to="/stock/count" className="btn btn-ghost btn-block dashed">{tt('Do a stock count')}</Link>
             )}
           </>
         )}

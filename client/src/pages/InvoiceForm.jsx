@@ -5,11 +5,13 @@ import { useSession } from '../session.jsx';
 import { Field, FormError, Icon, ProductPicker, TopBar } from '../components.jsx';
 import { money, todayGhana, addDaysIso } from '../format';
 import { vatOn } from '../tax';
+import { useT } from '../i18n.jsx';
 
 let lineKey = 0;
 const newLine = (over = {}) => ({ key: ++lineKey, productId: null, description: '', quantity: 1, unitPrice: '', ...over });
 
 export default function InvoiceForm() {
+  const { tt } = useT();
   const { invoiceId } = useParams();
   const editing = !!invoiceId;
   const navigate = useNavigate();
@@ -109,33 +111,33 @@ export default function InvoiceForm() {
 
   return (
     <main className="screen">
-      <TopBar title={editing ? 'Edit draft' : 'New invoice'} back={editing ? `/invoices/${invoiceId}` : '/invoices'} />
+      <TopBar title={editing ? tt('Edit draft') : tt('New invoice')} back={editing ? `/invoices/${invoiceId}` : '/invoices'} />
       <form className="stack" noValidate onSubmit={(e) => { e.preventDefault(); save(true); }}>
         <FormError message={message} />
 
         <fieldset className="field">
-          <legend>Customer</legend>
+          <legend>{tt('Customer')}</legend>
           {contacts.length > 0 && (
-            <div className="segmented" role="group" aria-label="Customer">
-              <button type="button" aria-pressed={customer.mode === 'existing'} onClick={() => setCustomer({ ...customer, mode: 'existing' })}>Saved customer</button>
-              <button type="button" aria-pressed={customer.mode === 'new'} onClick={() => setCustomer({ ...customer, mode: 'new' })}>New customer</button>
+            <div className="segmented" role="group" aria-label={tt('Customer')}>
+              <button type="button" aria-pressed={customer.mode === 'existing'} onClick={() => setCustomer({ ...customer, mode: 'existing' })}>{tt('Saved customer')}</button>
+              <button type="button" aria-pressed={customer.mode === 'new'} onClick={() => setCustomer({ ...customer, mode: 'new' })}>{tt('New customer')}</button>
             </div>
           )}
           {customer.mode === 'existing' ? (
-            <Field label="Choose customer" error={errors.contactId}>
+            <Field label={tt('Choose customer')} error={errors.contactId}>
               {(p) => (
                 <select {...p} value={customer.contactId} onChange={(e) => setCustomer({ ...customer, contactId: e.target.value })}>
-                  <option value="">Choose…</option>
+                  <option value="">{tt('Choose…')}</option>
                   {contacts.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone.replace('+233', '0')}` : ''}</option>)}
                 </select>
               )}
             </Field>
           ) : (
             <div className="grid-2">
-              <Field label="Name" error={errors['newContact.name'] || errors.contactId}>
+              <Field label={tt('Name')} error={errors['newContact.name'] || errors.contactId}>
                 {(p) => <input {...p} value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} />}
               </Field>
-              <Field label="Phone (for WhatsApp)" error={errors['newContact.phone']}>
+              <Field label={tt('Phone (for WhatsApp)')} error={errors['newContact.phone']}>
                 {(p) => <input {...p} type="tel" inputMode="tel" placeholder="024 123 4567" value={customer.phone}
                   onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} />}
               </Field>
@@ -143,8 +145,8 @@ export default function InvoiceForm() {
           )}
         </fieldset>
 
-        <section className="field" aria-label="Items">
-          <div className="field-label">Items</div>
+        <section className="field" aria-label={tt('Items')}>
+          <div className="field-label">{tt('Items')}</div>
           {lines.length > 0 && (
             <ul className="lines">
               {lines.map((l, i) => (
@@ -154,23 +156,23 @@ export default function InvoiceForm() {
                       <span className="line-name">{l.description}</span>
                     ) : (
                       <label className="line-desc">
-                        <span className="sr-only">Description of item {i + 1}</span>
-                        <input value={l.description} placeholder="Describe the item or service"
+                        <span className="sr-only">{tt('Description of item {i}', { i: i + 1 })}</span>
+                        <input value={l.description} placeholder={tt('Describe the item or service')}
                           onChange={(e) => setLine(l.key, 'description', e.target.value)} aria-invalid={!!errors[`items.${i}.description`]} />
                       </label>
                     )}
-                    <button type="button" className="icon-btn small-btn" aria-label={`Remove ${l.description || 'item'}`}
+                    <button type="button" className="icon-btn small-btn" aria-label={tt('Remove {item}', { item: l.description || 'item' })}
                       onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))}><Icon name="close" size={16} /></button>
                   </div>
                   <div className="line-controls">
                     <label className="qty-input">
-                      <span className="sr-only">Quantity of {l.description || `item ${i + 1}`}</span>
+                      <span className="sr-only">{tt('Quantity of {item}', { item: l.description || tt('item {i}', { i: i + 1 }) })}</span>
                       <input type="number" inputMode="decimal" min="0" step="any" value={l.quantity}
                         onChange={(e) => setLine(l.key, 'quantity', e.target.value)} />
                     </label>
                     <span className="muted small">×</span>
                     <label className="price-input">
-                      <span className="sr-only">Price of one {l.description || `item ${i + 1}`} (GHS)</span>
+                      <span className="sr-only">{tt('Price of one {item} (GHS)', { item: l.description || tt('item {i}', { i: i + 1 }) })}</span>
                       <input type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00" value={l.unitPrice}
                         onChange={(e) => setLine(l.key, 'unitPrice', e.target.value)} />
                     </label>
@@ -188,41 +190,39 @@ export default function InvoiceForm() {
           ) : (
             <div className="grid-2">
               <button type="button" className="btn btn-ghost dashed" onClick={() => setPicking(true)} disabled={!products.length}>
-                <Icon name="plus" size={18} /> Product
-              </button>
+                <Icon name="plus" size={18} /> {tt('Product')}</button>
               <button type="button" className="btn btn-ghost dashed" onClick={() => setLines((ls) => [...ls, newLine()])}>
-                <Icon name="plus" size={18} /> Other item
-              </button>
+                <Icon name="plus" size={18} /> {tt('Other item')}</button>
             </div>
           )}
           {errors.items && <div className="field-error">{errors.items}</div>}
         </section>
 
         <div className="grid-2">
-          <Field label="Invoice date" error={errors.issueDate}>
+          <Field label={tt('Invoice date')} error={errors.issueDate}>
             {(p) => <input {...p} type="date" max={todayGhana()} value={form.issueDate} onChange={set('issueDate')} />}
           </Field>
-          <Field label="Pay by" error={errors.dueDate}>
+          <Field label={tt('Pay by')} error={errors.dueDate}>
             {(p) => <input {...p} type="date" min={form.issueDate} value={form.dueDate} onChange={set('dueDate')} />}
           </Field>
         </div>
 
-        <Field label="Discount (GHS, optional)" error={errors.discount}>
+        <Field label={tt('Discount (GHS, optional)')} error={errors.discount}>
           {(p) => <input {...p} type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00"
             value={form.discount} onChange={set('discount')} />}
         </Field>
 
-        <Field label="How to pay you" error={errors.paymentTerms} hint="Shown on the invoice, e.g. your MoMo number and name">
+        <Field label={tt('How to pay you')} error={errors.paymentTerms} hint={tt('Shown on the invoice, e.g. your MoMo number and name')}>
           {(p) => <textarea {...p} rows={2} value={form.paymentTerms} onChange={set('paymentTerms')}
-            placeholder="MoMo 024 123 4567 (Ama Mensah)" />}
+            placeholder={tt('MoMo 024 123 4567 (Ama Mensah)')} />}
         </Field>
 
         {vatRegistered && (
           <label className="check-row top">
             <input type="checkbox" checked={form.taxScheme === 'vat'}
               onChange={(e) => setForm({ ...form, taxScheme: e.target.checked ? 'vat' : 'none' })} />
-            <span>Add VAT, NHIL &amp; GETFund (20%)
-              <span className="small muted block">NHIL 2.5% + GETFund 2.5% + VAT 15% on the price before tax. You pay this to GRA.</span>
+            <span>{tt('Add VAT, NHIL & GETFund (20%)')}
+              <span className="small muted block">{tt('NHIL 2.5% + GETFund 2.5% + VAT 15% on the price before tax. You pay this to GRA.')}</span>
             </span>
           </label>
         )}
@@ -230,16 +230,16 @@ export default function InvoiceForm() {
         {showMore ? (
           <>
             {form.taxScheme !== 'vat' && <div className="grid-2">
-              <Field label="Tax name" error={errors.taxLabel} hint="Only if you are registered">
-                {(p) => <input {...p} value={form.taxLabel} onChange={set('taxLabel')} placeholder="e.g. VAT" />}
+              <Field label={tt('Tax name')} error={errors.taxLabel} hint={tt('Only if you are registered')}>
+                {(p) => <input {...p} value={form.taxLabel} onChange={set('taxLabel')} placeholder={tt('e.g. VAT')} />}
               </Field>
-              <Field label="Tax rate (%)" error={errors.taxRate} hint="Ask your tax office">
+              <Field label={tt('Tax rate (%)')} error={errors.taxRate} hint={tt('Ask your tax office')}>
                 {(p) => <input {...p} type="number" inputMode="decimal" min="0" max="100" step="0.01" value={form.taxRate}
                   onChange={(e) => setForm({ ...form, taxRate: e.target.value, taxScheme: Number(e.target.value) > 0 ? 'custom' : 'none' })} placeholder="0" />}
               </Field>
             </div>}
-            <Field label="Note to customer (optional)" error={errors.notes}>
-              {(p) => <textarea {...p} rows={2} value={form.notes} onChange={set('notes')} placeholder="Thank you for your business." />}
+            <Field label={tt('Note to customer (optional)')} error={errors.notes}>
+              {(p) => <textarea {...p} rows={2} value={form.notes} onChange={set('notes')} placeholder={tt('Thank you for your business.')} />}
             </Field>
           </>
         ) : (
@@ -247,20 +247,20 @@ export default function InvoiceForm() {
         )}
 
         <div className="totals card">
-          <div><span>Subtotal</span><span>{money(subtotal / 100)}</span></div>
-          {cents(form.discount) > 0 && <div><span>Discount</span><span>−{money(form.discount)}</span></div>}
+          <div><span>{tt('Subtotal')}</span><span>{money(subtotal / 100)}</span></div>
+          {cents(form.discount) > 0 && <div><span>{tt('Discount')}</span><span>−{money(form.discount)}</span></div>}
           {vat ? (
             <>
-              <div><span>NHIL (2.5%)</span><span>{money(vat.nhil)}</span></div>
-              <div><span>GETFund (2.5%)</span><span>{money(vat.getfund)}</span></div>
-              <div><span>VAT (15%)</span><span>{money(vat.vat)}</span></div>
+              <div><span>{tt('NHIL (2.5%)')}</span><span>{money(vat.nhil)}</span></div>
+              <div><span>{tt('GETFund (2.5%)')}</span><span>{money(vat.getfund)}</span></div>
+              <div><span>{tt('VAT (15%)')}</span><span>{money(vat.vat)}</span></div>
             </>
           ) : tax > 0 && <div><span>{form.taxLabel || 'Tax'} ({Number(form.taxRate)}%)</span><span>{money(tax / 100)}</span></div>}
-          <div className="totals-grand"><span>Total</span><span>GHS {money(total)}</span></div>
+          <div className="totals-grand"><span>{tt('Total')}</span><span>GHS {money(total)}</span></div>
         </div>
 
-        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Saving…' : 'Save and send'}</button>
-        <button type="button" className="btn btn-ghost btn-block" disabled={busy} onClick={() => save(false)}>Save as draft</button>
+        <button className="btn btn-primary btn-block" disabled={busy}>{busy ? tt('Saving…') : tt('Save and send')}</button>
+        <button type="button" className="btn btn-ghost btn-block" disabled={busy} onClick={() => save(false)}>{tt('Save as draft')}</button>
       </form>
     </main>
   );

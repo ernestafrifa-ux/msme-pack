@@ -3,11 +3,13 @@ import { api } from './api';
 import { useSession } from './session.jsx';
 import en from './i18n/en.js';
 import tw from './i18n/tw.js';
+import twPhrases from './i18n/phrases.tw.js';
 
 // Interface languages that have a word list. Other languages chosen at
 // sign-up still get guides in that language when they exist, with the
 // interface in English.
 const DICTS = { en, tw };
+const PHRASES = { tw: twPhrases };
 // Translations still waiting for a fluent speaker's review.
 export const DRAFT_LANGUAGES = []; // Twi was reviewed and approved in October 2026.
 // Languages offered in the switcher (interface translated).
@@ -72,9 +74,20 @@ export function I18nProvider({ children }) {
     [user, updateUser]
   );
 
+  // Newer screens: the English text itself is the key; phrases.tw.js gives the Twi.
+  const phrases = PHRASES[lang];
+  const tt = useCallback(
+    (text, vars) => {
+      let s = (phrases && phrases[text]) || text;
+      if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? String(vars[k]) : m));
+      return s;
+    },
+    [phrases]
+  );
+
   const value = useMemo(
-    () => ({ lang, t, setLanguage, isDraft: DRAFT_LANGUAGES.includes(lang), hasUi: !!DICTS[lang] }),
-    [lang, t, setLanguage]
+    () => ({ lang, t, tt, setLanguage, isDraft: DRAFT_LANGUAGES.includes(lang), hasUi: !!DICTS[lang] }),
+    [lang, t, tt, setLanguage]
   );
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

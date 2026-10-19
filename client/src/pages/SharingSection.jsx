@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
+import { useT } from '../i18n.jsx';
 
 // The owner's choice: share summary figures with the MSME Pack team for programme reports.
 export default function SharingSection() {
+  const { tt } = useT();
   const { business } = useSession();
   const [on, setOn] = useState(null);
   const [message, setMessage] = useState('');
@@ -16,16 +18,15 @@ export default function SharingSection() {
     try {
       const d = await api(`/businesses/${business.id}`, { method: 'PATCH', body: { shareWithProgramme: v } });
       setOn(d.business.shareWithProgramme);
-      setMessage(v ? 'Thank you. Your summary figures are now shared with the MSME Pack team.' : 'Sharing is off. The team no longer sees your figures.');
+      setMessage(v ? tt('Thank you. Your summary figures are now shared with the MSME Pack team.') : tt('Sharing is off. The team no longer sees your figures.'));
     } catch (err) { setMessage(err.message); }
   }
   return (
     <section className="card" aria-labelledby="share-head">
-      <h2 id="share-head">Help the programme</h2>
+      <h2 id="share-head">{tt('Help the programme')}</h2>
       <label className="check-row top">
         <input type="checkbox" checked={on} onChange={toggle} />
-        <span>Share my summary figures with the MSME Pack team
-          <span className="small muted block">Monthly sales, profit and your health check score, used to report on and improve support for businesses like yours. Never your customers, records or balances. You can turn this off at any time.</span>
+        <span>{tt('Share my summary figures with the MSME Pack team')}<span className="small muted block">{tt('Monthly sales, profit and your health check score, used to report on and improve support for businesses like yours. Never your customers, records or balances. You can turn this off at any time.')}</span>
         </span>
       </label>
       {message && <p className="small" role="status">{message}</p>}

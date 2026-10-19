@@ -4,10 +4,12 @@ import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { FormError, TopBar } from '../components.jsx';
 import { qty } from '../format';
+import { useT } from '../i18n.jsx';
 
 // Walk the shelves and type what's actually there. Only items with a
 // difference are saved, as "stock count" changes.
 export default function StockCount() {
+  const { tt } = useT();
   const { business } = useSession();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
@@ -34,7 +36,7 @@ export default function StockCount() {
       });
       navigate('/stock', {
         replace: true,
-        state: { flash: changed.length ? `Stock count saved: ${changed.length} item(s) corrected.` : 'Stock count matched your records.' },
+        state: { flash: changed.length ? tt('Stock count saved: {n} item(s) corrected.', { n: changed.length }) : tt('Stock count matched your records.') },
       });
     } catch (err) {
       setMessage(err.message);
@@ -45,8 +47,8 @@ export default function StockCount() {
 
   return (
     <main className="screen">
-      <TopBar title="Stock count" back="/stock" />
-      <p className="lead">Count what is on the shelf and type the number. Leave an item empty to skip it.</p>
+      <TopBar title={tt('Stock count')} back="/stock" />
+      <p className="lead">{tt('Count what is on the shelf and type the number. Leave an item empty to skip it.')}</p>
       <FormError message={message} />
       <ul className="txn-list count-list">
         {products.map((p) => {
@@ -69,9 +71,9 @@ export default function StockCount() {
       </ul>
       <div className="sticky-actions">
         <button className="btn btn-primary btn-block" disabled={busy || !entered.length} onClick={save}>
-          {busy ? 'Saving…' : entered.length
-            ? `Save count (${differing.length} ${differing.length === 1 ? 'difference' : 'differences'})`
-            : 'Type at least one count'}
+          {busy ? tt('Saving…') : entered.length
+            ? tt(differing.length === 1 ? 'Save count ({n} difference)' : 'Save count ({n} differences)', { n: differing.length })
+            : tt('Type at least one count')}
         </button>
       </div>
     </main>

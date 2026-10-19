@@ -3,6 +3,14 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.22 · 19 October 2026 · Twi for the newer screens (drafts)
+
+- Everything added from 0.10 to 0.21 now shows in **Twi** when Twi is chosen: Close the day, Who recorded what, Customers who owe, receipts, Target & budget, Savings goals, Price checker, Registrations, Tax, Check against MoMo, Messages, people and logo settings, password change, the offline banner and the new Home cards (550 phrases and 212 labels).
+- **All this Twi is a draft** that a fluent speaker still needs to check (the older, reviewed Twi is unchanged, so the app does not show a draft notice). The review spreadsheet `msme-pack-twi-review-v0.22.xlsx` has a sheet for each part (Phrases and Keys), with "Correct?" and "Correction" columns.
+- Admin screens, the loan-ready pack and everything a customer receives (invoices, receipts, WhatsApp and SMS texts) stay in English.
+- For developers: newer screens use `tt('English text')`, which looks up `client/src/i18n/phrases.tw.js` and shows the English when there is no Twi line yet.
+- Deploy: no database change.
+
 ## 0.21 · 19 October 2026 · Text messages (SMS), ready to switch on
 
 - SMS can be sent through a Ghanaian SMS provider (**Arkesel** or **Hubtel**) once its account keys are added on Railway (see "Text messages (SMS)" in the README). Until then nothing changes and the admin screen says SMS is off.
