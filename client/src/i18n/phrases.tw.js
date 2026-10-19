@@ -297,7 +297,7 @@ export default {
   "Loan repayment": "Bosea a wotuaeɛ",
   "VAT paid": "VAT a wotuaeɛ",
   "Loan received": "Bosea a wonyaeɛ",
-  "Equipment": "Nnwinnade",
+  "Equipment": "Mfidie",
   "News and opportunities from the MSME Pack team.": "Nsɛm foforɔ ne akwannya firi MSME Pack kuo no hɔ.",
   "No messages yet.": "Nkra biara nni hɔ.",
   "new": "foforɔ",
