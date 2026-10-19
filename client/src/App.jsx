@@ -23,6 +23,7 @@ import Activity from './pages/Activity.jsx';
 import Plan from './pages/Plan.jsx';
 import Goals from './pages/Goals.jsx';
 import PriceCheck from './pages/PriceCheck.jsx';
+import LoanPack from './pages/LoanPack.jsx';
 import BusinessDetails from './pages/BusinessDetails.jsx';
 import Health from './pages/Health.jsx';
 import HealthCheck from './pages/HealthCheck.jsx';
@@ -150,6 +151,7 @@ export default function App() {
       <Route path="/plan" element={<Plan />} />
       <Route path="/goals" element={<Goals />} />
       <Route path="/price-check" element={<PriceCheck />} />
+      <Route path="/loan-pack" element={<LoanPack />} />
       <Route path="/customers/:contactId" element={<CustomerDetail />} />
       {adminRoutes}
       <Route path="/health" element={<Health />} />

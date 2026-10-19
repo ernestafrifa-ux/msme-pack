@@ -20,6 +20,15 @@ export default function Reports() {
     <main className="screen">
       <TopBar title={t('st.title')} back="/records" />
       <p className="muted small">{t('st.lead')}</p>
+      {['owner', 'manager', 'advisor'].includes(business.role) && (
+        <Link to="/loan-pack" className="card loan-pack-card">
+          <span className="txn-main">
+            <span className="txn-title wrap">Loan-ready pack</span>
+            <span className="small muted">Everything a lender or programme asks for, on a few pages: the business, month-by-month results, what it owns and owes, and your record keeping.</span>
+          </span>
+          <Icon name="chevron" size={18} />
+        </Link>
+      )}
       <ul className="txn-list">
         {STATEMENTS.map(([to, title, what]) => (
           <li key={to}>

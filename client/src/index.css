@@ -528,3 +528,20 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
 .limit-input { width: 110px; min-height: 40px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; font-size: 16px; text-align: right; }
 .price-result .stat { font-size: 24px; }
 .goal .bar { margin-top: 4px; }
+
+/* Loan-ready pack */
+.pack-head { display: flex; gap: 14px; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 12px; margin-bottom: 8px; }
+.pack-h { font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--primary-dark); margin: 18px 0 6px; }
+.pack-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pack-tile { border: 1px solid #E3E8E4; border-radius: 10px; padding: 8px 10px; }
+.pack-tile-val { font-size: 18px; font-weight: 700; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.pack-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.pack-table th, .pack-table td { padding: 5px 6px; border-bottom: 1px solid #E3E8E4; text-align: left; }
+.pack-table th.num, .pack-table td.num { text-align: right; }
+.pack-table tr.total td { font-weight: 700; border-top: 2px solid #16211C; }
+.pack-sign { margin-top: 24px; }
+.pack-sign-lines { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 28px; font-size: 13px; color: var(--muted); }
+.sign-line { border-bottom: 1px solid #16211C; height: 28px; margin-bottom: 4px; }
+@media print { .pack-tiles { grid-template-columns: repeat(3, 1fr); } .pack-h { break-after: avoid; } .pack-table { font-size: 11px; } }
+.loan-pack-card { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; border: 2px solid var(--primary); margin: 10px 0 4px; }

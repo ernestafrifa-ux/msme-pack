@@ -3,6 +3,18 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.18 · 19 October 2026 · Loan-ready pack
+
+- **Loan-ready pack** (top of Reports, for owners, managers and advisors): a printable business summary for a bank, microfinance or support programme, for the last 3, 6 or 12 months (only months since the business began keeping records here):
+  - the business: owner, sector, location, registration, TIN, VAT number, contact, records since when;
+  - key figures: average sales and profit a month, net margin, sales growth, cash and bank now, what it owes, the owner's share;
+  - month by month: sales, gross profit, expenses, net profit, owner pay, cash at month end; and money in and out each month;
+  - what it owns and owes today; loans and supplier credit, with repayments made;
+  - record keeping: days with records, months covered, and the health check score;
+  - a note that the figures are the owner's own records (not audited) and lines for signature and date.
+- Print it or save it as a PDF; or download the monthly figures for a spreadsheet.
+- Deploy: no database change.
+
 ## 0.17 · 19 October 2026 · Target, budget, savings goals and price checker
 
 New "Plan and grow" section in Reports:

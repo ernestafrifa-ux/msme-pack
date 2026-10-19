@@ -198,5 +198,6 @@ router.use('/:businessId', require('./branding').router);
 router.use('/:businessId', require('./notices').router);
 router.use('/:businessId', require('./control').router);
 router.use('/:businessId', require('./planning').router);
+router.use('/:businessId', require('./loanpack').router);
 
 module.exports = { router, createSchema, createBusiness, publicBusiness };

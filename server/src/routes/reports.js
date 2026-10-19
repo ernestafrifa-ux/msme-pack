@@ -430,29 +430,28 @@ router.get('/reports/sales-by-product', canView, validate(periodSchema, 'query')
 
 // ---- Balance sheet ---------------------------------------------------------------------------
 
-router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), async (req, res) => {
-  const asOf = req.valid.query.asOf || todayInGhana();
+async function balanceSheet(businessId, asOf) {
   const [accounts, stock, invoices, equipment, debts, business, tax] = await Promise.all([
-    accountBalances(req.businessId, asOf, asOf),
+    accountBalances(businessId, asOf, asOf),
     query(
       `SELECT COALESCE(SUM(q.qty * q.cost_price), 0) AS value FROM (
          SELECT p.cost_price, COALESCE(SUM(m.quantity), 0) AS qty
            FROM products p LEFT JOIN stock_movements m ON m.product_id = p.id AND m.movement_date <= $2
           WHERE p.business_id = $1 AND p.deleted_at IS NULL AND p.track_stock
           GROUP BY p.id) q WHERE q.qty > 0`,
-      [req.businessId, asOf]
+      [businessId, asOf]
     ),
-    openInvoices(req.businessId, asOf),
+    openInvoices(businessId, asOf),
     query(
       `SELECT id, name, current_value FROM assets
         WHERE business_id = $1 AND deleted_at IS NULL AND bought_on <= $2
           AND (disposed_on IS NULL OR disposed_on > $2)
         ORDER BY bought_on, name`,
-      [req.businessId, asOf]
+      [businessId, asOf]
     ),
-    debtBalances(req.businessId, asOf),
-    businessHeader(req.businessId),
-    taxPosition(req.businessId, asOf),
+    debtBalances(businessId, asOf),
+    businessHeader(businessId),
+    taxPosition(businessId, asOf),
   ]);
   const cashLines = accounts.map((a) => ({ name: a.name, amount: money(a.closing) }));
   const cashTotal = sum(accounts, 'closing');
@@ -466,7 +465,7 @@ router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), asy
   const debtLines = debts.filter((d) => d.balance > 0.004).map((d) => ({ name: d.lender, kind: d.kind, amount: money(d.balance) }));
   const taxOwed = Math.max(0, tax.owed);
   const liabilitiesTotal = sum(debtLines, 'amount') + taxOwed;
-  res.json({
+  return {
     business, asOf,
     assets: {
       cash: cashLines, cashTotal: money(cashTotal),
@@ -479,7 +478,11 @@ router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), asy
     },
     liabilities: { debts: debtLines, taxOwed: money(taxOwed), total: money(liabilitiesTotal) },
     equity: money(assetsTotal - liabilitiesTotal),
-  });
+  };
+}
+
+router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), async (req, res) => {
+  res.json(await balanceSheet(req.businessId, req.valid.query.asOf || todayInGhana()));
 });
 
-module.exports = { router, debtBalances, taxPosition };
+module.exports = { router, debtBalances, taxPosition, balanceSheet, accountBalances };
