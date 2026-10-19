@@ -102,6 +102,14 @@ with sync_playwright() as p:
     expect(page.get_by_text("(90.00)")).to_be_visible()
     expect(page.get_by_text("Damaged or missing stock")).to_have_count(0)
     shot(page, "tr2-salon-pl.png")
+
+    # Statement of cash flows: the salon's money, by trading, equipment and owner
+    page.goto(BASE + "/reports")
+    page.get_by_role("link", name=re.compile("^Cash flow")).click()
+    expect(page.get_by_role("heading", name="Statement of cash flows")).to_be_visible()
+    expect(page.locator("tr", has_text="Net cash from trading")).to_contain_text("300.00")
+    expect(page.locator("tr", has_text="Money at the end")).to_contain_text("2,300.00")
+    shot(page, "tr2b-salon-cashflow.png")
     log_out(page, BASE)
 
     # --- Bakery ------------------------------------------------------------------------

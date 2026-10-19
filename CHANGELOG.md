@@ -3,6 +3,16 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.24 · 19 October 2026 · Statement of cash flows
+
+- New in Reports: **Cash flow**, the statement of cash flows lenders and programmes ask for. It sorts the money that came in and went out over any period into:
+  - **Cash from trading** (operating): money from customers and other income, less stock bought and payments to suppliers for stock bought on credit, expenses, MoMo charges, loan interest and VAT paid to GRA;
+  - **Cash for equipment** (investing): equipment bought;
+  - **Cash from the owner and loans** (financing): money the owner put in or took out, and loans received or repaid (the loan itself; its interest is under trading).
+- It ends on money at the start + the net change = money at the end, the same balances as Receipts and payments and Home. Transfers between the business's own accounts are left out. Print, save as PDF or download for a spreadsheet, like the other statements.
+- New Twi lines for this screen are drafts for the reviewer (`msme-pack-twi-review-v0.24.xlsx`).
+- Deploy: no database change.
+
 ## 0.23 · 19 October 2026 · Items used in the work, and making goods
 
 Tested with three trades: a hair salon (sells wigs and extensions, uses relaxer and extensions on clients), a beauty therapist (sells and uses nail polish, uses acrylic powder) and a bakery (makes bread from flour, sugar and margarine).

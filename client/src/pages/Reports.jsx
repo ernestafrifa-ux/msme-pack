@@ -7,6 +7,7 @@ const STATEMENTS = [
   ['/reports/profit-loss', 'st.pl.title', 'st.pl.what'],
   ['/records/receipts-payments', 'rp.title', 'st.rp.what'],
   ['/reports/balance-sheet', 'st.bs.title', 'st.bs.what'],
+  ['/reports/cash-flow', 'st.cf.title', 'st.cf.what'],
   ['/reports/stock', 'st.stock.title', 'st.stock.what'],
   ['/reports/debtors', 'st.debtors.title', 'st.debtors.what'],
   ['/reports/sales-by-product', 'st.sales.title', 'st.sales.what'],

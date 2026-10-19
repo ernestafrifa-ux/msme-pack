@@ -263,9 +263,12 @@ Records → **Reports** holds the statements, all computed from the cash book, s
 | Profit and loss | `GET /reports/profit-loss?from=&to=` | dates |
 | Receipts and payments | `GET /reports/receipts-payments?from=&to=` | dates |
 | Balance sheet | `GET /reports/balance-sheet?asOf=` | one date |
+| Statement of cash flows | `GET /reports/cash-flow?from=&to=` | dates |
 | Stock report | `GET /reports/stock?from=&to=` | dates |
 | Who owes you | `GET /reports/debtors?asOf=` | one date |
 | Sales by product | `GET /reports/sales-by-product?from=&to=` | dates |
+
+**Statement of cash flows** (direct method): trading (operating) = money from customers and other income, less stock bought, payments to suppliers for stock bought on credit, expenses, MoMo charges, loan interest and VAT paid; equipment (investing) = equipment bought; owner and loans (financing) = money put in, owner pay, loans received and the loan part of repayments. Transfers are left out; it ends on the account balances, like Receipts and payments.
 
 **Loans & equipment** (`server/src/routes/loans.js`): debts (`/debts`, repayments with an interest part) and equipment (`/assets`). Money borrowed into an account, repayments and equipment paid from an account are cash book records of kind `loan_received`, `loan_repayment` and `equipment`; none count as income or expense except the interest part. Stock bought on credit is a purchase with `is_credit = TRUE` plus a supplier debt.
 

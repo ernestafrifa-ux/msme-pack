@@ -36,6 +36,7 @@ const ReceiptsPayments = lazy(() => import('./pages/ReceiptsPayments.jsx'));
 const Reports = lazy(() => import('./pages/Reports.jsx'));
 const ProfitLoss = lazy(() => import('./pages/ProfitLoss.jsx'));
 const BalanceSheet = lazy(() => import('./pages/BalanceSheet.jsx'));
+const CashFlow = lazy(() => import('./pages/CashFlow.jsx'));
 const StockReport = lazy(() => import('./pages/StockReport.jsx'));
 const Debtors = lazy(() => import('./pages/Debtors.jsx'));
 const SalesByProduct = lazy(() => import('./pages/SalesByProduct.jsx'));
@@ -142,6 +143,7 @@ export default function App() {
       <Route path="/reports" element={<Reports />} />
       <Route path="/reports/profit-loss" element={<ProfitLoss />} />
       <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
+      <Route path="/reports/cash-flow" element={<CashFlow />} />
       <Route path="/reports/stock" element={<StockReport />} />
       <Route path="/reports/debtors" element={<Debtors />} />
       <Route path="/reports/sales-by-product" element={<SalesByProduct />} />

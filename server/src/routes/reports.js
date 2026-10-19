@@ -196,6 +196,83 @@ router.get('/reports/receipts-payments', canView, validate(periodSchema, 'query'
   });
 });
 
+// ---- Statement of cash flows ------------------------------------------------------
+// The same money as Receipts and payments, grouped the way lenders read it:
+//  * operating: money from customers and other income, less stock bought, expenses, MoMo
+//    charges, interest, tax paid to GRA and payments to suppliers for stock bought on credit;
+//  * investing: equipment bought;
+//  * financing: money the owner put in or took out, and loans received or repaid (the loan
+//    itself, not its interest).
+// Transfers between the business's own accounts are not cash flows. It ends on the balances.
+
+router.get('/reports/cash-flow', canView, validate(periodSchema, 'query'), async (req, res) => {
+  const { from, to } = period(req);
+  const [accounts, lines, business] = await Promise.all([
+    accountBalances(req.businessId, from, to),
+    query(
+      `SELECT
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'sale'), 0) AS customers,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'other_income'), 0) AS other_income,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'purchase'), 0)
+           + COALESCE(SUM(t.amount - t.interest_amount) FILTER (WHERE t.kind = 'loan_repayment' AND d.kind = 'supplier'), 0) AS suppliers,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'expense'), 0) AS expenses,
+         COALESCE(SUM(t.momo_fee), 0) AS momo_fees,
+         COALESCE(SUM(t.interest_amount) FILTER (WHERE t.kind = 'loan_repayment'), 0) AS interest,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'vat_payment'), 0) AS tax,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'equipment'), 0) AS equipment,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'owner_capital'), 0) AS owner_capital,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'loan_received'), 0) AS loans_received,
+         COALESCE(SUM(t.amount - t.interest_amount) FILTER (WHERE t.kind = 'loan_repayment' AND d.kind IS DISTINCT FROM 'supplier'), 0) AS loans_repaid,
+         COALESCE(SUM(t.amount) FILTER (WHERE t.kind = 'owner_draw'), 0) AS owner_draw
+         FROM transactions t
+         LEFT JOIN debts d ON d.id = t.debt_id
+        WHERE t.business_id = $1 AND t.deleted_at IS NULL AND t.is_credit = FALSE
+          AND t.kind <> 'wht' AND t.txn_date BETWEEN $2 AND $3`,
+      [req.businessId, from, to]
+    ),
+    businessHeader(req.businessId),
+  ]);
+  const r = lines.rows[0];
+  const line = (key, amount) => ({ line: key, amount: money(amount) });
+  const keep = (rows) => rows.filter((x) => Number(x.amount) !== 0);
+  const operating = keep([
+    line('customers', num(r.customers)),
+    line('other_income', num(r.other_income)),
+    line('suppliers', -num(r.suppliers)),
+    line('expenses', -num(r.expenses)),
+    line('momo_fees', -num(r.momo_fees)),
+    line('interest', -num(r.interest)),
+    line('tax', -num(r.tax)),
+  ]);
+  const investing = keep([line('equipment', -num(r.equipment))]);
+  const financing = keep([
+    line('owner_capital', num(r.owner_capital)),
+    line('loans_received', num(r.loans_received)),
+    line('loans_repaid', -num(r.loans_repaid)),
+    line('owner_draw', -num(r.owner_draw)),
+  ]);
+  const total = (rows) => Math.round(rows.reduce((s2, x) => s2 + Number(x.amount), 0) * 100) / 100;
+  const net = { operating: total(operating), investing: total(investing), financing: total(financing) };
+  const change = Math.round((net.operating + net.investing + net.financing) * 100) / 100;
+  const opening = sum(accounts, 'opening');
+  const closing = sum(accounts, 'closing');
+  res.json({
+    business, from, to,
+    operating, investing, financing,
+    totals: {
+      operating: money(net.operating),
+      investing: money(net.investing),
+      financing: money(net.financing),
+      change: money(change),
+      opening: money(opening),
+      closing: money(closing),
+      // Cash at the start + the net change must equal the balances at the end.
+      balanced: Math.abs(opening + change - closing) < 0.005,
+    },
+    accounts: accounts.map((a) => ({ id: a.id, name: a.name, kind: a.kind, opening: money(a.opening), closing: money(a.closing) })),
+  });
+});
+
 // ---- Profit and loss -----------------------------------------------------------
 // Same rules as Home: money received, the cost of goods sold (invoice goods as they are paid for),
 // expenses (with loan interest), MoMo charges and stock losses.

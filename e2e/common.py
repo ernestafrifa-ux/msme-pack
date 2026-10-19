@@ -55,6 +55,8 @@ def first_login(page, base, phone, temp, password):
     page.get_by_label("Password foforɔ" if twi else "New password", exact=True).fill(password)
     page.get_by_label("San kyerɛw password foforɔ no" if twi else "New password again", exact=True).fill(password)
     page.get_by_role("button", name="Sie password no" if twi else "Save password").click()
+    # Wait until the new password is saved and the app has moved on, before the next step.
+    expect(heading).to_have_count(0)
 
 
 def onboard_to_setup(page, base, owner, phone, password, business, **kw):
