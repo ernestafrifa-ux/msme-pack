@@ -3,6 +3,11 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.22.1 · 19 October 2026 · Twi for the newer screens reviewed
+
+- A fluent Asante Twi speaker checked all 762 new Twi lines: 751 approved as written, 11 corrected (for example "Ɛso ati" for a cash shortage, "mane" for sending on WhatsApp). The corrections are applied and the lines are no longer marked as drafts.
+- Deploy: no database change.
+
 ## 0.22 · 19 October 2026 · Twi for the newer screens (drafts)
 
 - Everything added from 0.10 to 0.21 now shows in **Twi** when Twi is chosen: Close the day, Who recorded what, Customers who owe, receipts, Target & budget, Savings goals, Price checker, Registrations, Tax, Check against MoMo, Messages, people and logo settings, password change, the offline banner and the new Home cards (550 phrases and 212 labels).

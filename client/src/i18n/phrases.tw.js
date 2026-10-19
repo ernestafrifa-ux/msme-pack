@@ -1,9 +1,9 @@
 // Asante Twi for the newer screens (v0.14 to v0.21), looked up by their English text.
-// ALL LINES ARE DRAFTS, written October 2026 and not yet checked by a fluent speaker.
-// Review them in msme-pack-twi-review-v0.22.xlsx. Words people already say in English
-// (MoMo, invoice, stock, VAT, GRA, password, balance, receipt) are kept on purpose.
-// Leave a line out to show the English instead. If the English text in a screen changes,
-// its Twi line here stops matching and the screen shows English until this file is updated.
+// Reviewed line by line by a fluent Asante Twi speaker (October 2026); the 11 corrections are applied.
+// Words people already say in English (MoMo, invoice, stock, VAT, GRA, password, balance,
+// receipt) are kept on purpose. Leave a line out to show the English instead. If the English
+// text in a screen changes, its Twi line here stops matching and the screen shows English
+// until this file is updated.
 export default {
   "Who recorded what": "Hwan na ɔkyerɛw deɛn",
   "People": "Nnipa",
@@ -18,7 +18,7 @@ export default {
   "Every count matched the records.": "Sika a wɔkan biara ne akontaa no hyiaeɛ.",
   "Saved. New and existing invoices show these details.": "Woasie. Invoice foforɔ ne dada nyinaa bɛkyerɛ saa nsɛm yi.",
   "Business details": "Adwuma no ho nsɛm",
-  "No bank account or VAT yet? See what to bring, and switch them on when they are done.": "Wonnya bank account anaa VAT? Hwɛ nea ɛsɛ sɛ wode kɔ, na bue wɔn bere a ɛwie.",
+  "No bank account or VAT yet? See what to bring, and switch them on when they are done.": "Wo ni bank account anaa VAT? Hwɛ nea ɛsɛ sɛ wode kɔ, na bue wɔn bere a ɛwie.",
   "These appear at the top of your invoices.": "Yeinom da adi wɔ w'invoice no atifi.",
   "Business name": "Adwuma no din",
   "Phone": "Phone",
@@ -28,7 +28,7 @@ export default {
   "GhanaPostGPS, optional": "GhanaPostGPS, sɛ wopɛ a",
   "TIN (optional)": "TIN (sɛ wopɛ a)",
   "If you have one": "Sɛ wowɔ bi a",
-  "The business is registered for VAT with GRA": "Adwuma no akyerɛw din wɔ GRA hɔ ama VAT",
+  "The business is registered for VAT with GRA": "Adwuma no din wɔ GRA nkrataa mu sɛ wɔ tumi gye VAT",
   "Invoice number starts with": "Invoice number fi ase de",
   "e.g. INV gives INV-0001": "sɛ INV a, ɛbɛyɛ INV-0001",
   "Saving…": "Ɛresie…",
@@ -65,10 +65,10 @@ export default {
   "Count it": "Kan no",
   "Optional": "Sɛ wopɛ a",
   "Matches the records.": "Ɛne akontaa no hyia.",
-  "Short by GHS {amount}": "Ɛho hia GHS {amount}",
+  "Short by GHS {amount}": "Ɛso ati GHS {amount}",
   "Extra GHS {amount}": "Ɛboro so GHS {amount}",
   "Record any difference": "Kyerɛw nsonsonoeɛ biara",
-  "A shortage becomes a cost (“Cash shortage”) and extra money becomes income, so the balances match what is really there. Untick to only note it.": "Sika a ɛho hia no bɛyɛ ɛka (“Sika a ɛho hia”), na sika a ɛboro so no bɛyɛ sika a ɛbaeɛ, sɛdeɛ ɛbɛyɛ a balance no ne nea ɛwɔ hɔ ankasa bɛhyia. Yi tick no fi so sɛ wopɛ sɛ wokyerɛw nko ara a.",
+  "A shortage becomes a cost (“Cash shortage”) and extra money becomes income, so the balances match what is really there. Untick to only note it.": "Sika a ɛso ati no bɛyɛ ɛka (“Sika a ɛso ati”), na sika a ɛboro so no bɛyɛ sika a ɛbaeɛ, sɛdeɛ ɛbɛyɛ a balance no ne nea ɛwɔ hɔ ankasa bɛhyia. Yi tick no fi so sɛ wopɛ sɛ wokyerɛw nko ara a.",
   "Note (optional)": "Nkyerɛmu (sɛ wopɛ a)",
   "e.g. who counted, or why it is short": "sɛ hwan na ɔkanee, anaa deɛn nti na ɛho hia",
   "Earlier counts": "Sika a wɔkanee kane",
@@ -81,8 +81,8 @@ export default {
   "Owes you": "Ɔde wo ka",
   "Owes nothing": "Ɔnni wo ka biara",
   "Record money received": "Kyerɛw sika a wonyaeɛ",
-  "Send a reminder on WhatsApp": "Fa nkaeɛ mena no wɔ WhatsApp so",
-  "Reminder sent by SMS to {value}.": "Wɔde nkaeɛ akɔ {value} hɔ wɔ SMS so.",
+  "Send a reminder on WhatsApp": "Fa nkaeɛ mene no wɔ WhatsApp so",
+  "Reminder sent by SMS to {value}.": "Wɔde nkaeɛ aka {value} ama no wɔ SMS so.",
   "Send a reminder by SMS": "Fa nkaeɛ mena no wɔ SMS so",
   "Money received": "Sika a wonyaeɛ",
   "Amount (GHS) · {amount} owed": "Sika dodoɔ (GHS) · ka {amount}",
@@ -147,11 +147,11 @@ export default {
   "Total": "Ne nyinaa",
   "Still owed": "Ka a aka",
   " · paid {amount} of {amount2}": " · wɔatua {amount} wɔ {amount2} mu",
-  "Send on WhatsApp": "Fa mena wɔ WhatsApp so",
+  "Send on WhatsApp": "Fa mane wɔ WhatsApp so",
   "I gave it another way (mark as sent)": "Mede maa no ɔkwan foforɔ so (kyerɛ sɛ wɔde akɔ)",
   "Sending takes the products on this invoice out of your stock.": "Sɛ wode kɔ a, nneɛma a ɛwɔ invoice yi so no bɛfiri wo stock mu.",
-  "Send again on WhatsApp": "San fa mena wɔ WhatsApp so",
-  "Send reminder on WhatsApp": "Fa nkaeɛ mena wɔ WhatsApp so",
+  "Send again on WhatsApp": "San fa mane wɔ WhatsApp so",
+  "Send reminder on WhatsApp": "Fa nkaeɛ mane wɔ WhatsApp so",
   "The customer kept back withholding tax": "Adetɔni no kora withholding tax no",
   "This invoice is GHS {amount} or less before tax, so customers usually do not withhold tax on it.": "Invoice yi yɛ GHS {amount} anaa ɛnnu saa ansa na tax aka ho, enti mpɛn pii no adetɔfoɔ nkora tax wɔ so.",
   "Withholding tax is worked out on the amount before tax (GHS {amount} still owed). Ask the customer for the WHT certificate: it counts against your income tax.": "Wɔbu withholding tax wɔ sika dodoɔ a ɛwɔ hɔ ansa na tax aka ho so (ka a aka yɛ GHS {amount}). Bisa adetɔni no WHT certificate no: wɔde bɛyi afiri wo income tax mu.",
@@ -160,7 +160,7 @@ export default {
   "Tax withheld (GHS)": "Tax a wɔakora (GHS)",
   "Money received {received} + tax withheld {wht} = {total} of {owed} owed.": "Sika a wonyaeɛ {received} + tax a wɔakora {wht} = {total} wɔ ka {owed} mu.",
   "Save payment": "Sie sika a wɔtuaeɛ no",
-  "Send thank-you on WhatsApp": "Fa aseda mena wɔ WhatsApp so",
+  "Send thank-you on WhatsApp": "Fa aseda mane wɔ WhatsApp so",
   "Link copied. Paste it in SMS or email.": "Woafa link no. Fa hyɛ SMS anaa email mu.",
   "Copy link": "Fa link no",
   "Print / PDF": "Print / PDF",
@@ -247,7 +247,7 @@ export default {
   "Add a person": "Fa obi ka ho",
   "Full name": "Din nyinaa",
   "Phone number": "Phone number",
-  "They log in with this number": "Ɔde number yi na ɛbɛbra mu",
+  "They log in with this number": "Ɔde number yi na ɛbɛba mu",
   "What can they do?": "Deɛn na ɔbɛtumi ayɛ?",
   "Language they prefer": "Kasa a ɔpɛ",
   "At least 8 characters. Not needed if they already have an MSME Pack account.": "Ɛnsua nkyerɛwdeɛ 8. Ɛho nhia sɛ ɔwɔ MSME Pack account dada a.",
