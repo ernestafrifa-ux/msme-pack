@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
@@ -11,7 +11,9 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <SessionProvider>
         <I18nProvider>
-          <App />
+          <Suspense fallback={<div className="center-screen" role="status">Loading…</div>}>
+            <App />
+          </Suspense>
         </I18nProvider>
       </SessionProvider>
     </BrowserRouter>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { api } from '../api';
+import { api, cachedGet } from '../api';
+import OutboxBanner from '../OutboxBanner.jsx';
 import { useSession } from '../session.jsx';
 import { BottomNav, Icon } from '../components.jsx';
 import { money, monthName, qty, longDate } from '../format';
@@ -26,7 +27,7 @@ export default function Home() {
   const flash = location.state?.flash;
 
   useEffect(() => {
-    api(`/businesses/${business.id}/dashboard`)
+    cachedGet(`/businesses/${business.id}/dashboard`)
       .then(setData)
       .catch((err) => setError(err.message));
     api(`/businesses/${business.id}/health`).then(setHealth).catch(() => {});
@@ -67,6 +68,8 @@ export default function Home() {
         )}
 
         <DraftLanguageBanner />
+        <OutboxBanner />
+        {data?.offline && <div className="offline-note small">{t('home.offline')}</div>}
         {flash && (
           <div className="flash flash-row" role="status">
             <span>{flash}</span>

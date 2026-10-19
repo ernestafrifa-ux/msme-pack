@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, getToken, setToken, setUnauthorizedHandler } from './api';
+import { cachedGet, getToken, setToken, setUnauthorizedHandler } from './api';
 
 const SessionContext = createContext(null);
 
@@ -8,14 +8,16 @@ export function SessionProvider({ children }) {
 
   const logout = useCallback(() => {
     setToken(null);
+    // Forget this person's saved data on the phone (records not yet sent are kept for the next login).
+    try { Object.keys(localStorage).filter((k) => k.startsWith('msme.cache:')).forEach((k) => localStorage.removeItem(k)); } catch { /* blocked */ }
     setState({ loading: false, user: null, businesses: [] });
   }, []);
 
   const load = useCallback(() => {
     if (!getToken()) return;
     setState((s) => ({ ...s, loading: true, connectError: null }));
-    api('/auth/me')
-      .then((d) => setState({ loading: false, user: d.user, businesses: d.businesses }))
+    cachedGet('/auth/me')
+      .then((d) => setState({ loading: false, user: d.user, businesses: d.businesses, offline: !!d.offline }))
       .catch((err) => {
         // Keep the saved login when we simply can't reach the server.
         if (err.status === 401) logout();

@@ -1,19 +1,53 @@
-// Minimal service worker: lets the app open without a connection.
+// Service worker: lets the app open and record without a connection.
+// - On install, keeps the app shell and every screen's files (listed in asset-manifest.json),
+//   so all screens open offline, not only the ones already visited.
 // - Page loads: try the network, fall back to the cached app shell.
-// - Built JS/CSS/icons: cache first (file names change on every build).
-// - /api calls and /media (audio, which is fetched in ranges): never cached here.
-const CACHE = 'msme-pack-v2';
+// - Built JS/CSS/icons: cache first (file names change on every build); old files are removed.
+// - /api calls and /media (audio, which is fetched in ranges): never cached here. Records made
+//   offline wait in the app's outbox and are sent when the connection is back.
+const CACHE = 'msme-pack-v3';
 const SHELL = ['/', '/manifest.webmanifest', '/icon.svg'];
 
+async function builtFiles() {
+  try {
+    const res = await fetch('/asset-manifest.json', { cache: 'no-store' });
+    if (!res.ok) return [];
+    const m = await res.json();
+    const files = new Set();
+    for (const entry of Object.values(m)) {
+      if (entry.file) files.add('/' + entry.file);
+      for (const c of entry.css || []) files.add('/' + c);
+      for (const a of entry.assets || []) files.add('/' + a);
+    }
+    return [...files];
+  } catch {
+    return [];
+  }
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
+  event.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await c.addAll(SHELL);
+    // Best effort: a file that fails to download is fetched later when first used.
+    await Promise.all((await builtFiles()).map((f) => c.add(f).catch(() => {})));
+  })());
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-  );
+  event.waitUntil((async () => {
+    for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k);
+    // Drop files from older builds.
+    const keep = new Set([...SHELL, ...(await builtFiles())]);
+    const c = await caches.open(CACHE);
+    if (keep.size > SHELL.length) {
+      for (const req of await c.keys()) {
+        const path = new URL(req.url).pathname;
+        if (path.startsWith('/assets/') && !keep.has(path)) await c.delete(req);
+      }
+    }
+  })());
   self.clients.claim();
 });
 

@@ -1,57 +1,70 @@
+import { lazy, useEffect } from 'react';
+import { flushOutbox } from './api';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useSession } from './session.jsx';
 import Login from './pages/Login.jsx';
-import Signup from './pages/Signup.jsx';
+const Signup = lazy(() => import('./pages/Signup.jsx'));
 import Setup from './pages/Setup.jsx';
 import Home from './pages/Home.jsx';
 import Record from './pages/Record.jsx';
 import Records from './pages/Records.jsx';
-import Stock from './pages/Stock.jsx';
-import ProductForm from './pages/ProductForm.jsx';
-import Product from './pages/Product.jsx';
-import StockCount from './pages/StockCount.jsx';
-import Invoices from './pages/Invoices.jsx';
-import InvoiceForm from './pages/InvoiceForm.jsx';
-import Invoice from './pages/Invoice.jsx';
-import PublicInvoice from './pages/PublicInvoice.jsx';
-import PublicReceipt from './pages/PublicReceipt.jsx';
-import Receipt from './pages/Receipt.jsx';
-import Customers from './pages/Customers.jsx';
-import CustomerDetail from './pages/CustomerDetail.jsx';
-import CloseDay from './pages/CloseDay.jsx';
-import Activity from './pages/Activity.jsx';
-import Plan from './pages/Plan.jsx';
-import Goals from './pages/Goals.jsx';
-import PriceCheck from './pages/PriceCheck.jsx';
-import LoanPack from './pages/LoanPack.jsx';
-import BusinessDetails from './pages/BusinessDetails.jsx';
-import Health from './pages/Health.jsx';
-import HealthCheck from './pages/HealthCheck.jsx';
-import Learn from './pages/Learn.jsx';
-import Guide from './pages/Guide.jsx';
-import ReceiptsPayments from './pages/ReceiptsPayments.jsx';
-import Reports from './pages/Reports.jsx';
-import ProfitLoss from './pages/ProfitLoss.jsx';
-import BalanceSheet from './pages/BalanceSheet.jsx';
-import StockReport from './pages/StockReport.jsx';
-import Debtors from './pages/Debtors.jsx';
-import SalesByProduct from './pages/SalesByProduct.jsx';
-import Loans from './pages/Loans.jsx';
-import LoanDetail from './pages/LoanDetail.jsx';
-import Tax from './pages/Tax.jsx';
-import Registrations from './pages/Registrations.jsx';
+const Stock = lazy(() => import('./pages/Stock.jsx'));
+const ProductForm = lazy(() => import('./pages/ProductForm.jsx'));
+const Product = lazy(() => import('./pages/Product.jsx'));
+const StockCount = lazy(() => import('./pages/StockCount.jsx'));
+const Invoices = lazy(() => import('./pages/Invoices.jsx'));
+const InvoiceForm = lazy(() => import('./pages/InvoiceForm.jsx'));
+const Invoice = lazy(() => import('./pages/Invoice.jsx'));
+const PublicInvoice = lazy(() => import('./pages/PublicInvoice.jsx'));
+const PublicReceipt = lazy(() => import('./pages/PublicReceipt.jsx'));
+const Receipt = lazy(() => import('./pages/Receipt.jsx'));
+const Customers = lazy(() => import('./pages/Customers.jsx'));
+const CustomerDetail = lazy(() => import('./pages/CustomerDetail.jsx'));
+const CloseDay = lazy(() => import('./pages/CloseDay.jsx'));
+const Activity = lazy(() => import('./pages/Activity.jsx'));
+const Plan = lazy(() => import('./pages/Plan.jsx'));
+const Goals = lazy(() => import('./pages/Goals.jsx'));
+const PriceCheck = lazy(() => import('./pages/PriceCheck.jsx'));
+const LoanPack = lazy(() => import('./pages/LoanPack.jsx'));
+const MomoCheck = lazy(() => import('./pages/MomoCheck.jsx'));
+const BusinessDetails = lazy(() => import('./pages/BusinessDetails.jsx'));
+const Health = lazy(() => import('./pages/Health.jsx'));
+const HealthCheck = lazy(() => import('./pages/HealthCheck.jsx'));
+const Learn = lazy(() => import('./pages/Learn.jsx'));
+const Guide = lazy(() => import('./pages/Guide.jsx'));
+const ReceiptsPayments = lazy(() => import('./pages/ReceiptsPayments.jsx'));
+const Reports = lazy(() => import('./pages/Reports.jsx'));
+const ProfitLoss = lazy(() => import('./pages/ProfitLoss.jsx'));
+const BalanceSheet = lazy(() => import('./pages/BalanceSheet.jsx'));
+const StockReport = lazy(() => import('./pages/StockReport.jsx'));
+const Debtors = lazy(() => import('./pages/Debtors.jsx'));
+const SalesByProduct = lazy(() => import('./pages/SalesByProduct.jsx'));
+const Loans = lazy(() => import('./pages/Loans.jsx'));
+const LoanDetail = lazy(() => import('./pages/LoanDetail.jsx'));
+const Tax = lazy(() => import('./pages/Tax.jsx'));
+const Registrations = lazy(() => import('./pages/Registrations.jsx'));
 import ChangePassword from './pages/ChangePassword.jsx';
 import NoBusiness from './pages/NoBusiness.jsx';
-import Admin from './pages/Admin.jsx';
-import AdminNewBusiness from './pages/AdminNewBusiness.jsx';
-import AdminNotices from './pages/AdminNotices.jsx';
-import AdminGroups from './pages/AdminGroups.jsx';
-import AdminDashboard from './pages/AdminDashboard.jsx';
-import Notices from './pages/Notices.jsx';
+const Admin = lazy(() => import('./pages/Admin.jsx'));
+const AdminNewBusiness = lazy(() => import('./pages/AdminNewBusiness.jsx'));
+const AdminNotices = lazy(() => import('./pages/AdminNotices.jsx'));
+const AdminGroups = lazy(() => import('./pages/AdminGroups.jsx'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'));
+const Notices = lazy(() => import('./pages/Notices.jsx'));
 
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
   const location = useLocation();
+
+  // Send records saved offline: now, when the connection returns, and every minute.
+  useEffect(() => {
+    if (!user) return undefined;
+    flushOutbox();
+    const onOnline = () => flushOutbox();
+    window.addEventListener('online', onOnline);
+    const timer = setInterval(flushOutbox, 60000);
+    return () => { window.removeEventListener('online', onOnline); clearInterval(timer); };
+  }, [user]);
 
   // The customer's invoice link works for anyone, logged in or not.
   if (location.pathname.startsWith('/i/') || location.pathname.startsWith('/r/')) {
@@ -156,6 +169,7 @@ export default function App() {
       <Route path="/goals" element={<Goals />} />
       <Route path="/price-check" element={<PriceCheck />} />
       <Route path="/loan-pack" element={<LoanPack />} />
+      <Route path="/momo-check" element={<MomoCheck />} />
       <Route path="/customers/:contactId" element={<CustomerDetail />} />
       {adminRoutes}
       <Route path="/health" element={<Health />} />

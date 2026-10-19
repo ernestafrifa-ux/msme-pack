@@ -111,6 +111,7 @@ python e2e/test_control.py           # close the day, who recorded what
 python e2e/test_planning.py          # target and budget, savings goals, price checker
 python e2e/test_loan_pack.py         # loan-ready pack (and its PDF)
 python e2e/test_programme.py         # admin groups, questions, programme dashboard
+python e2e/test_offline_momo.py      # recording offline, checking MoMo SMS (needs the production build)
 ```
 
 ## Deploying

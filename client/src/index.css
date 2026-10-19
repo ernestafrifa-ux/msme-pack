@@ -552,3 +552,12 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
 .dash-tiles { margin: 14px 0; }
 .survey { margin: 6px 0; }
 .survey-results { margin: 6px 0; }
+
+/* Offline */
+.outbox { background: #FFF6E5; color: #7A4A08; border-radius: var(--radius); padding: 10px 12px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.outbox-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.outbox-failed { color: #8C1D18; }
+.offline-note { background: #E6EAE6; border-radius: var(--radius); padding: 8px 12px; margin-top: 12px; }
+.file-btn { cursor: pointer; }
+.momo-line { align-items: center; }
+.block-strong { display: block; }

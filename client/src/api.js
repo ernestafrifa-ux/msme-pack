@@ -85,3 +85,64 @@ export async function uploadBlob(path, blob) {
   if (!res.ok) throw new ApiError(res.status, data.error || (res.status === 413 ? 'That picture is too big.' : 'Something went wrong. Please try again.'), data.fields, data.code);
   return data;
 }
+
+// ---- Working offline -------------------------------------------------------------------
+// The last copy of some screens' data (accounts, products, categories…) is kept on the phone,
+// so recording works without a connection. Records made offline wait in an outbox and are
+// sent when the connection is back; the server ignores a second copy of the same record.
+
+const CACHE_PREFIX = 'msme.cache:';
+const OUTBOX_KEY = 'msme.outbox';
+
+function readJson(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function writeJson(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage full or blocked */ }
+}
+
+// GET with a fallback to the last copy when there is no connection.
+export async function cachedGet(path) {
+  try {
+    const data = await api(path);
+    writeJson(CACHE_PREFIX + path, data);
+    return data;
+  } catch (err) {
+    const copy = err.status === 0 ? readJson(CACHE_PREFIX + path, null) : null;
+    if (copy) return { ...copy, offline: true };
+    throw err;
+  }
+}
+
+const outboxListeners = new Set();
+export function onOutboxChange(fn) { outboxListeners.add(fn); return () => outboxListeners.delete(fn); }
+function setOutbox(items) { writeJson(OUTBOX_KEY, items); outboxListeners.forEach((fn) => fn(items)); }
+export function getOutbox() { return readJson(OUTBOX_KEY, []); }
+
+export function addToOutbox(item) {
+  setOutbox([...getOutbox(), { ...item, savedAt: new Date().toISOString(), error: null }]);
+}
+export function removeFromOutbox(clientRef) {
+  setOutbox(getOutbox().filter((x) => x.body.clientRef !== clientRef));
+}
+
+let flushing = false;
+// Sends what is waiting. A record the server refuses (e.g. a deleted account) stays, with the reason.
+export async function flushOutbox() {
+  if (flushing || !getToken()) return;
+  flushing = true;
+  try {
+    for (const item of getOutbox()) {
+      if (item.error) continue;
+      try {
+        await api(item.path, { method: 'POST', body: item.body });
+        setOutbox(getOutbox().filter((x) => x.body.clientRef !== item.body.clientRef));
+      } catch (err) {
+        if (err.status === 0) break; // still offline
+        setOutbox(getOutbox().map((x) => (x.body.clientRef === item.body.clientRef ? { ...x, error: err.message } : x)));
+      }
+    }
+  } finally {
+    flushing = false;
+  }
+}

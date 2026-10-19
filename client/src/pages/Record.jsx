@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { api, newClientRef } from '../api';
+import { api, cachedGet, addToOutbox, newClientRef } from '../api';
 import { useSession } from '../session.jsx';
 import { Field, FormError, Icon, ProductPicker } from '../components.jsx';
 import { money, qty, todayGhana } from '../format';
@@ -55,10 +55,10 @@ export default function Record() {
 
   useEffect(() => {
     Promise.all([
-      api(`/businesses/${business.id}/accounts`),
-      api(`/businesses/${business.id}/categories`),
-      api(`/businesses/${business.id}/products`),
-      api(`/businesses/${business.id}`),
+      cachedGet(`/businesses/${business.id}/accounts`),
+      cachedGet(`/businesses/${business.id}/categories`),
+      cachedGet(`/businesses/${business.id}/products`),
+      cachedGet(`/businesses/${business.id}`),
     ])
       .then(([a, c, p, b]) => {
         setVatRegistered(!!b.business.vatRegistered);
@@ -152,7 +152,24 @@ export default function Record() {
         body.paymentRef = form.paymentRef || null;
         body.momoFee = form.momoFee || 0;
       }
-      const { transaction } = await api(`/businesses/${business.id}/transactions`, { method: 'POST', body });
+      let transaction;
+      try {
+        ({ transaction } = await api(`/businesses/${business.id}/transactions`, { method: 'POST', body }));
+      } catch (err) {
+        if (err.status !== 0) throw err;
+        // No connection: keep it on the phone and send it later.
+        const total = hasLines ? itemTotal : Number(form.amount || 0);
+        addToOutbox({ path: `/businesses/${business.id}/transactions`, body,
+          label: `${t(`kind.${kind}`)} GHS ${money(total)}` });
+        const offlineMsg = t('record.savedOffline', { amount: money(total) });
+        if (again) {
+          setForm({ ...emptyForm(accounts), accountId: form.accountId, date: form.date });
+          setLines([]); setClientRef(newClientRef()); setSaved(offlineMsg);
+        } else {
+          navigate('/', { state: { flash: offlineMsg } });
+        }
+        return;
+      }
       const msg = onCredit
         ? t('record.saved.purchase_credit', { amount: money(transaction.amount), supplier })
         : t(`record.saved.${kind}`, { amount: money(transaction.amount) });

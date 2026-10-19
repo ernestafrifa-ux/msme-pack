@@ -209,5 +209,6 @@ router.use('/:businessId', require('./notices').router);
 router.use('/:businessId', require('./control').router);
 router.use('/:businessId', require('./planning').router);
 router.use('/:businessId', require('./loanpack').router);
+router.use('/:businessId', require('./momo').router);
 
 module.exports = { router, createSchema, createBusiness, publicBusiness };

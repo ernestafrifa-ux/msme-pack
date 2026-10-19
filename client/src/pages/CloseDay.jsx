@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { useT } from '../i18n.jsx';
@@ -41,6 +41,7 @@ export default function CloseDay() {
     <main className="screen">
       <TopBar title="Close the day" back="/" />
       <p className="lead">Count the money in the cash box and check the MoMo balance on the phone. Enter what is really there.</p>
+      <Link to="/momo-check" className="btn-link small">Check MoMo payments one by one against a statement or SMS messages</Link>
       <FormError message={message} />
       {data && (
         <form className="stack" onSubmit={save} noValidate>

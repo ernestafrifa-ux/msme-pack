@@ -3,6 +3,13 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.20 · 19 October 2026 · Works with no data, MoMo check, faster loading
+
+- **Record with no connection**: the app opens without data (every screen is kept on the phone). On the Record screen, sales, expenses, stock bought and transfers made offline are **saved on the phone** and sent automatically when the connection returns (or with "Send now"). Home shows how many are waiting, and the last figures it had. A record the server refuses later (for example an account that was removed) stays on the list with the reason, to fix or remove. Selling on credit still needs a connection.
+- **Check against MoMo** (from Close the day): paste MoMo SMS messages or open a downloaded statement (CSV). The app finds each payment, matches it with the records (by MoMo transaction ID, or same amount within 3 days), lists payments not yet recorded with "Add as a sale" / "Add as an expense", and records that are not on MoMo. Statement formats differ by network; the reader looks for amounts in GHS, words like received/sent, dates and transaction IDs.
+- **Faster first load**: the app is split so phones download less before Home appears (about 94 KB compressed instead of 143 KB); other screens load in the background and are kept for offline use.
+- Deploy: no database change.
+
 ## 0.19 · 19 October 2026 · Programme tools: groups, dashboard, questions
 
 For the MSME Pack admin:
