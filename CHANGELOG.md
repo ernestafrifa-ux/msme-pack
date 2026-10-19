@@ -3,6 +3,18 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.19 · 19 October 2026 · Programme tools: groups, dashboard, questions
+
+For the MSME Pack admin:
+- **Groups**: put businesses in groups (a programme intake, a district, a training class), choose groups when setting up a business, filter the business list by group, and send a message to one or more groups.
+- **Programme dashboard**: for all businesses, a group, a region or a sector, over 1 to 12 months: how many are set up and active, records each month, and each business's records and last record. **Money figures (sales, profit, health check score) appear only for businesses whose owner agreed to share them**, with totals, average sales, how many are profitable, median sales growth and the average health score. Download for a spreadsheet.
+- **Questions on messages**: add a question with 2 to 6 answers (for example "Will you attend?" Yes / No / Not sure). Each business answers once and can change it; the admin sees the count for each answer.
+
+For owners:
+- **Help the programme** (Settings): the owner chooses whether to share summary figures with the MSME Pack team, and can turn it off at any time. Nobody else in the business can change it.
+- Messages with a question show the answers as buttons.
+- Deploy: database change `016_groups_sharing_surveys.sql`. Every business starts with sharing off.
+
 ## 0.18 · 19 October 2026 · Loan-ready pack
 
 - **Loan-ready pack** (top of Reports, for owners, managers and advisors): a printable business summary for a bank, microfinance or support programme, for the last 3, 6 or 12 months (only months since the business began keeping records here):

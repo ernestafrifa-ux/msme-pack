@@ -5,13 +5,14 @@ import { Field, FormError, TopBar } from '../components.jsx';
 import { friendlyDate } from '../format';
 import BizLogo from '../BizLogo.jsx';
 
-const AUDIENCES = [['all', 'All businesses'], ['region', 'By region'], ['sector', 'By sector'], ['selected', 'Choose businesses']];
+const AUDIENCES = [['all', 'All businesses'], ['group', 'A group'], ['region', 'By region'], ['sector', 'By sector'], ['selected', 'Choose businesses']];
 
 function audienceText(a, lookups) {
   const names = (list, codes) => codes.map((c) => list.find((x) => x.code === c)?.name || c).join(', ');
   if (a.type === 'region') return `Region: ${names(lookups.regions, a.codes)}`;
   if (a.type === 'sector') return `Sector: ${names(lookups.sectors, a.codes)}`;
   if (a.type === 'selected') return 'Chosen businesses';
+  if (a.type === 'group') return `Group: ${a.groupIds.map((id) => lookups.groups?.find((g) => g.id === id)?.name || 'removed').join(', ')}`;
   return 'All businesses';
 }
 
@@ -21,7 +22,8 @@ export default function AdminNotices() {
   const [lookups, setLookups] = useState({ regions: [], sectors: [] });
   const [businesses, setBusinesses] = useState([]);
   const [sent, setSent] = useState(null);
-  const [f, setF] = useState({ title: '', body: '', linkUrl: '', type: 'all', codes: [], businessIds: [] });
+  const [f, setF] = useState({ title: '', body: '', linkUrl: '', type: 'all', codes: [], businessIds: [], groupIds: [], question: '', options: '' });
+  const [groups, setGroups] = useState([]);
   const [reach, setReach] = useState(null);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -30,6 +32,7 @@ export default function AdminNotices() {
 
   const audience = f.type === 'all' ? { type: 'all' }
     : f.type === 'selected' ? { type: 'selected', businessIds: f.businessIds }
+    : f.type === 'group' ? { type: 'group', groupIds: f.groupIds }
     : { type: f.type, codes: f.codes };
   const audienceKey = JSON.stringify(audience);
 
@@ -37,11 +40,12 @@ export default function AdminNotices() {
   useEffect(() => {
     api('/businesses/lookups').then(setLookups).catch(() => {});
     api('/admin/businesses').then((d) => setBusinesses(d.businesses)).catch(() => {});
+    api('/admin/groups').then((d) => setGroups(d.groups)).catch(() => {});
     loadSent();
   }, [loadSent]);
   useEffect(() => {
     const a = JSON.parse(audienceKey);
-    if ((a.codes && !a.codes.length) || (a.businessIds && !a.businessIds.length)) { setReach(null); return; }
+    if ((a.codes && !a.codes.length) || (a.businessIds && !a.businessIds.length) || (a.groupIds && !a.groupIds.length)) { setReach(null); return; }
     api('/admin/notices/preview', { method: 'POST', body: { audience: a } }).then(setReach).catch(() => setReach(null));
   }, [audienceKey]);
 
@@ -52,9 +56,11 @@ export default function AdminNotices() {
     e.preventDefault();
     setBusy(true); setErrors({}); setMessage(''); setFlash('');
     try {
-      const d = await api('/admin/notices', { method: 'POST', body: { title: f.title, body: f.body, linkUrl: f.linkUrl || null, audience } });
+      const options = f.options.split('\n').map((o) => o.trim()).filter(Boolean);
+      const d = await api('/admin/notices', { method: 'POST', body: { title: f.title, body: f.body, linkUrl: f.linkUrl || null, audience,
+        question: f.question || null, options: f.question ? options : null } });
       setFlash(`Message sent to ${d.businesses} business${d.businesses === 1 ? '' : 'es'}. They see it on their Home screen.`);
-      setF({ title: '', body: '', linkUrl: '', type: 'all', codes: [], businessIds: [] });
+      setF({ title: '', body: '', linkUrl: '', type: 'all', codes: [], businessIds: [], groupIds: [], question: '', options: '' });
       loadSent();
     } catch (err) {
       setErrors(err.fields || {}); setMessage(err.message);
@@ -88,7 +94,7 @@ export default function AdminNotices() {
             {AUDIENCES.map(([k, label]) => (
               <label key={k} className={'option' + (f.type === k ? ' option-on' : '')}>
                 <input type="radio" name="audience" value={k} checked={f.type === k}
-                  onChange={() => setF({ ...f, type: k, codes: [], businessIds: [] })} />
+                  onChange={() => setF({ ...f, type: k, codes: [], businessIds: [], groupIds: [] })} />
                 {label}
               </label>
             ))}
@@ -103,6 +109,17 @@ export default function AdminNotices() {
               ))}
             </div>
           )}
+          {f.type === 'group' && (
+            <div className="chips">
+              {groups.map((g) => (
+                <label key={g.id} className={'chip' + (f.groupIds.includes(g.id) ? ' chip-on' : '')}>
+                  <input type="checkbox" checked={f.groupIds.includes(g.id)} onChange={() => toggle('groupIds', g.id)} />
+                  {g.name} ({g.businesses})
+                </label>
+              ))}
+              {!groups.length && <span className="muted small">No groups yet. Make one under Groups.</span>}
+            </div>
+          )}
           {f.type === 'selected' && (
             <div className="stack-tight">
               {businesses.map((b) => (
@@ -113,8 +130,16 @@ export default function AdminNotices() {
               ))}
             </div>
           )}
-          {(errors['audience.codes'] || errors['audience.businessIds']) && <div className="field-error">{errors['audience.codes'] || errors['audience.businessIds']}</div>}
+          {(errors['audience.codes'] || errors['audience.businessIds'] || errors['audience.groupIds']) && <div className="field-error">{errors['audience.codes'] || errors['audience.businessIds'] || errors['audience.groupIds']}</div>}
         </fieldset>
+        <Field label="Question (optional)" error={errors.question} hint="e.g. Will you attend the training?">
+          {(p) => <input {...p} value={f.question} onChange={set('question')} maxLength={200} />}
+        </Field>
+        {f.question && (
+          <Field label="Answers to choose from, one per line" error={errors.options}>
+            {(p) => <textarea {...p} rows={3} value={f.options} onChange={set('options')} placeholder={'Yes\nNo\nNot sure'} />}
+          </Field>
+        )}
         {reach && <p className="small">This reaches <strong>{reach.businesses}</strong> business{reach.businesses === 1 ? '' : 'es'} ({reach.people} {reach.people === 1 ? 'person' : 'people'}).</p>}
         <button className="btn btn-primary btn-block" disabled={busy || !reach?.businesses}>{busy ? 'Sending…' : 'Send message'}</button>
       </form>
@@ -125,9 +150,20 @@ export default function AdminNotices() {
           {sent.map((n) => (
             <article key={n.id} className="msg-item">
               <h2>{n.title}{n.withdrawn && <span className="tag">withdrawn</span>}</h2>
-              <div className="small muted">{friendlyDate(n.sentAt.slice(0, 10), t)} · {audienceText(n.audience, lookups)}</div>
+              <div className="small muted">{friendlyDate(n.sentAt.slice(0, 10), t)} · {audienceText(n.audience, { ...lookups, groups })}</div>
               <p className="notice-body small">{n.body}</p>
               <div className="small">Read in <strong>{n.readBy}</strong> of {n.businesses} business{n.businesses === 1 ? '' : 'es'}</div>
+              {n.answers && (
+                <div className="stack-tight survey-results">
+                  <div className="small strong">{n.question}</div>
+                  {n.answers.map((a) => (
+                    <div key={a.option} className="progress-line">
+                      <div className="statement-row small"><span>{a.option}</span><span className="muted">{a.count}</span></div>
+                      <div className="bar"><div style={{ width: `${n.businesses ? (a.count / n.businesses) * 100 : 0}%` }} /></div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {!n.withdrawn && <button type="button" className="btn-link small danger" onClick={() => withdraw(n)}>Withdraw</button>}
             </article>
           ))}

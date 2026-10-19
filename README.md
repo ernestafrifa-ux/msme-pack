@@ -110,6 +110,7 @@ python e2e/test_customers_receipts.py # selling on credit, receipts, bills and r
 python e2e/test_control.py           # close the day, who recorded what
 python e2e/test_planning.py          # target and budget, savings goals, price checker
 python e2e/test_loan_pack.py         # loan-ready pack (and its PDF)
+python e2e/test_programme.py         # admin groups, questions, programme dashboard
 ```
 
 ## Deploying
@@ -190,6 +191,7 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 
 - Sign-up is closed. The only public sign-up creates the **first admin** on a new installation (limited to the numbers in `ADMIN_PHONES` when that is set).
 - The **admin** creates each business with its owner (Settings → MSME Pack admin), resets owners' passwords and switches accounts off. The admin does not see business records.
+- The admin's **programme dashboard** shows activity for every business but money figures only for businesses whose owner turned on sharing (Settings → Help the programme).
 - The **owner** adds managers, staff and advisors to their own business (Settings → People who use this business).
 - Accounts made for someone else start with a temporary password, which the API refuses to use for anything except choosing a new one (`PASSWORD_CHANGE_REQUIRED`).
 

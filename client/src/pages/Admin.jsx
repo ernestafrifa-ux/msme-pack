@@ -56,13 +56,15 @@ export default function Admin() {
   const [error, setError] = useState('');
   const [flash, setFlash] = useState(location.state?.flash || '');
   const [q, setQ] = useState('');
+  const [groups, setGroups] = useState([]);
+  const [groupId, setGroupId] = useState('');
 
   const load = useCallback(() => {
     api('/admin/businesses').then((d) => setList(d.businesses)).catch((err) => setError(err.message));
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); api('/admin/groups').then((d) => setGroups(d.groups)).catch(() => {}); }, [load]);
 
-  const shown = (list || []).filter((b) => !q || `${b.name} ${b.town || ''} ${b.owners.map((o) => `${o.fullName} ${o.phone}`).join(' ')}`.toLowerCase().includes(q.toLowerCase()));
+  const shown = (list || []).filter((b) => !groupId || b.groupIds.includes(groupId)).filter((b) => !q || `${b.name} ${b.town || ''} ${b.owners.map((o) => `${o.fullName} ${o.phone}`).join(' ')}`.toLowerCase().includes(q.toLowerCase()));
 
   return (
     <main className="screen">
@@ -78,14 +80,23 @@ export default function Admin() {
       <div className="grid-2">
         <Link to="/admin/new" className="btn btn-primary"><Icon name="plus" size={18} /> New business</Link>
         <Link to="/admin/notices" className="btn btn-ghost"><Icon name="bell" size={18} /> Send a message</Link>
+        <Link to="/admin/dashboard" className="btn btn-ghost"><Icon name="pulse" size={18} /> Programme dashboard</Link>
+        <Link to="/admin/groups" className="btn btn-ghost"><Icon name="list" size={18} /> Groups</Link>
       </div>
+      {groups.length > 0 && (
+        <label className="field"><span className="field-label">Group</span>
+          <select value={groupId} onChange={(e) => setGroupId(e.target.value)}>
+            <option value="">All businesses</option>
+            {groups.map((g) => <option key={g.id} value={g.id}>{g.name} ({g.businesses})</option>)}
+          </select></label>
+      )}
       {list && list.length > 4 && (
         <label className="field"><span className="field-label">Search</span>
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Business, town, owner or phone" /></label>
       )}
       {list && (
         <section className="card">
-          <h2>{list.length} business{list.length === 1 ? '' : 'es'}</h2>
+          <h2>{shown.length} business{shown.length === 1 ? '' : 'es'}</h2>
           {shown.map((b) => (
             <div key={b.id} className="biz-row">
               <span className="home-brand"><BizLogo business={b} size={36} />

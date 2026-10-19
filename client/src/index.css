@@ -545,3 +545,10 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
 .sign-line { border-bottom: 1px solid #16211C; height: 28px; margin-bottom: 4px; }
 @media print { .pack-tiles { grid-template-columns: repeat(3, 1fr); } .pack-h { break-after: avoid; } .pack-table { font-size: 11px; } }
 .loan-pack-card { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; border: 2px solid var(--primary); margin: 10px 0 4px; }
+
+/* Programme tools */
+.plain-btn { width: 100%; background: none; border: none; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.search-input { width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; font-size: 16px; margin-bottom: 8px; }
+.dash-tiles { margin: 14px 0; }
+.survey { margin: 6px 0; }
+.survey-results { margin: 6px 0; }

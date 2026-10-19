@@ -35,6 +35,22 @@ export default function Notices() {
               <h2>{n.title}{!n.read && <span className="tag tag-warn">new</span>}</h2>
               <div className="small muted">{friendlyDate(n.sentAt.slice(0, 10), t)}</div>
               <p className="notice-body">{n.body}</p>
+              {n.question && (
+                <div className="stack-tight survey">
+                  <div className="strong small">{n.question}</div>
+                  <div className="chips">
+                    {n.options.map((o, i) => (
+                      <button key={i} type="button" className={'chip' + (n.answer === i ? ' chip-on' : '')} aria-pressed={n.answer === i}
+                        onClick={() => api(`/businesses/${business.id}/notices/${n.id}/answer`, { method: 'POST', body: { option: i } })
+                          .then(() => setList((l) => l.map((x) => (x.id === n.id ? { ...x, answer: i } : x))))
+                          .catch((err) => setError(err.message))}>
+                        {o}
+                      </button>
+                    ))}
+                  </div>
+                  {n.answer !== null && <div className="small muted">Thank you. You can change your answer.</div>}
+                </div>
+              )}
               {n.linkUrl && (n.linkUrl.startsWith('/')
                 ? <Link to={n.linkUrl} className="btn-link small">Open</Link>
                 : <a href={n.linkUrl} target="_blank" rel="noopener noreferrer" className="btn-link small">Open link</a>)}

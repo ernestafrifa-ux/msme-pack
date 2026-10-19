@@ -45,6 +45,8 @@ import NoBusiness from './pages/NoBusiness.jsx';
 import Admin from './pages/Admin.jsx';
 import AdminNewBusiness from './pages/AdminNewBusiness.jsx';
 import AdminNotices from './pages/AdminNotices.jsx';
+import AdminGroups from './pages/AdminGroups.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 import Notices from './pages/Notices.jsx';
 
 export default function App() {
@@ -90,6 +92,8 @@ export default function App() {
     <Route key="a" path="/admin" element={<Admin />} />,
     <Route key="n" path="/admin/new" element={<AdminNewBusiness />} />,
     <Route key="m" path="/admin/notices" element={<AdminNotices />} />,
+    <Route key="g" path="/admin/groups" element={<AdminGroups />} />,
+    <Route key="d" path="/admin/dashboard" element={<AdminDashboard />} />,
   ] : [];
 
   if (!business) {

@@ -7,6 +7,7 @@ import { useT, UI_LANGUAGES } from '../i18n.jsx';
 import AccountsSection from './AccountsSection.jsx';
 import MembersSection from './MembersSection.jsx';
 import LogoSection from './LogoSection.jsx';
+import SharingSection from './SharingSection.jsx';
 
 export default function BusinessDetails() {
   const { user, business } = useSession();
@@ -102,6 +103,7 @@ export default function BusinessDetails() {
       )}
       <AccountsSection />
       <MembersSection />
+      <SharingSection />
 
       <section className="card lang-card">
         <h2>{t('settings.language')}</h2>

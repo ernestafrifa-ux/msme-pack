@@ -12,13 +12,18 @@ export default function AdminNewBusiness() {
   const navigate = useNavigate();
   const { t } = useT();
   const [lookups, setLookups] = useState({ regions: [], sectors: [] });
+  const [groups, setGroups] = useState([]);
+  const [groupIds, setGroupIds] = useState([]);
   const [form, setForm] = useState({ ...emptyBusiness, ...emptyMoney, ownerName: '', ownerPhone: '', ownerPassword: '', ownerLanguage: 'en', withMoney: false });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const set = setter(form, setForm);
 
-  useEffect(() => { api('/businesses/lookups').then(setLookups).catch((err) => setMessage(err.message)); }, []);
+  useEffect(() => {
+    api('/businesses/lookups').then(setLookups).catch((err) => setMessage(err.message));
+    api('/admin/groups').then((d) => setGroups(d.groups)).catch(() => {});
+  }, []);
 
   async function submit(e) {
     e.preventDefault();
@@ -30,6 +35,7 @@ export default function AdminNewBusiness() {
           ...businessBody(form),
           ...(form.withMoney ? moneyBody(form) : {}),
           withMoney: form.withMoney,
+          groupIds,
           owner: { fullName: form.ownerName, phone: form.ownerPhone, password: form.ownerPassword || undefined, preferredLanguage: form.ownerLanguage },
         },
       });
@@ -57,6 +63,21 @@ export default function AdminNewBusiness() {
         <FormError message={message} />
         <h2>The business</h2>
         <BusinessFields form={form} set={set} errors={errors} lookups={lookups} />
+
+        {groups.length > 0 && (
+          <fieldset className="field">
+            <legend>Groups (optional)</legend>
+            <div className="chips">
+              {groups.map((g) => (
+                <label key={g.id} className={'chip' + (groupIds.includes(g.id) ? ' chip-on' : '')}>
+                  <input type="checkbox" checked={groupIds.includes(g.id)}
+                    onChange={() => setGroupIds(groupIds.includes(g.id) ? groupIds.filter((x) => x !== g.id) : [...groupIds, g.id])} />
+                  {g.name}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <h2>The owner</h2>
         <Field label="Owner’s full name" error={errors['owner.fullName']}>

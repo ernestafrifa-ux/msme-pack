@@ -62,6 +62,7 @@ function publicBusiness(b, role) {
     vatRegistered: b.vat_registered,
     setupDone: b.setup_done,
     logoUrl: b.logo_url,
+    shareWithProgramme: b.share_with_programme,
     vatNumber: b.vat_number,
     vatEffectiveDate: b.vat_effective_date,
     tin: b.tin,
@@ -160,6 +161,8 @@ const settingsSchema = z.object({
   tin: z.string().trim().max(20).optional().nullable(),
   invoicePrefix: z.string().trim().regex(/^[A-Za-z0-9]{1,8}$/, 'Letters and numbers only, up to 8.').optional(),
   vatRegistered: z.boolean().optional(),
+  // Share summary figures (sales, profit, health score) with the MSME Pack team for programme reports.
+  shareWithProgramme: z.boolean().optional(),
 });
 
 // Business details shown on invoices (owner and manager).
@@ -169,6 +172,13 @@ router.patch('/:businessId', requireMember(['owner', 'manager']), validate(setti
     const p = normaliseGhanaPhone(v.phone);
     if (!p) throw new HttpError(400, 'Please check the highlighted fields.', { phone: 'Enter a valid Ghana phone number.' });
     v.phone = p;
+  }
+  if (v.shareWithProgramme !== undefined && req.memberRole !== 'owner') {
+    throw new HttpError(403, 'Only the owner decides whether to share figures.');
+  }
+  if (v.shareWithProgramme !== undefined) {
+    await query('UPDATE businesses SET share_with_programme = $2, share_changed_at = now() WHERE id = $1 AND share_with_programme <> $2',
+      [req.businessId, v.shareWithProgramme]);
   }
   const cols = { name: v.name, phone: v.phone, email: v.email, town: v.town,
     digital_address: v.digitalAddress, tin: v.tin, invoice_prefix: v.invoicePrefix?.toUpperCase(), vat_registered: v.vatRegistered };
