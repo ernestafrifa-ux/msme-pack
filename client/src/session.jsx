@@ -17,7 +17,7 @@ export function SessionProvider({ children }) {
     if (!getToken()) return;
     setState((s) => ({ ...s, loading: true, connectError: null }));
     cachedGet('/auth/me')
-      .then((d) => setState({ loading: false, user: d.user, businesses: d.businesses, offline: !!d.offline }))
+      .then((d) => setState({ loading: false, user: d.user, businesses: d.businesses, features: d.features || {}, offline: !!d.offline }))
       .catch((err) => {
         // Keep the saved login when we simply can't reach the server.
         if (err.status === 401) logout();
@@ -36,7 +36,7 @@ export function SessionProvider({ children }) {
       business: state.businesses[0] || null,
       signIn(data) {
         setToken(data.token);
-        setState({ loading: false, user: data.user, businesses: data.businesses || [] });
+        setState({ loading: false, user: data.user, businesses: data.businesses || [], features: data.features || {} });
       },
       updateUser(u) {
         setState((s) => ({ ...s, user: u }));

@@ -9,7 +9,7 @@ import { normalisePhone } from '../phone';
 
 export default function CustomerDetail() {
   const { contactId } = useParams();
-  const { business } = useSession();
+  const { business, features } = useSession();
   const { t } = useT();
   const [data, setData] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -65,6 +65,12 @@ export default function CustomerDetail() {
           <a className="btn btn-ghost btn-block" href={whatsappLink(phone || '', reminder)} target="_blank" rel="noopener noreferrer">
             <Icon name="share" size={20} /> Send a reminder on WhatsApp
           </a>
+          {features?.sms && c.phone && ['owner', 'manager'].includes(business.role) && (
+            <button type="button" className="btn btn-ghost btn-block" onClick={() => api(`${base}/customers/${contactId}/sms-reminder`, { method: 'POST' })
+              .then(() => setFlash(`Reminder sent by SMS to ${c.phone.replace('+233', '0')}.`)).catch((err) => setFlash(err.message))}>
+              Send a reminder by SMS
+            </button>
+          )}
         </div>
       )}
 

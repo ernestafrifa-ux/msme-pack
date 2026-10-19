@@ -6,7 +6,8 @@ const { z } = require('zod');
 const { query, withTransaction } = require('../db');
 const { requireAdmin } = require('../auth');
 const { HttpError, validate } = require('../http');
-const { personSchema, passwordField, findOrCreateUser, setTemporaryPassword } = require('../users');
+const { personSchema, passwordField, findOrCreateUser, setTemporaryPassword, smsLoginDetails } = require('../users');
+const { smsEnabled, sendSms, provider } = require('../sms');
 const { createSchema, createBusiness, publicBusiness } = require('./businesses');
 
 const router = express.Router();
@@ -44,6 +45,7 @@ const createWithOwnerSchema = createSchema.extend({
   // false: leave today's balances for the owner to enter at first login.
   withMoney: z.boolean().default(false),
   groupIds: z.array(z.uuid()).max(20).optional(),
+  sendSms: z.boolean().optional(),
 });
 
 router.post('/businesses', validate(createWithOwnerSchema), async (req, res) => {
@@ -65,8 +67,12 @@ router.post('/businesses', validate(createWithOwnerSchema), async (req, res) => 
         [v.groupIds, biz.id]
       );
     }
-    return { business: publicBusiness(biz, 'owner'), owner: { userId: found.user.id, fullName: found.user.full_name, isNew: found.isNew } };
+    return { business: publicBusiness(biz, 'owner'), owner: { userId: found.user.id, fullName: found.user.full_name, isNew: found.isNew, phone: found.user.phone } };
   });
+  if (v.sendSms && out.owner.isNew) {
+    out.sms = await smsLoginDetails(req, { phone: out.owner.phone, password: v.owner.password, businessName: out.business.name, businessId: out.business.id })
+      .then((r) => ({ sent: r.sent > 0 })).catch((err) => ({ sent: false, error: err.message }));
+  }
   res.status(201).json(out);
 });
 
@@ -114,6 +120,8 @@ const noticeSchema = z.object({
   // An optional question with 2 to 6 answers to choose from, e.g. "Will you attend?" Yes / No.
   question: z.string().trim().max(200).optional().nullable(),
   options: z.array(z.string().trim().min(1).max(60)).max(6).optional().nullable(),
+  // Also send a short text message (SMS) to each business's owner.
+  sms: z.boolean().optional(),
 }).refine((v) => !v.question || (v.options && v.options.length >= 2), { message: 'Give at least two answers to choose from.', path: ['options'] });
 
 // Which businesses an audience means, right now.
@@ -155,8 +163,26 @@ router.post('/notices', validate(noticeSchema), async (req, res) => {
       `INSERT INTO notice_businesses (notice_id, business_id) SELECT $1, unnest($2::uuid[])`,
       [rows[0].id, targets.map((t) => t.id)]
     );
-    return { id: rows[0].id, businesses: targets.length };
+    return { id: rows[0].id, businesses: targets.length, targetIds: targets.map((t) => t.id) };
   });
+  if (v.sms) {
+    if (!smsEnabled()) throw new HttpError(409, 'The message was sent in the app, but SMS is not set up.');
+    const { rows: owners } = await query(
+      `SELECT m.business_id, u.phone FROM business_members m JOIN users u ON u.id = m.user_id AND u.is_active
+        WHERE m.role = 'owner' AND m.business_id = ANY($1::uuid[])`,
+      [out.targetIds]
+    );
+    const short = v.body.length > 240 ? `${v.body.slice(0, 237)}…` : v.body;
+    const text = `MSME Pack: ${v.title}. ${short}${v.question ? ' Answer in the app.' : ''}`;
+    let sent = 0; let failed = 0;
+    for (const o of owners) {
+      const r = await sendSms({ to: o.phone, text, purpose: 'notice', businessId: o.business_id, userId: req.user.id })
+        .catch(() => ({ sent: 0, failed: 1 }));
+      sent += r.sent; failed += r.failed;
+    }
+    out.sms = { sent, failed };
+  }
+  delete out.targetIds;
   res.status(201).json(out);
 });
 
@@ -342,6 +368,21 @@ router.get('/dashboard', validate(dashSchema, 'query'), async (req, res) => {
       sales: b.sharing ? m2(b.sales) : null, profit: b.sharing ? m2(b.profit) : null, health: b.sharing && b.health !== null ? Number(b.health) : null,
     })),
   });
+});
+
+// ---- SMS status ---------------------------------------------------------------------------
+
+router.get('/sms', async (req, res) => {
+  const { rows } = await query(
+    `SELECT COUNT(*) FILTER (WHERE status = 'sent')::int AS sent, COUNT(*) FILTER (WHERE status = 'failed')::int AS failed
+       FROM sms_log WHERE created_at >= date_trunc('month', now())`
+  );
+  const recent = await query(
+    `SELECT l.to_phone, l.purpose, l.status, l.error, l.created_at, b.name AS business
+       FROM sms_log l LEFT JOIN businesses b ON b.id = l.business_id ORDER BY l.created_at DESC LIMIT 20`
+  );
+  res.json({ enabled: smsEnabled(), provider: provider() || null, thisMonth: rows[0],
+    recent: recent.rows.map((r) => ({ to: r.to_phone, purpose: r.purpose, status: r.status, error: r.error, at: r.created_at, business: r.business })) });
 });
 
 module.exports = { router };

@@ -5,7 +5,7 @@ const { z } = require('zod');
 const { query, withTransaction } = require('../db');
 const { requireMember } = require('../auth');
 const { HttpError, validate } = require('../http');
-const { personSchema, passwordField, findOrCreateUser, setTemporaryPassword } = require('../users');
+const { personSchema, passwordField, findOrCreateUser, setTemporaryPassword, smsLoginDetails } = require('../users');
 
 const router = express.Router({ mergeParams: true });
 const ownerOnly = requireMember(['owner']);
@@ -40,7 +40,7 @@ router.get('/members', requireMember(), async (req, res) => {
   res.json({ members: await listMembers(req.businessId) });
 });
 
-const addSchema = personSchema.extend({ role: z.enum(ROLES) });
+const addSchema = personSchema.extend({ role: z.enum(ROLES), sendSms: z.boolean().optional() });
 
 router.post('/members', ownerOnly, validate(addSchema), async (req, res) => {
   const v = req.valid.body;
@@ -65,9 +65,15 @@ router.post('/members', ownerOnly, validate(addSchema), async (req, res) => {
        VALUES ($1, $2, 'create', 'member', $3, $4)`,
       [req.businessId, req.user.id, user.id, JSON.stringify({ role: v.role, newAccount: isNew })]
     );
-    return { isNew, name: user.full_name };
+    return { isNew, name: user.full_name, phone: user.phone };
   });
-  res.status(201).json({ ...result, members: await listMembers(req.businessId) });
+  let sms = null;
+  if (v.sendSms && result.isNew) {
+    const { rows } = await query('SELECT name FROM businesses WHERE id = $1', [req.businessId]);
+    sms = await smsLoginDetails(req, { phone: result.phone, password: v.password, businessName: rows[0].name, businessId: req.businessId })
+      .then((r) => ({ sent: r.sent > 0 })).catch((err) => ({ sent: false, error: err.message }));
+  }
+  res.status(201).json({ ...result, sms, members: await listMembers(req.businessId) });
 });
 
 // The person must belong to this business, and must not be the owner making the change.

@@ -57,12 +57,17 @@ export default function Admin() {
   const [flash, setFlash] = useState(location.state?.flash || '');
   const [q, setQ] = useState('');
   const [groups, setGroups] = useState([]);
+  const [sms, setSms] = useState(null);
   const [groupId, setGroupId] = useState('');
 
   const load = useCallback(() => {
     api('/admin/businesses').then((d) => setList(d.businesses)).catch((err) => setError(err.message));
   }, []);
-  useEffect(() => { load(); api('/admin/groups').then((d) => setGroups(d.groups)).catch(() => {}); }, [load]);
+  useEffect(() => {
+    load();
+    api('/admin/groups').then((d) => setGroups(d.groups)).catch(() => {});
+    api('/admin/sms').then(setSms).catch(() => {});
+  }, [load]);
 
   const shown = (list || []).filter((b) => !groupId || b.groupIds.includes(groupId)).filter((b) => !q || `${b.name} ${b.town || ''} ${b.owners.map((o) => `${o.fullName} ${o.phone}`).join(' ')}`.toLowerCase().includes(q.toLowerCase()));
 
@@ -83,6 +88,13 @@ export default function Admin() {
         <Link to="/admin/dashboard" className="btn btn-ghost"><Icon name="pulse" size={18} /> Programme dashboard</Link>
         <Link to="/admin/groups" className="btn btn-ghost"><Icon name="list" size={18} /> Groups</Link>
       </div>
+      {sms && (
+        <p className="small muted sms-status">
+          {sms.enabled
+            ? `Text messages (SMS): on (${sms.provider}). ${sms.thisMonth.sent} sent this month${sms.thisMonth.failed ? `, ${sms.thisMonth.failed} failed` : ''}.`
+            : 'Text messages (SMS): off. To switch them on, open an account with an SMS provider (Arkesel or Hubtel) and add its keys on Railway (see the README).'}
+        </p>
+      )}
       {groups.length > 0 && (
         <label className="field"><span className="field-label">Group</span>
           <select value={groupId} onChange={(e) => setGroupId(e.target.value)}>

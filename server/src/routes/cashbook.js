@@ -434,6 +434,24 @@ router.post('/transactions/:id/receipt', canRecord, async (req, res) => {
   res.json(out);
 });
 
+// Send the receipt link by SMS (when SMS is set up).
+router.post('/transactions/:id/receipt/sms', canRecord,
+  validate(z.object({ phone: z.string().trim().min(9).max(20) })), async (req, res) => {
+    const { rows } = await query(
+      `SELECT t.receipt_no, t.receipt_token, t.amount, b.name FROM transactions t JOIN businesses b ON b.id = t.business_id
+        WHERE t.id = $1 AND t.business_id = $2 AND t.deleted_at IS NULL`,
+      [req.params.id, req.businessId]
+    );
+    if (!rows[0]?.receipt_token) throw new HttpError(404, 'Receipt not found.');
+    const { appOrigin } = require('../users');
+    const { sendSms } = require('../sms');
+    const r = rows[0];
+    const text = `${r.name}: thank you. Receipt No. ${String(r.receipt_no).padStart(4, '0')} for GHS ${Number(r.amount).toFixed(2)}: ${appOrigin(req)}/r/${r.receipt_token}`;
+    const out = await sendSms({ to: req.valid.body.phone, text, purpose: 'receipt', businessId: req.businessId, userId: req.user.id });
+    if (!out.sent) throw new HttpError(502, 'The SMS could not be sent. Try WhatsApp instead.');
+    res.json({ sent: true });
+  });
+
 const publicRouter = express.Router();
 
 // The customer's view of a receipt (no login).

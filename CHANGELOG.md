@@ -3,6 +3,18 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.21 · 19 October 2026 · Text messages (SMS), ready to switch on
+
+- SMS can be sent through a Ghanaian SMS provider (**Arkesel** or **Hubtel**) once its account keys are added on Railway (see "Text messages (SMS)" in the README). Until then nothing changes and the admin screen says SMS is off.
+- When on:
+  - **Admin messages**: "Also send a text message to each business owner", with the number sent and failed.
+  - **New owners and staff**: "Send the login details by SMS" (phone number and temporary password).
+  - **Customers who owe**: "Send a reminder by SMS", next to WhatsApp.
+  - **Receipts**: "Send by SMS" with the receipt link.
+- Each business can send up to 30 SMS a day (reminders, receipts, logins; `SMS_DAILY_LIMIT`), to keep the cost under control. Admin messages don't count.
+- Every SMS is logged; the admin screen shows how many were sent this month.
+- Deploy: database change `017_sms.sql`. New optional settings: `SMS_PROVIDER`, `SMS_SENDER`, `SMS_API_KEY` (Arkesel) or `HUBTEL_CLIENT_ID` and `HUBTEL_CLIENT_SECRET` (Hubtel), `SMS_DAILY_LIMIT`, `APP_URL`.
+
 ## 0.20 · 19 October 2026 · Works with no data, MoMo check, faster loading
 
 - **Record with no connection**: the app opens without data (every screen is kept on the phone). On the Record screen, sales, expenses, stock bought and transfers made offline are **saved on the phone** and sent automatically when the connection returns (or with "Send now"). Home shows how many are waiting, and the last figures it had. A record the server refuses later (for example an account that was removed) stays on the list with the reason, to fix or remove. Selling on credit still needs a connection.

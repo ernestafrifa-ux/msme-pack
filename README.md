@@ -112,6 +112,7 @@ python e2e/test_planning.py          # target and budget, savings goals, price c
 python e2e/test_loan_pack.py         # loan-ready pack (and its PDF)
 python e2e/test_programme.py         # admin groups, questions, programme dashboard
 python e2e/test_offline_momo.py      # recording offline, checking MoMo SMS (needs the production build)
+SMS_PROVIDER=log python e2e/test_sms.py   # SMS options (start the server with SMS_PROVIDER=log)
 ```
 
 ## Deploying
@@ -195,6 +196,20 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 - The admin's **programme dashboard** shows activity for every business but money figures only for businesses whose owner turned on sharing (Settings → Help the programme).
 - The **owner** adds managers, staff and advisors to their own business (Settings → People who use this business).
 - Accounts made for someone else start with a temporary password, which the API refuses to use for anything except choosing a new one (`PASSWORD_CHANGE_REQUIRED`).
+
+## Text messages (SMS)
+
+SMS is off until an SMS provider is set up; everything else works without it (WhatsApp links are always available).
+
+1. Open an account with a Ghanaian SMS provider: **Arkesel** (arkesel.com) or **Hubtel** (hubtel.com), and buy SMS credit.
+2. Register a sender ID (up to 11 letters, for example `MSMEPack`). Approval can take a few days.
+3. On Railway, add the variables: `SMS_PROVIDER` (`arkesel` or `hubtel`), `SMS_SENDER`, and the keys: `SMS_API_KEY` for Arkesel, or `HUBTEL_CLIENT_ID` and `HUBTEL_CLIENT_SECRET` for Hubtel. Optional: `SMS_DAILY_LIMIT` (default 30 per business per day) and `APP_URL`.
+4. Redeploy. The admin screen then says "Text messages (SMS): on", and these appear:
+   - admin messages: "Also send a text message to each business owner";
+   - new owners and staff: "Send the login details by SMS";
+   - customers who owe: "Send a reminder by SMS"; receipts: "Send by SMS".
+
+Every SMS is recorded (`sms_log`), and the admin screen shows how many were sent this month. The Arkesel request follows its v2 API (`POST https://sms.arkesel.com/api/v2/sms/send`, header `api-key`); for Hubtel, check the request in `server/src/sms.js` against your account's API documentation before relying on it.
 
 ## How it protects data
 

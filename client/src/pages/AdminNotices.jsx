@@ -24,6 +24,8 @@ export default function AdminNotices() {
   const [sent, setSent] = useState(null);
   const [f, setF] = useState({ title: '', body: '', linkUrl: '', type: 'all', codes: [], businessIds: [], groupIds: [], question: '', options: '' });
   const [groups, setGroups] = useState([]);
+  const [smsOn, setSmsOn] = useState(false);
+  const [alsoSms, setAlsoSms] = useState(false);
   const [reach, setReach] = useState(null);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -41,6 +43,7 @@ export default function AdminNotices() {
     api('/businesses/lookups').then(setLookups).catch(() => {});
     api('/admin/businesses').then((d) => setBusinesses(d.businesses)).catch(() => {});
     api('/admin/groups').then((d) => setGroups(d.groups)).catch(() => {});
+    api('/admin/sms').then((d) => setSmsOn(d.enabled)).catch(() => {});
     loadSent();
   }, [loadSent]);
   useEffect(() => {
@@ -58,8 +61,8 @@ export default function AdminNotices() {
     try {
       const options = f.options.split('\n').map((o) => o.trim()).filter(Boolean);
       const d = await api('/admin/notices', { method: 'POST', body: { title: f.title, body: f.body, linkUrl: f.linkUrl || null, audience,
-        question: f.question || null, options: f.question ? options : null } });
-      setFlash(`Message sent to ${d.businesses} business${d.businesses === 1 ? '' : 'es'}. They see it on their Home screen.`);
+        question: f.question || null, options: f.question ? options : null, sms: smsOn && alsoSms } });
+      setFlash(`Message sent to ${d.businesses} business${d.businesses === 1 ? '' : 'es'}. They see it on their Home screen.${d.sms ? ` SMS: ${d.sms.sent} sent${d.sms.failed ? `, ${d.sms.failed} failed` : ''}.` : ''}`);
       setF({ title: '', body: '', linkUrl: '', type: 'all', codes: [], businessIds: [], groupIds: [], question: '', options: '' });
       loadSent();
     } catch (err) {
@@ -139,6 +142,12 @@ export default function AdminNotices() {
           <Field label="Answers to choose from, one per line" error={errors.options}>
             {(p) => <textarea {...p} rows={3} value={f.options} onChange={set('options')} placeholder={'Yes\nNo\nNot sure'} />}
           </Field>
+        )}
+        {smsOn && (
+          <label className="check-row normal">
+            <input type="checkbox" checked={alsoSms} onChange={(e) => setAlsoSms(e.target.checked)} />
+            <span>Also send a text message (SMS) to each business owner</span>
+          </label>
         )}
         {reach && <p className="small">This reaches <strong>{reach.businesses}</strong> business{reach.businesses === 1 ? '' : 'es'} ({reach.people} {reach.people === 1 ? 'person' : 'people'}).</p>}
         <button className="btn btn-primary btn-block" disabled={busy || !reach?.businesses}>{busy ? 'Sending…' : 'Send message'}</button>

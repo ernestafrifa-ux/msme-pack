@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
+import { useSession } from '../session.jsx';
 import { Field, FormError, TopBar } from '../components.jsx';
 import { useT } from '../i18n.jsx';
 
@@ -14,6 +15,8 @@ export default function AdminNewBusiness() {
   const [lookups, setLookups] = useState({ regions: [], sectors: [] });
   const [groups, setGroups] = useState([]);
   const [groupIds, setGroupIds] = useState([]);
+  const { features } = useSession();
+  const [sendSms, setSendSms] = useState(true);
   const [form, setForm] = useState({ ...emptyBusiness, ...emptyMoney, ownerName: '', ownerPhone: '', ownerPassword: '', ownerLanguage: 'en', withMoney: false });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
@@ -36,6 +39,7 @@ export default function AdminNewBusiness() {
           ...(form.withMoney ? moneyBody(form) : {}),
           withMoney: form.withMoney,
           groupIds,
+          sendSms: !!features?.sms && sendSms,
           owner: { fullName: form.ownerName, phone: form.ownerPhone, password: form.ownerPassword || undefined, preferredLanguage: form.ownerLanguage },
         },
       });
@@ -43,7 +47,8 @@ export default function AdminNewBusiness() {
       navigate('/admin', {
         state: {
           flash: d.owner.isNew
-            ? `${d.business.name} is set up. Give ${who} their phone number and the temporary password; they choose their own at first login${form.withMoney ? '' : ', then enter today’s balances'}.`
+            ? (d.sms?.sent ? `${d.business.name} is set up. ${who} was sent the login details by SMS.`
+              : `${d.business.name} is set up. Give ${who} their phone number and the temporary password; they choose their own at first login${form.withMoney ? '' : ', then enter today’s balances'}.`)
             : `${d.business.name} is set up. ${who} already had an account and logs in with their own password.`,
         },
       });
@@ -97,6 +102,13 @@ export default function AdminNewBusiness() {
             </select>
           )}
         </Field>
+
+        {features?.sms && (
+          <label className="check-row normal">
+            <input type="checkbox" checked={sendSms} onChange={(e) => setSendSms(e.target.checked)} />
+            <span>Send the owner the login details by SMS</span>
+          </label>
+        )}
 
         <h2>Where the money is kept</h2>
         <label className="option toggle">

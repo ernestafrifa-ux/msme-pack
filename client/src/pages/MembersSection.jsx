@@ -64,8 +64,9 @@ function Member({ m, isOwner, me, onChanged }) {
 
 // Settings: who uses this business. Only the owner adds, changes and removes people.
 export default function MembersSection() {
-  const { user, business } = useSession();
+  const { user, business, features } = useSession();
   const { t } = useT();
+  const [sendSms, setSendSms] = useState(true);
   const isOwner = business.role === 'owner';
   const [members, setMembers] = useState([]);
   const [adding, setAdding] = useState(false);
@@ -85,10 +86,11 @@ export default function MembersSection() {
     e.preventDefault();
     setBusy(true); setErrors({}); setMessage(''); setFlash('');
     try {
-      const d = await api(`/businesses/${business.id}/members`, { method: 'POST', body: { ...f, password: f.password || undefined } });
+      const d = await api(`/businesses/${business.id}/members`, { method: 'POST', body: { ...f, password: f.password || undefined, sendSms: !!features?.sms && sendSms } });
       setMembers(d.members);
       setFlash(d.isNew
-        ? `${f.fullName} added. Give them their phone number and the temporary password; they will choose their own when they first log in.`
+        ? (d.sms?.sent ? `${f.fullName} added. The login details were sent to them by SMS.`
+          : `${f.fullName} added. Give them their phone number and the temporary password; they will choose their own when they first log in.${d.sms?.error ? ` (SMS not sent: ${d.sms.error})` : ''}`)
         : `${d.name} already had an account and can now use this business with their own password.`);
       setF({ fullName: '', phone: '', role: 'staff', password: '', preferredLanguage: 'en' });
       setAdding(false);
@@ -142,6 +144,12 @@ export default function MembersSection() {
           <Field label="Temporary password" error={errors.password} hint="At least 8 characters. Not needed if they already have an MSME Pack account.">
             {(p) => <input {...p} value={f.password} onChange={set('password')} autoComplete="off" />}
           </Field>
+          {features?.sms && (
+            <label className="check-row normal">
+              <input type="checkbox" checked={sendSms} onChange={(e) => setSendSms(e.target.checked)} />
+              <span>Send them the login details by SMS</span>
+            </label>
+          )}
           <div className="grid-2">
             <button type="button" className="btn btn-ghost" onClick={() => setAdding(false)}>Cancel</button>
             <button className="btn btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Add person'}</button>

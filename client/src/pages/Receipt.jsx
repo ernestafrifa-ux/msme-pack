@@ -10,7 +10,7 @@ import { normalisePhone } from '../phone';
 // The owner's view of a receipt: send it on WhatsApp, copy the link, or print it.
 export default function Receipt() {
   const { id } = useParams();
-  const { business } = useSession();
+  const { business, features } = useSession();
   const [data, setData] = useState(null);
   const [token, setToken] = useState('');
   const [phone, setPhone] = useState('');
@@ -46,6 +46,13 @@ export default function Receipt() {
             <a className="btn btn-primary btn-block" href={whatsappLink(intl || '', text)} target="_blank" rel="noopener noreferrer">
               <Icon name="share" size={20} /> Send on WhatsApp
             </a>
+            {features?.sms && (
+              <button type="button" className="btn btn-ghost btn-block" disabled={!intl}
+                onClick={() => api(`/businesses/${business.id}/transactions/${id}/receipt/sms`, { method: 'POST', body: { phone } })
+                  .then(() => setFlash(`Receipt sent by SMS to ${phone}.`)).catch((err) => setFlash(err.message))}>
+                Send by SMS{!intl ? ' (enter the number first)' : ''}
+              </button>
+            )}
             <div className="grid-2">
               <button type="button" className="btn btn-ghost" onClick={() => navigator.clipboard?.writeText(link).then(() => setFlash('Link copied. Paste it in SMS or email.'), () => setFlash(link))}>
                 <Icon name="copy" size={18} /> Copy link

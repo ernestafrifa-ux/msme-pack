@@ -47,4 +47,16 @@ async function setTemporaryPassword(db, userId, password) {
   );
 }
 
-module.exports = { phoneField, passwordField, personSchema, findOrCreateUser, setTemporaryPassword };
+// The web address people open, for links in text messages.
+function appOrigin(req) {
+  return process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
+}
+
+// Tells a new person by SMS how to log in (only when SMS is set up and they asked for it).
+async function smsLoginDetails(req, { phone, password, businessName, businessId }) {
+  const { sendSms } = require('./sms');
+  const text = `MSME Pack: you can now use ${businessName}. Open ${appOrigin(req)} and log in with ${phone.replace('+233', '0')} and the temporary password ${password}. You will then choose your own.`;
+  return sendSms({ to: phone, text, purpose: 'login', businessId, userId: req.user.id });
+}
+
+module.exports = { phoneField, passwordField, personSchema, findOrCreateUser, setTemporaryPassword, appOrigin, smsLoginDetails };

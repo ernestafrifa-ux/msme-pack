@@ -15,6 +15,7 @@ const { todayInGhana, addDays } = require('../dates');
 const { normaliseGhanaPhone } = require('../phone');
 const { vatOn, TOTAL_RATE } = require('../tax');
 const { refreshInvoiceStatus } = require('../invoiceStatus');
+const { sendSms } = require('../sms');
 const { insertTransaction, checkAccounts, checkDate, TXN_SELECT, publicTxn } = require('./cashbook');
 
 const router = express.Router({ mergeParams: true });
@@ -466,6 +467,19 @@ async function customerDetail(businessId, contactId) {
     payments: payments.rows.map(publicTxn),
   };
 }
+
+// A friendly reminder by SMS (when SMS is set up), as well as the WhatsApp option on the phone.
+router.post('/customers/:contactId/sms-reminder', canManage, async (req, res) => {
+  if (!isUuid(req.params.contactId)) throw new HttpError(404, 'Customer not found.');
+  const d = await customerDetail(req.businessId, req.params.contactId);
+  if (!d.customer.phone) throw new HttpError(400, 'This customer has no phone number.');
+  if (Number(d.owes) <= 0) throw new HttpError(409, 'This customer does not owe anything.');
+  const { rows } = await query('SELECT name FROM businesses WHERE id = $1', [req.businessId]);
+  const text = `${rows[0].name}: hello ${d.customer.name.split(' ')[0]}, a friendly reminder that GHS ${Number(d.owes).toFixed(2)} is still to pay. Thank you.`;
+  const r = await sendSms({ to: d.customer.phone, text, purpose: 'reminder', businessId: req.businessId, userId: req.user.id });
+  if (!r.sent) throw new HttpError(502, 'The SMS could not be sent. Try WhatsApp instead.');
+  res.json({ sent: true });
+});
 
 router.get('/customers/:contactId', canView, async (req, res) => {
   if (!isUuid(req.params.contactId)) throw new HttpError(404, 'Customer not found.');

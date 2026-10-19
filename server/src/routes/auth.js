@@ -6,6 +6,7 @@ const { query } = require('../db');
 const { signToken, requireAuth } = require('../auth');
 const { HttpError, validate } = require('../http');
 const { normaliseGhanaPhone } = require('../phone');
+const { smsEnabled } = require('../sms');
 
 const router = express.Router();
 
@@ -110,7 +111,7 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
   const ok = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
   if (!user || !ok) throw new HttpError(401, 'Phone number or password is not correct.');
   await query('UPDATE users SET last_login_at = now() WHERE id = $1', [user.id]);
-  res.json({ token: signToken(user), user: publicUser(user), businesses: await listBusinesses(user.id) });
+  res.json({ token: signToken(user), user: publicUser(user), businesses: await listBusinesses(user.id), features: { sms: smsEnabled() } });
 });
 
 async function listBusinesses(userId) {
@@ -136,7 +137,7 @@ async function listBusinesses(userId) {
 }
 
 router.get('/me', requireAuth, async (req, res) => {
-  res.json({ user: publicUser(req.user), businesses: await listBusinesses(req.user.id) });
+  res.json({ user: publicUser(req.user), businesses: await listBusinesses(req.user.id), features: { sms: smsEnabled() } });
 });
 
 const meSchema = z.object({
