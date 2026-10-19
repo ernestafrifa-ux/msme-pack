@@ -5,6 +5,7 @@ import { useSession } from '../session.jsx';
 import { useT } from '../i18n.jsx';
 import { FormError, Icon, TopBar } from '../components.jsx';
 import { longDate, friendlyDate } from '../format';
+import BizLogo from '../BizLogo.jsx';
 
 function OwnerRow({ o, onDone }) {
   const [mode, setMode] = useState('');
@@ -74,7 +75,10 @@ export default function Admin() {
       <p className="lead">You set up each business and its owner. Owners then add their own staff. You do not see a business&rsquo;s records.</p>
       {flash && <div className="flash" role="status">{flash}</div>}
       {error && <div className="form-error" role="alert">{error}</div>}
-      <Link to="/admin/new" className="btn btn-primary btn-block"><Icon name="plus" size={18} /> Set up a new business</Link>
+      <div className="grid-2">
+        <Link to="/admin/new" className="btn btn-primary"><Icon name="plus" size={18} /> New business</Link>
+        <Link to="/admin/notices" className="btn btn-ghost"><Icon name="bell" size={18} /> Send a message</Link>
+      </div>
       {list && list.length > 4 && (
         <label className="field"><span className="field-label">Search</span>
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Business, town, owner or phone" /></label>
@@ -84,7 +88,8 @@ export default function Admin() {
           <h2>{list.length} business{list.length === 1 ? '' : 'es'}</h2>
           {shown.map((b) => (
             <div key={b.id} className="biz-row">
-              <span className="strong">{b.name}{!b.setupDone && <span className="tag tag-warn">waiting for owner</span>}</span>
+              <span className="home-brand"><BizLogo business={b} size={36} />
+                <span className="strong">{b.name}{!b.setupDone && <span className="tag tag-warn">waiting for owner</span>}</span></span>
               <span className="small muted">
                 {[b.sector, b.town, b.region].filter(Boolean).join(' · ')}
               </span>

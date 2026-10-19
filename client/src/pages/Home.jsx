@@ -5,6 +5,7 @@ import { useSession } from '../session.jsx';
 import { BottomNav, Icon } from '../components.jsx';
 import { money, monthName, qty } from '../format';
 import { TxnRow } from './Records.jsx';
+import BizLogo from '../BizLogo.jsx';
 import { useT, DraftLanguageBanner } from '../i18n.jsx';
 
 function greetingKey() {
@@ -34,12 +35,33 @@ export default function Home() {
     <>
       <main className="screen with-nav">
         <header className="home-head">
-          <div>
-            <div className="muted">{t(greetingKey())}, {user.fullName.split(' ')[0]}</div>
-            <h1 className="biz-name">{business.name}</h1>
+          <div className="home-brand">
+            <Link to="/settings" aria-label="Business details"><BizLogo business={business} size={44} /></Link>
+            <div>
+              <div className="muted">{t(greetingKey())}, {user.fullName.split(' ')[0]}</div>
+              <h1 className="biz-name">{business.name}</h1>
+            </div>
           </div>
-          <Link to="/settings" className="icon-btn" aria-label={t('home.settings')}><Icon name="settings" /></Link>
+          <div className="home-actions">
+            <Link to="/notices" className="icon-btn bell"
+              aria-label={data?.notices?.unread ? `Messages, ${data.notices.unread} new` : 'Messages'}>
+              <Icon name="bell" />
+              {data?.notices?.unread > 0 && <span className="bell-badge" aria-hidden="true">{data.notices.unread}</span>}
+            </Link>
+            <Link to="/settings" className="icon-btn" aria-label={t('home.settings')}><Icon name="settings" /></Link>
+          </div>
         </header>
+
+        {data?.notices?.latest && (
+          <Link to="/notices" className="notice-banner">
+            <Icon name="bell" size={20} />
+            <span className="grow">
+              <span className="small block">New message from MSME Pack</span>
+              <span className="strong">{data.notices.latest.title}</span>
+            </span>
+            <Icon name="chevron" size={18} />
+          </Link>
+        )}
 
         <DraftLanguageBanner />
         {flash && <div className="flash" role="status">{flash}</div>}

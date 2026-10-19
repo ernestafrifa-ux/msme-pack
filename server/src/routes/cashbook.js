@@ -374,6 +374,18 @@ router.get('/transactions', canView, validate(listSchema, 'query'), async (req, 
   res.json({ transactions: rows.slice(0, q.limit).map(publicTxn), hasMore });
 });
 
+async function latestNotice(businessId, userId) {
+  const { rows } = await query(
+    `SELECT n.id, n.title, COUNT(*) OVER () AS unread FROM notices n
+       JOIN notice_businesses nb ON nb.notice_id = n.id AND nb.business_id = $1
+       LEFT JOIN notice_reads r ON r.notice_id = n.id AND r.user_id = $2
+      WHERE n.deleted_at IS NULL AND r.notice_id IS NULL
+      ORDER BY n.created_at DESC LIMIT 1`,
+    [businessId, userId]
+  );
+  return { unread: rows[0] ? Number(rows[0].unread) : 0, latest: rows[0] ? { id: rows[0].id, title: rows[0].title } : null };
+}
+
 // Soft delete: the record disappears from totals but stays in the audit trail.
 router.delete('/transactions/:id', canManage, async (req, res) => {
   if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) throw new HttpError(404, 'Record not found.');
@@ -481,6 +493,8 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
       stockLosses: Number(s.stock_losses || 0).toFixed(2),
     },
     recent: recent.rows.map(publicTxn),
+    // The newest message from the MSME Pack team that this person has not read.
+    notices: await latestNotice(req.businessId, req.user.id),
     lowStock: lowStock.rows.map((p) => ({
       id: p.product_id, name: p.name, unit: p.unit, onHand: p.on_hand, reorderLevel: p.reorder_level,
     })),

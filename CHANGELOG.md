@@ -3,6 +3,18 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.13 · 19 October 2026 · Business logos and messages from the admin
+
+- **Business logo**: Settings → Business details → **Upload logo** (owner or manager). The phone shrinks the picture before uploading, so it is quick on mobile data. PNG, JPEG or WebP; change or remove it any time.
+  - The logo shows on Home (initials in a circle until there is one), on invoices and the customer's invoice link, on every statement, and in the admin's list of businesses.
+- **Messages from the MSME Pack team**:
+  - The admin writes a message (title, text and an optional link to an app page such as a guide, or a web page) under Admin → **Send a message**.
+  - Send to all businesses, by region, by sector, or to chosen businesses. Before sending, it shows how many businesses and people it reaches.
+  - Businesses see a bell with the number of new messages on Home and a banner with the newest one. Opening **Messages** marks them as read for that person.
+  - The admin sees each sent message with "read in X of Y businesses", and can withdraw one so it disappears.
+- New screens are in English for now.
+- Deploy: database change `011_notices.sql`. Logos are saved with the guide audio (on Railway, the `/data` volume), so they survive redeploys.
+
 ## 0.12 · 19 October 2026 · Closed sign-up: the admin sets up businesses, owners add their people
 
 - **No more open sign-up.** Anyone who finds the site can no longer create an account. The login page tells new people that their account is made for them.

@@ -66,6 +66,7 @@ export function AsOfPicker({ value, onChange }) {
 export function StatementHead({ business, title, sub }) {
   return (
     <div className="statement-head">
+      {business?.logoUrl && <img className="statement-logo" src={business.logoUrl} alt="" />}
       <div className="statement-biz">{business?.name}</div>
       <h1>{title}</h1>
       <div className="paper-muted">{sub}</div>

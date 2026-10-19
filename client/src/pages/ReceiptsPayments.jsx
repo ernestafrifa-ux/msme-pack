@@ -76,6 +76,7 @@ export default function ReceiptsPayments() {
         <>
           <article className="paper statement" aria-label={t('rp.statement')}>
             <div className="statement-head">
+              {data.business?.logoUrl && <img className="statement-logo" src={data.business.logoUrl} alt="" />}
               <div className="statement-biz">{data.business?.name}</div>
               <h1>{t('rp.statement')}</h1>
               <div className="paper-muted">{t('rp.period', { from: longDate(data.from, t), to: longDate(data.to, t) })}</div>

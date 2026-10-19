@@ -34,6 +34,8 @@ import ChangePassword from './pages/ChangePassword.jsx';
 import NoBusiness from './pages/NoBusiness.jsx';
 import Admin from './pages/Admin.jsx';
 import AdminNewBusiness from './pages/AdminNewBusiness.jsx';
+import AdminNotices from './pages/AdminNotices.jsx';
+import Notices from './pages/Notices.jsx';
 
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
@@ -76,6 +78,7 @@ export default function App() {
   const adminRoutes = user.isAdmin ? [
     <Route key="a" path="/admin" element={<Admin />} />,
     <Route key="n" path="/admin/new" element={<AdminNewBusiness />} />,
+    <Route key="m" path="/admin/notices" element={<AdminNotices />} />,
   ] : [];
 
   if (!business) {
@@ -129,6 +132,7 @@ export default function App() {
       <Route path="/invoices/:invoiceId/edit" element={<InvoiceForm />} />
       <Route path="/settings" element={<BusinessDetails />} />
       <Route path="/settings/password" element={<ChangePassword />} />
+      <Route path="/notices" element={<Notices />} />
       {adminRoutes}
       <Route path="/health" element={<Health />} />
       <Route path="/health/check" element={<HealthCheck />} />

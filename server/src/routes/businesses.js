@@ -61,6 +61,7 @@ function publicBusiness(b, role) {
     digitalAddress: b.digital_address,
     vatRegistered: b.vat_registered,
     setupDone: b.setup_done,
+    logoUrl: b.logo_url,
     vatNumber: b.vat_number,
     vatEffectiveDate: b.vat_effective_date,
     tin: b.tin,
@@ -193,5 +194,7 @@ router.use('/:businessId', require('./loans').router);
 router.use('/:businessId', require('./tax').router);
 router.use('/:businessId', require('./registrations').router);
 router.use('/:businessId', require('./members').router);
+router.use('/:businessId', require('./branding').router);
+router.use('/:businessId', require('./notices').router);
 
 module.exports = { router, createSchema, createBusiness, publicBusiness };

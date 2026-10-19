@@ -23,7 +23,7 @@ function createApp() {
           defaultSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-          imgSrc: ["'self'", 'data:'],
+          imgSrc: ["'self'", 'data:', 'blob:'], // blob: lets the phone shrink a logo before uploading
           mediaSrc: ["'self'", 'blob:'],
         },
       },

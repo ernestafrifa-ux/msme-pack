@@ -14,7 +14,7 @@ def create_admin(page, base):
     page.get_by_label("Phone number").fill(ADMIN_PHONE)
     page.get_by_label("Choose a password").fill(ADMIN_PASSWORD)
     page.get_by_role("button", name="Create account").click()
-    expect(page.get_by_role("link", name=re.compile("Set up a new business"))).to_be_visible()
+    expect(page.get_by_role("link", name=re.compile("New business"))).to_be_visible()
 
 
 def admin_creates_business(page, base, business, owner, phone, temp, language="en",

@@ -38,7 +38,7 @@ with sync_playwright() as p:
     page.screenshot(path=f"{OUT}/1-signup-error.png")
     page.get_by_label("Choose a password").fill(ADMIN_PASSWORD)
     page.get_by_role("button", name="Create account").click()
-    expect(page.get_by_role("link", name=re.compile("Set up a new business"))).to_be_visible()
+    expect(page.get_by_role("link", name=re.compile("New business"))).to_be_visible()
 
     # The admin sets up the business and its owner (Ewe preferred: no Ewe interface yet, stays English)
     admin_creates_business(page, BASE, "Ama's Shito & Spices", "Ama Mensah", "024 555 0101", "temp-pass-1",

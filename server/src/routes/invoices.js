@@ -511,7 +511,7 @@ publicRouter.get('/invoices/:token', async (req, res) => {
   if (!rows[0]) throw new HttpError(404, 'Invoice not found.');
   const d = await invoiceDetail(rows[0].business_id, rows[0].id);
   const { rows: biz } = await query(
-    `SELECT b.name, b.phone, b.email, b.town, r.name AS region, b.digital_address, b.tin, b.logo_url
+    `SELECT b.name, b.phone, b.email, b.town, r.name AS region, b.digital_address, b.tin, b.logo_url AS "logoUrl"
        FROM businesses b LEFT JOIN regions r ON r.code = b.region_code WHERE b.id = $1`,
     [rows[0].business_id]
   );

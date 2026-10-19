@@ -115,7 +115,7 @@ router.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
 
 async function listBusinesses(userId) {
   const { rows } = await query(
-    `SELECT b.id, b.name, b.sector_code, b.region_code, b.town, b.legal_form, b.size_tier, b.setup_done, m.role
+    `SELECT b.id, b.name, b.sector_code, b.region_code, b.town, b.legal_form, b.size_tier, b.setup_done, b.logo_url, m.role
        FROM businesses b JOIN business_members m ON m.business_id = b.id
       WHERE m.user_id = $1 AND b.deleted_at IS NULL
       ORDER BY b.created_at`,
@@ -130,6 +130,7 @@ async function listBusinesses(userId) {
     legalForm: b.legal_form,
     sizeTier: b.size_tier,
     setupDone: b.setup_done,
+    logoUrl: b.logo_url,
     role: b.role,
   }));
 }

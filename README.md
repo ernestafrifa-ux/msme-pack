@@ -105,6 +105,7 @@ python e2e/test_reports_loans.py     # statements, loans, equipment, bank accoun
 python e2e/test_vat_wht.py           # VAT on invoices, withholding tax, Tax screen
 python e2e/test_registrations.py     # starting without a bank or VAT, registering later
 python e2e/test_people.py            # admin sets up businesses, owner adds staff
+python e2e/test_logo_messages.py     # business logo, admin messages to businesses
 ```
 
 ## Deploying

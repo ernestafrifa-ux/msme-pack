@@ -43,6 +43,7 @@ export function Icon({ name, size = 22 }) {
     check: <path d="M5 12l5 5 9-10" />,
     play: <path d="M7 4l13 8-13 8z" />,
     book: <><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" /><path d="M4 21V5" /></>,
+    bell: <><path d="M6 16V11a6 6 0 0112 0v5l2 2H4z" /><path d="M10 20a2 2 0 004 0" /></>,
     pulse: <path d="M3 12h4l2-5 4 10 2-5h6" />,
     alert: <><path d="M12 3l9 16H3z" /><path d="M12 10v4M12 17v.5" /></>,
     share: <path d="M21 12a8.5 8.5 0 01-12.6 7.5L3 21l1.6-5.2A8.5 8.5 0 1121 12z" />,

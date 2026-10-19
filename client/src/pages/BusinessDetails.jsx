@@ -6,6 +6,7 @@ import { Field, FormError, Icon, TopBar } from '../components.jsx';
 import { useT, UI_LANGUAGES } from '../i18n.jsx';
 import AccountsSection from './AccountsSection.jsx';
 import MembersSection from './MembersSection.jsx';
+import LogoSection from './LogoSection.jsx';
 
 export default function BusinessDetails() {
   const { user, business, logout } = useSession();
@@ -50,6 +51,7 @@ export default function BusinessDetails() {
   return (
     <main className="screen">
       <TopBar title="Business details" back="/invoices" />
+      <LogoSection />
       <Link to="/registrations" className="card report-link reg-link">
         <span className="txn-main">
           <span className="txn-title wrap">Registrations: bank account &amp; VAT</span>

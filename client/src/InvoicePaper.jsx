@@ -6,7 +6,9 @@ export default function InvoicePaper({ business, invoice, customer }) {
   return (
     <article className="paper" aria-label={`Invoice ${invoice.number}`}>
       <header className="paper-head">
-        <div>
+        <div className="paper-head-left">
+          {business.logoUrl && <img className="paper-logo" src={business.logoUrl} alt="" />}
+          <div>
           <div className="paper-biz">{business.name}</div>
           <div className="paper-muted">
             {[business.town, business.region].filter(Boolean).join(', ')}
@@ -16,6 +18,7 @@ export default function InvoicePaper({ business, invoice, customer }) {
             {[showPhone(business.phone), business.email].filter(Boolean).join(' · ')}
           </div>
           {business.tin && <div className="paper-muted">TIN {business.tin}</div>}
+          </div>
         </div>
         <div className="paper-right">
           <div className="paper-label">INVOICE</div>

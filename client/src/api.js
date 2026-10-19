@@ -68,3 +68,20 @@ export function newClientRef() {
   const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('');
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
+
+// Sends a file (e.g. a logo) as the raw request body.
+export async function uploadBlob(path, blob) {
+  let res;
+  try {
+    res = await fetch('/api' + path, {
+      method: 'POST',
+      headers: { Accept: 'application/json', Authorization: `Bearer ${getToken()}`, 'Content-Type': blob.type || 'application/octet-stream' },
+      body: blob,
+    });
+  } catch {
+    throw new ApiError(0, 'No connection. Check your data or Wi‑Fi and try again.');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, data.error || (res.status === 413 ? 'That picture is too big.' : 'Something went wrong. Please try again.'), data.fields, data.code);
+  return data;
+}

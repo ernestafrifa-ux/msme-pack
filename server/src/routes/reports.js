@@ -28,7 +28,7 @@ function period(req) {
 }
 
 const businessHeader = (businessId) =>
-  query('SELECT name, town, phone FROM businesses WHERE id = $1', [businessId]).then((r) => r.rows[0]);
+  query('SELECT name, town, phone, logo_url AS "logoUrl" FROM businesses WHERE id = $1', [businessId]).then((r) => r.rows[0]);
 
 // How a transaction changes the account it is recorded against (same rule as v_account_balances).
 const EFFECT_SQL = `
