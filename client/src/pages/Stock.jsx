@@ -44,7 +44,7 @@ export default function Stock() {
             </div>
             <div className={'tile' + (data.summary.lowCount ? ' tile-warn' : '')}>
               <div className="small">{tt('Running low')}</div>
-              <div className="tile-val">{data.summary.lowCount} {data.summary.lowCount === 1 ? 'item' : 'items'}</div>
+              <div className="tile-val">{data.summary.lowCount === 1 ? tt('1 item') : tt('{n} items', { n: data.summary.lowCount })}</div>
             </div>
           </div>
         )}
@@ -76,7 +76,7 @@ export default function Stock() {
                     <Link to={`/stock/${p.id}`} className="product-row">
                       <div className="txn-main">
                         <div className="txn-title">
-                          {p.name} {p.isLow && <span className="pill pill-overdue">{tt('Low')}</span>}
+                          {p.name} {p.kind === 'supply' && <span className="pill pill-draft">{tt('Used in work')}</span>} {p.isLow && <span className="pill pill-overdue">{tt('Low')}</span>}
                         </div>
                         {p.trackStock ? (
                           <div className="bar" aria-hidden="true"><div className={p.isLow ? 'bar-low' : ''} style={{ width: pct + '%' }} /></div>

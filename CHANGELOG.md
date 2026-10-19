@@ -3,6 +3,18 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.23 · 19 October 2026 · Items used in the work, and making goods
+
+Tested with three trades: a hair salon (sells wigs and extensions, uses relaxer and extensions on clients), a beauty therapist (sells and uses nail polish, uses acrylic powder) and a bakery (makes bread from flour, sugar and margarine).
+
+- **A third kind of item: "Used in work"** (alongside "For sale" and "Service"). For things bought and used up in the work but not sold: relaxer, shampoo, acrylic powder, flour, sugar, packaging. They are bought with "Buy stock" and kept in stock like anything else, but they are not offered on sales or invoices. A product for sale can be changed to "Used in work" and back.
+- **"Used in work"** on any stock item (for example extensions used on a braiding client, or polish used on a manicure). The cost now counts as **"Less: products used in the work"**, part of the cost of sales in the profit and loss. Before, the only choice was "Own use", which showed as "Damaged or missing stock" and made the gross margin look higher than it was.
+- **Stock count for items used in work**: what is missing since the last count is recorded as used (a cost of sales), not as a loss. A salon can simply count its supplies once a week.
+- **"Made some"** on a product for sale (bread, cakes, shito): choose the ingredients used from stock and the quantities. The ingredients come out of stock, the app shows what each one cost to make, and that cost is counted once, when the goods are sold. Before, the ingredients stayed in stock, and taking them out as "Own use" counted their cost twice. The cost of each item becomes the average of what was on the shelf and the new batch. Making without listing ingredients works as before (for ingredients bought as expenses).
+- The stock report has a "Used" figure for each item, and items used in work are never marked "Not selling".
+- New Twi lines for these screens are drafts for the reviewer (`msme-pack-twi-review-v0.23.xlsx`).
+- Deploy: database change `018_supplies_and_making.sql`, applied automatically on start.
+
 ## 0.22.1 · 19 October 2026 · Twi for the newer screens reviewed
 
 - A fluent Asante Twi speaker checked all 762 new Twi lines: 751 approved as written, 11 corrected (for example "Ɛso ati" for a cash shortage, "mane" for sending on WhatsApp and SMS). The corrections are applied, and the same words are now used on the matching lines and the lines are no longer marked as drafts.

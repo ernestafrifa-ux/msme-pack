@@ -38,7 +38,7 @@ export default function InvoiceForm() {
         const third = editing ? detail : defaults;
         setVatRegistered(!!defaults.vatRegistered || (editing && detail.invoice.taxScheme === 'vat'));
         setContacts(c.contacts);
-        setProducts(p.products);
+        setProducts(p.products.filter((x) => x.kind !== 'supply')); // supplies are used, not sold
         if (!c.contacts.length) setCustomer((s) => ({ ...s, mode: 'new' }));
         if (editing) {
           const inv = third.invoice;

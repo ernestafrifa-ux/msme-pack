@@ -81,7 +81,8 @@ export default function Record() {
 
   // Sales can include services (photocopying, repairs); buying stock is for products only.
   const pickable = useMemo(
-    () => (isPurchase ? products.filter((x) => x.kind === 'product') : products),
+    // Stock bought: products and supplies. A sale: products and services, not supplies.
+    () => products.filter((x) => (isPurchase ? x.kind !== 'service' : x.kind !== 'supply')),
     [products, isPurchase]
   );
   const cats = useMemo(() => categories.filter((c) => c.kind === CATEGORY_KIND[kind]), [categories, kind]);

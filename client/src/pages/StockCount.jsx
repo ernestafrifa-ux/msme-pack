@@ -49,6 +49,7 @@ export default function StockCount() {
     <main className="screen">
       <TopBar title={tt('Stock count')} back="/stock" />
       <p className="lead">{tt('Count what is on the shelf and type the number. Leave an item empty to skip it.')}</p>
+      {products.some((p) => p.kind === 'supply') && <p className="muted small">{tt('For items used in your work (relaxer, flour…), what is missing is recorded as used: a cost of your sales, not a loss.')}</p>}
       <FormError message={message} />
       <ul className="txn-list count-list">
         {products.map((p) => {
@@ -59,7 +60,7 @@ export default function StockCount() {
               <div className="txn-main">
                 <label htmlFor={`c-${p.id}`} className="txn-title">{p.name}</label>
                 <div className="muted small">
-                  Records say {qty(p.onHand)} {p.unit}
+                  {tt('Records say {n} {unit}', { n: qty(p.onHand), unit: p.unit })}{p.kind === 'supply' ? ` · ${tt('used in work')}` : ''}
                   {v !== '' && diff !== 0 && <strong className={diff < 0 ? 'neg' : 'pos'}> · {diff > 0 ? '+' : '−'}{qty(Math.abs(diff))}</strong>}
                 </div>
               </div>

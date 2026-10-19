@@ -157,10 +157,10 @@ async function checkLineProducts(db, businessId, items) {
   const ids = [...new Set(items.map((i) => i.productId).filter(Boolean))];
   if (!ids.length) return;
   const { rows } = await db.query(
-    `SELECT id FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL`,
+    `SELECT id FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL AND kind <> 'supply'`,
     [businessId, ids]
   );
-  if (rows.length !== ids.length) throw new HttpError(400, 'One of the products was not found.', { items: 'Check the products.' });
+  if (rows.length !== ids.length) throw new HttpError(400, 'One of the products was not found, or is a supply (kept for use, not for sale).', { items: 'Check the products.' });
 }
 
 async function resolveContact(db, businessId, v) {
@@ -398,7 +398,7 @@ router.post('/credit-sales', canRecord, validate(creditSaleSchema), async (req, 
     let items;
     if (v.items && v.items.length) {
       const { rows } = await db.query(
-        'SELECT id, name FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL',
+        "SELECT id, name FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL AND kind <> 'supply'",
         [req.businessId, v.items.map((i) => i.productId)]
       );
       const names = Object.fromEntries(rows.map((r) => [r.id, r.name]));

@@ -63,12 +63,11 @@ with sync_playwright() as p:
     expect(page.locator(".money-total")).to_have_text("30 jar")
 
     # Made a batch: +5
-    page.get_by_role("button", name="Other change").click()
-    page.get_by_text("Made / produced", exact=False).first.click()
-    page.get_by_label("How many jar").fill("5")
+    page.get_by_role("button", name="Made some").click()
+    page.get_by_label("How many jar made").fill("5")
     page.get_by_role("button", name="Save", exact=True).click()
     expect(page.locator(".money-total")).to_have_text("35 jar")
-    expect(page.get_by_text("Made / produced: 5 jar recorded.")).to_be_visible()
+    expect(page.get_by_text("5 jar made.")).to_be_visible()
 
     page.goto(BASE + "/stock/new")
     page.get_by_label("Product name").fill("Ground pepper 100g")

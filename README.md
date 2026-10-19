@@ -14,11 +14,12 @@ Built so far: **sign-up, business setup, the cash book, stock, invoices, the bus
 - Installable on a phone's home screen (PWA); opens without a connection
 
 **Stock**
-- Products (with stock) and services (no stock), cost and selling price, profit per item shown as you type
+- Three kinds of item: **for sale** (with stock), **services** (no stock) and **used in work** (kept in stock, used up doing the work, never sold: relaxer, flour, packaging). Cost and selling price, profit per item shown as you type
 - Sales can list products: the total is worked out and stock goes down automatically
 - "Buy stock" records money out and stock in, and updates the cost price
-- Other changes: made / produced, returned, damaged, expired, own use, each with a history
-- Stock count: type what's on the shelf; only the differences are saved
+- "Used in work" (a cost of sales, not a loss), and other changes: returned, damaged, expired, own use, each with a history
+- "Made some": goods made from ingredients in stock; the ingredients leave stock and the goods carry their cost (counted when sold)
+- Stock count: type what's on the shelf; only the differences are saved. For items used in work, what is missing counts as used
 - "Running low" warnings on the Stock screen and Home
 
 **Invoices**
@@ -110,6 +111,7 @@ python e2e/test_customers_receipts.py # selling on credit, receipts, bills and r
 python e2e/test_control.py           # close the day, who recorded what
 python e2e/test_planning.py          # target and budget, savings goals, price checker
 python e2e/test_loan_pack.py         # loan-ready pack (and its PDF)
+python e2e/test_trades.py            # salon and bakery: items used in work, goods made from ingredients
 python e2e/test_programme.py         # admin groups, questions, programme dashboard
 python e2e/test_offline_momo.py      # recording offline, checking MoMo SMS (needs the production build)
 SMS_PROVIDER=log python e2e/test_sms.py   # SMS options (start the server with SMS_PROVIDER=log)
@@ -166,6 +168,7 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 | GET, PATCH, DELETE | `/api/businesses/:id/products/:productId` | Details with stock history / edit / remove |
 | POST | `/api/businesses/:id/products/:productId/adjust` | Made, returned, damaged, expired, own use |
 | POST | `/api/businesses/:id/stock-count` | Save a physical count |
+| POST | `/api/businesses/:id/products/:pid/make` | Goods made, with the ingredients used from stock |
 | GET, POST | `/api/businesses/:id/contacts` | Customers |
 | GET, POST | `/api/businesses/:id/invoices` | List with totals owed / create a draft |
 | GET | `/api/businesses/:id/invoices/defaults` | Dates and payment details to start a new invoice |
@@ -277,6 +280,7 @@ The month's estimated profit is money received (sales and other income), minus e
 - **Goods sold directly** (a sale with products): their cost counts the day of the sale.
 - **Goods on an invoice**: stock leaves when the invoice is sent, but the cost counts when the customer pays, in proportion to each payment. An unpaid invoice therefore never pulls profit down, and deleting a payment takes its share of the cost back out.
 - **Stock losses**: damaged, expired and own-use stock, and stock-count differences, count at cost price. A count that finds more than the records reduces the losses.
+- **Products used in the work** ("Used in work", or a count that finds an item used in work short) are part of the cost of sales, shown as "Less: products used in the work". Ingredients used to make goods are not a cost when used: their cost moves into the goods made and counts when those are sold.
 - **Services** can be sold from the product list; they have no stock and no stock cost.
 - **Tax on invoices** (VAT, NHIL & GETFund, or another tax line) belongs to GRA: each payment's share of it is left out of sales, and the balance sheet shows it as owed until a payment to GRA is recorded.
 - **Withholding tax** a customer kept back is income (a `wht` record that settles the invoice but moves no money); it shows on the balance sheet as a credit against income tax. The rates are in `server/src/tax.js` and `client/src/tax.js` (keep both in step).

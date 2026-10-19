@@ -14,10 +14,10 @@ export default function StockReport() {
   function csv() {
     downloadCsv(`stock-report-${s.from}-to-${s.to}.csv`, [
       [t('st.stock.statement')], [s.business?.name], [period], [],
-      [t('st.stock.product'), t('st.stock.start'), t('st.stock.in'), t('st.stock.sold'), t('st.stock.lost'),
+      [t('st.stock.product'), t('st.stock.start'), t('st.stock.in'), t('st.stock.sold'), t('st.stock.used'), t('st.stock.lost'),
         t('st.stock.counted'), t('st.stock.end'), t('st.stock.cost'), t('st.stock.value')],
-      ...s.items.map((i) => [i.name, i.opening, i.stockIn, i.sold, i.lost, i.counted, i.closing, i.costPrice, i.value]),
-      [t('st.stock.total'), '', '', '', '', '', '', '', s.totals.value],
+      ...s.items.map((i) => [i.name, i.opening, i.stockIn, i.sold, i.used, i.lost, i.counted, i.closing, i.costPrice, i.value]),
+      [t('st.stock.total'), '', '', '', '', '', '', '', '', s.totals.value],
     ]);
   }
 
@@ -38,11 +38,13 @@ export default function StockReport() {
                     <span className="stock-name">{i.name}
                       {i.low && <span className="tag tag-warn">{t('st.stock.low')}</span>}
                       {i.slow && <span className="tag">{t('st.stock.slow')}</span>}
+                      {i.kind === 'supply' && <span className="tag">{t('st.stock.supply')}</span>}
                     </span>
                     <span className="num">{money(i.value)}</span>
                   </div>
                   <div className="paper-muted small">
                     {t('st.stock.flow', { start: i.opening, in: i.stockIn, sold: i.sold, lost: i.lost, end: i.closing, unit: i.unit })}
+                    {Number(i.used) !== 0 && ` · ${t('st.stock.usedN', { n: i.used })}`}
                     {Number(i.counted) !== 0 && ` · ${t('st.stock.countedN', { n: i.counted })}`}
                     {` · ${t('st.stock.at', { cost: money(i.costPrice) })}`}
                   </div>

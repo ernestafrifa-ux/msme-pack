@@ -247,7 +247,9 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
                     FROM stock_movements m JOIN invoice_items ii ON ii.id = m.invoice_item_id
                    WHERE m.reason = 'sale' GROUP BY ii.invoice_id) ic ON ic.invoice_id = t.invoice_id
            WHERE t.business_id = $1 AND t.deleted_at IS NULL AND t.kind IN ('sale', 'wht')
-             AND t.txn_date BETWEEN $2 AND $3) AS invoiced`,
+             AND t.txn_date BETWEEN $2 AND $3) AS invoiced,
+         (SELECT COALESCE(SUM(-m.quantity * COALESCE(m.unit_cost, 0)), 0) FROM stock_movements m
+           WHERE m.business_id = $1 AND m.reason = 'used' AND m.movement_date BETWEEN $2 AND $3) AS used`,
       args
     ),
     query(
@@ -262,7 +264,10 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
 
   const incomeLines = income.rows.map((r) => ({ line: r.line, category: r.category, amount: money(r.total) }));
   const incomeTotal = Math.round(sum(income.rows, 'total') * 100) / 100;
-  const costOfSales = Math.round((num(cogs.rows[0].direct) + num(cogs.rows[0].invoiced)) * 100) / 100;
+  // Cost of sales: goods sold, plus products used up doing the work (supplies on a client).
+  const costOfGoods = Math.round((num(cogs.rows[0].direct) + num(cogs.rows[0].invoiced)) * 100) / 100;
+  const materialsUsed = Math.round(num(cogs.rows[0].used) * 100) / 100;
+  const costOfSales = Math.round((costOfGoods + materialsUsed) * 100) / 100;
   const grossProfit = incomeTotal - costOfSales;
   const o = other.rows[0];
   const stockLosses = Math.round(num(losses.rows[0].total) * 100) / 100;
@@ -279,6 +284,8 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
     totals: {
       income: money(incomeTotal),
       costOfSales: money(costOfSales),
+      costOfGoods: money(costOfGoods),
+      materialsUsed: money(materialsUsed),
       grossProfit: money(grossProfit),
       expenses: money(expensesTotal),
       netProfit: money(netProfit),
@@ -298,11 +305,13 @@ router.get('/reports/stock', canView, validate(periodSchema, 'query'), async (re
   const { from, to } = period(req);
   const [rows, business] = await Promise.all([
     query(
-      `SELECT p.id, p.name, p.unit, p.cost_price, p.reorder_level,
+      `SELECT p.id, p.name, p.unit, p.cost_price, p.reorder_level, p.kind,
               COALESCE(SUM(m.quantity) FILTER (WHERE m.movement_date < $2), 0) AS opening,
               COALESCE(SUM(m.quantity) FILTER (WHERE m.movement_date BETWEEN $2 AND $3
                 AND m.reason IN ('opening', 'purchase', 'produced', 'return_in')), 0) AS stock_in,
               COALESCE(-SUM(m.quantity) FILTER (WHERE m.movement_date BETWEEN $2 AND $3 AND m.reason = 'sale'), 0) AS sold,
+              COALESCE(-SUM(m.quantity) FILTER (WHERE m.movement_date BETWEEN $2 AND $3
+                AND m.reason IN ('used', 'used_in_production')), 0) AS used,
               COALESCE(-SUM(m.quantity) FILTER (WHERE m.movement_date BETWEEN $2 AND $3
                 AND m.reason IN ('damaged', 'expired', 'own_use', 'return_out')), 0) AS lost,
               COALESCE(SUM(m.quantity) FILTER (WHERE m.movement_date BETWEEN $2 AND $3 AND m.reason = 'count_adjustment'), 0) AS counted,
@@ -318,11 +327,12 @@ router.get('/reports/stock', canView, validate(periodSchema, 'query'), async (re
   ]);
   const q = (n) => String(Math.round(num(n) * 1000) / 1000);
   const items = rows.rows.map((p) => ({
-    id: p.id, name: p.name, unit: p.unit, costPrice: money(p.cost_price),
-    opening: q(p.opening), stockIn: q(p.stock_in), sold: q(p.sold), lost: q(p.lost), counted: q(p.counted),
+    id: p.id, name: p.name, unit: p.unit, kind: p.kind, costPrice: money(p.cost_price),
+    opening: q(p.opening), stockIn: q(p.stock_in), sold: q(p.sold), used: q(p.used), lost: q(p.lost), counted: q(p.counted),
     closing: q(p.closing), value: money(num(p.closing) * num(p.cost_price)),
     low: num(p.closing) <= num(p.reorder_level),
-    slow: num(p.sold) === 0 && num(p.closing) > 0,
+    // A supply is not sold, so it is never "not selling".
+    slow: p.kind !== 'supply' && num(p.sold) === 0 && num(p.closing) > 0,
   }));
   res.json({
     business, from, to, items,

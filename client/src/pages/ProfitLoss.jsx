@@ -23,7 +23,10 @@ export default function ProfitLoss() {
     downloadCsv(`profit-and-loss-${s.from}-to-${s.to}.csv`, [
       [t('st.pl.statement')], [s.business?.name], [period], [],
       [t('st.pl.income')], ...s.income.map((r) => [`  ${plLabel(r, t)}`, r.amount]), [t('st.pl.totalIncome'), s.totals.income],
-      [t('st.pl.cogs'), s.totals.costOfSales], [t('st.pl.gross'), s.totals.grossProfit], [],
+      ...(Number(s.totals.materialsUsed) > 0
+        ? [[t('st.pl.cogs'), s.totals.costOfGoods], [t('st.pl.materials'), s.totals.materialsUsed]]
+        : [[t('st.pl.cogs'), s.totals.costOfSales]]),
+      [t('st.pl.gross'), s.totals.grossProfit], [],
       [t('st.pl.expenses')], ...s.expenses.map((r) => [`  ${plLabel(r, t)}`, r.amount]), [t('st.pl.totalExpenses'), s.totals.expenses], [],
       [Number(s.totals.netProfit) < 0 ? t('st.pl.netLoss') : t('st.pl.net'), s.totals.netProfit],
       ...(owner > 0 ? [[t('st.pl.ownerPayLine'), `-${s.ownerPay}`], [t('st.pl.kept'), kept.toFixed(2)]] : []),
@@ -44,7 +47,12 @@ export default function ProfitLoss() {
               {s.income.length ? s.income.map((r) => <Row key={`${r.line}${r.category}`} label={plLabel(r, t)} amount={money(r.amount)} />)
                 : <Row label={t('rp.none')} amount="0.00" muted />}
               <Subtotal label={t('st.pl.totalIncome')} amount={money(s.totals.income)} />
-              <Row label={t('st.pl.cogs')} amount={`(${money(s.totals.costOfSales)})`} indent={false} />
+              {Number(s.totals.materialsUsed) > 0 ? (
+                <>
+                  {Number(s.totals.costOfGoods) !== 0 && <Row label={t('st.pl.cogs')} amount={`(${money(s.totals.costOfGoods)})`} indent={false} />}
+                  <Row label={t('st.pl.materials')} amount={`(${money(s.totals.materialsUsed)})`} indent={false} />
+                </>
+              ) : <Row label={t('st.pl.cogs')} amount={`(${money(s.totals.costOfSales)})`} indent={false} />}
               <Subtotal label={t('st.pl.gross')} amount={money(s.totals.grossProfit)} />
               <Head>{t('st.pl.expenses')}</Head>
               {s.expenses.length ? s.expenses.map((r) => <Row key={`${r.line}${r.category}`} label={plLabel(r, t)} amount={money(r.amount)} />)

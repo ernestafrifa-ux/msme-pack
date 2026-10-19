@@ -555,4 +555,44 @@ export default {
   "On invoices ({n})": "Wɔ invoice so ({n})",
   "On everyday sales ({n})": "Wɔ da biara adetɔn so ({n})",
   "On what you bought ({n})": "Wɔ nea wotɔeɛ so ({n})",
+
+  // Added in v0.23 (supplies and making goods). Drafts, not yet reviewed.
+  "{quantity} {unit} made. They cost GHS {each} each to make (GHS {total} in all).": "Woayɛ {quantity} {unit}. Baako biara ka yɛ GHS {each} (ne nyinaa GHS {total}).", // draft, to review
+  "{quantity} {unit} made.": "Woayɛ {quantity} {unit}.", // draft, to review
+  "Made some": "Meyɛɛ bi", // draft, to review
+  "How many {unit} made": "{unit} ahe na woyɛeɛ", // draft, to review
+  "What did you use from stock?": "Deɛn na wofaa firii stock mu dii dwuma?", // draft, to review
+  "Ingredient {n}": "Adeɛ {n} a wode yɛeɛ", // draft, to review
+  "How much of ingredient {n}": "Adeɛ {n} dodoɔ a wode dii dwuma", // draft, to review
+  "How much": "Dodoɔ", // draft, to review
+  "+ Add another": "+ Fa foforɔ ka ho", // draft, to review
+  "Cost of what you used": "Nea wode dii dwuma no ka", // draft, to review
+  "GHS {each} each": "baako GHS {each}", // draft, to review
+  "The ingredients come out of stock now. Their cost counts in your profit when the goods are sold.": "Nneɛma a wode yɛeɛ no firi stock mu seesei. Wɔn ka bɛka wo mfasoɔ ho bere a wotɔn nneɛma a woyɛeɛ no.", // draft, to review
+  "Ingredients kept in stock (as “Used in work”)? Choose them above and the app works out what each one cost to make. If you bought them as expenses, leave this empty.": "Nneɛma a wode yɛ adeɛ no wɔ stock mu (sɛ “Wode yɛ adwuma”)? Paw wɔn wɔ soro hɔ na app no bɛbu nea baako biara ka. Sɛ wotɔɔ wɔn sɛ ɛka a, gyae ha hunu.", // draft, to review
+  "Used in work": "Wode yɛ adwuma", // draft, to review
+  "Value": "Ne boɔ", // draft, to review
+  "Kept for use in your work, not for sale. Record what you use, or count it now and then: what is gone was used, and its cost counts in your profit.": "Wode yɛ adwuma, ɛnyɛ sɛ wobɛtɔn. Kyerɛw nea wode di dwuma, anaa kan no bere ano bere ano: nea asa no, wode adi dwuma, na ne ka ka wo mfasoɔ ho.", // draft, to review
+  "Used up doing the work, like relaxer on a client. Its cost counts as a cost of your sales, not a loss.": "Wode dii dwuma wɔ adwuma no mu, sɛ relaxer a wode yɛɛ adetɔni ti. Ne ka yɛ w'adetɔn ka, ɛnyɛ hweree.", // draft, to review
+  "Remove this supply": "Yi adeɛ yi firi mu", // draft, to review
+  "Edit supply": "Sesa adeɛ no", // draft, to review
+  "For sale": "Wobɛtɔn", // draft, to review
+  "e.g. Braiding": "sɛ Braiding", // draft, to review
+  "e.g. Relaxer, or Flour": "sɛ Relaxer, anaa Esiam", // draft, to review
+  "e.g. Shito 250ml jar": "sɛ Shito 250ml jar", // draft, to review
+  "Add supply": "Fa adeɛ no ka ho", // draft, to review
+  "1 item": "adeɛ 1", // draft, to review
+  "{n} items": "nneɛma {n}", // draft, to review
+  "For items used in your work (relaxer, flour…), what is missing is recorded as used: a cost of your sales, not a loss.": "Nneɛma a wode yɛ adwuma (relaxer, esiam…) no, nea asa no wɔkyerɛw sɛ wode adi dwuma: w'adetɔn ka, ɛnyɛ hweree.", // draft, to review
+  "Records say {n} {unit}": "Akontaa ka sɛ {n} {unit}", // draft, to review
+  "used in work": "wode yɛ adwuma", // draft, to review
+  "Used in the work": "Wode dii dwuma wɔ adwuma no mu", // draft, to review
+  "Something you sell. Keep count of it in stock.": "Adeɛ a wotɔn. Kan no wɔ stock mu.", // draft, to review
+  "Work you charge for, like braiding or a manicure. No stock.": "Adwuma a wogye sika, sɛ braiding anaa manicure. Stock nni ho.", // draft, to review
+  "Bought and used in your work, not sold: relaxer, shampoo, flour, packaging. Its cost counts when it is used.": "Wotɔ na wode yɛ adwuma, wontɔn: relaxer, shampoo, esiam, nneɛma a wode kyekyere. Ne ka ka ho bere a wode di dwuma.", // draft, to review
+  "Opening stock": "Stock a na ɛwɔ hɔ mfiase", // draft, to review
+  "Bought": "Wotɔeɛ", // draft, to review
+  "Sold": "Wɔtɔneeɛ", // draft, to review
+  "Used to make products": "Wode yɛɛ nneɛma", // draft, to review
+  "Item name": "Adeɛ no din", // draft, to review
 };

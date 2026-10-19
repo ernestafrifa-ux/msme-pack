@@ -93,6 +93,8 @@ export const STOCK_REASON = {
   expired: 'Expired',
   own_use: 'Own use',
   count_adjustment: 'Stock count',
+  used: 'Used in the work',
+  used_in_production: 'Used to make products',
 };
 
 // Turn a Ghana number into WhatsApp's format (digits only, with 233).

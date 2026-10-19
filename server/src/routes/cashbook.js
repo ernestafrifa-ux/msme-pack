@@ -309,12 +309,17 @@ router.post('/transactions', canRecord, validate(txnSchema), async (req, res) =>
   if (items) {
     const ids = [...new Set(items.map((i) => i.productId))];
     const { rows } = await query(
-      // A sale can include services (no stock); buying stock is for products only.
+      // A sale can include services (no stock) but not supplies (kept for use, not for sale);
+      // stock bought is products or supplies.
       `SELECT id FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL
-         AND (kind = 'product' OR $3::boolean)`,
-      [req.businessId, ids, t.kind === 'sale']
+         AND kind = ANY($3::text[])`,
+      [req.businessId, ids, t.kind === 'sale' ? ['product', 'service'] : ['product', 'supply']]
     );
-    if (rows.length !== ids.length) throw new HttpError(400, 'One of the products was not found.', { items: 'Check the products.' });
+    if (rows.length !== ids.length) {
+      throw new HttpError(400, t.kind === 'sale'
+        ? 'One of the items was not found, or is a supply (kept for use in the work, not for sale).'
+        : 'One of the products was not found.', { items: 'Check the products.' });
+    }
     total = Math.round(items.reduce((s, i) => s + Math.round(i.quantity * i.unitPrice * 100), 0)) / 100;
     if (total <= 0) throw new HttpError(400, 'The total must be more than zero.', { items: 'Check the prices.' });
   }
@@ -605,7 +610,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
     ),
     query(
       `SELECT sales, other_income, expenses, stock_purchases, momo_fees,
-              cost_of_sales, gross_profit, net_profit_estimate, owner_pay, stock_losses
+              cost_of_sales, gross_profit, net_profit_estimate, owner_pay, stock_losses, materials_used
          FROM v_monthly_summary WHERE business_id = $1 AND month = $2::date`,
       [req.businessId, monthStart]
     ),
@@ -642,6 +647,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
       netProfitEstimate: s.net_profit_estimate || '0.00',
       ownerPay: Number(s.owner_pay || 0).toFixed(2),
       stockLosses: Number(s.stock_losses || 0).toFixed(2),
+      materialsUsed: Number(s.materials_used || 0).toFixed(2),
     },
     recent: recent.rows.map(publicTxn),
     // The newest message from the MSME Pack team that this person has not read.

@@ -543,4 +543,10 @@ export default {
   "assets.gone": "Wonni bio",
   "assets.delete": "Popa",
   "assets.confirmDelete": "Popa {name}? Fa yei di dwuma ma mfomsoɔ nko ara. Sɛ wofaa account bi so tuaeɛ a, sika no bɛsan aba.",
+
+  // Added in v0.23 (supplies and making goods). Drafts, not yet reviewed.
+  "st.pl.materials": "Yi: nneɛma a wode dii dwuma no", // draft, to review
+  "st.stock.used": "Wode dii dwuma", // draft, to review
+  "st.stock.usedN": "wode dii dwuma {n}", // draft, to review
+  "st.stock.supply": "Wode yɛ adwuma", // draft, to review
 };
