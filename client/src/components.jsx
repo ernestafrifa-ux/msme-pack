@@ -34,7 +34,7 @@ export function Icon({ name, size = 22 }) {
     swap: <path d="M7 7h12l-3-3M17 17H5l3 3" />,
     back: <path d="M15 18l-6-6 6-6" />,
     close: <path d="M6 6l12 12M18 6L6 18" />,
-    logout: <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />,
+    logout: <path d="M9 4H5v16h4M15 8l4 4-4 4M19 12H9" />,
     trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
     box: <><path d="M3 7l9-4 9 4v10l-9 4-9-4z" /><path d="M3 7l9 4 9-4M12 11v10" /></>,
     file: <><path d="M6 3h9l4 4v14H6z" /><path d="M9 12h7M9 16h5" /></>,

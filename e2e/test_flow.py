@@ -153,7 +153,11 @@ with sync_playwright() as p:
     page.reload()
     expect(page.get_by_text("Ama's Shito & Spices")).to_be_visible()
     expect(page.get_by_text("GHS 1,472.50")).to_be_visible()
-    page.get_by_role("link", name="Business details and log out").click()
+    page.get_by_role("link", name="Business details").click()
+    expect(page.get_by_role("heading", name="People who use this business")).to_be_visible()
+    expect(page.get_by_role("button", name="Log out")).to_have_count(0)  # moved to Home
+    page.goto(BASE + "/")
+    page.once("dialog", lambda d: d.accept())
     page.get_by_role("button", name="Log out").click()
     expect(page).to_have_url(BASE + "/login")
     page.get_by_label("Phone number").fill("+233245550101")

@@ -9,7 +9,7 @@ import MembersSection from './MembersSection.jsx';
 import LogoSection from './LogoSection.jsx';
 
 export default function BusinessDetails() {
-  const { user, business, logout } = useSession();
+  const { user, business } = useSession();
   const { t, lang, setLanguage } = useT();
   const [langMessage, setLangMessage] = useState('');
   const [form, setForm] = useState(null);
@@ -119,7 +119,6 @@ export default function BusinessDetails() {
       </section>
       <Link to="/settings/password" className="btn btn-ghost btn-block">Change my password</Link>
       {user.isAdmin && <Link to="/admin" className="btn btn-ghost btn-block">MSME Pack admin: all businesses</Link>}
-      <button className="btn btn-ghost btn-block log-out" onClick={logout}>{t('settings.logout')}</button>
     </main>
   );
 }

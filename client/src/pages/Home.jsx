@@ -16,7 +16,7 @@ function greetingKey() {
 }
 
 export default function Home() {
-  const { user, business } = useSession();
+  const { user, business, logout } = useSession();
   const { t } = useT();
   const location = useLocation();
   const [data, setData] = useState(null);
@@ -43,10 +43,14 @@ export default function Home() {
               {data?.notices?.unread > 0 && <span className="bell-badge" aria-hidden="true">{data.notices.unread}</span>}
             </Link>
             <Link to="/settings" className="icon-btn" aria-label={t('home.settings')}><Icon name="settings" /></Link>
+            <button type="button" className="icon-btn" aria-label={t('settings.logout')} title={t('settings.logout')}
+              onClick={() => { if (window.confirm(t('home.logoutConfirm'))) logout(); }}>
+              <Icon name="logout" />
+            </button>
           </div>
         </header>
         <div className="home-brand home-brand-lg">
-          <Link to="/settings" aria-label="Business details"><BizLogo business={business} size={84} className="biz-logo-home" /></Link>
+          <Link to="/settings" aria-label="Business logo" tabIndex={-1}><BizLogo business={business} size={84} className="biz-logo-home" /></Link>
           <h1 className="biz-name">{business.name}</h1>
         </div>
 
