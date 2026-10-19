@@ -5,6 +5,7 @@ import { useSession } from '../session.jsx';
 import { Field, FormError, Icon, ProductPicker } from '../components.jsx';
 import { money, qty, todayGhana } from '../format';
 import { useT } from '../i18n.jsx';
+import { vatFromInclusive } from '../tax';
 
 const TABS = ['sale', 'expense', 'purchase', 'transfer', 'owner_draw'];
 const CATEGORY_KIND = { sale: 'income', expense: 'expense' };
@@ -40,6 +41,9 @@ export default function Record() {
   // Buy stock now, pay the supplier later.
   const [credit, setCredit] = useState(false);
   const [supplier, setSupplier] = useState('');
+  // VAT-registered businesses: does this amount include VAT, NHIL and GETFund?
+  const [vatRegistered, setVatRegistered] = useState(false);
+  const [vatChoice, setVatChoice] = useState(null); // null = the default for this kind
 
   const isPurchase = kind === 'purchase';
   const usesProducts = kind === 'sale' || isPurchase;
@@ -50,8 +54,10 @@ export default function Record() {
       api(`/businesses/${business.id}/accounts`),
       api(`/businesses/${business.id}/categories`),
       api(`/businesses/${business.id}/products`),
+      api(`/businesses/${business.id}`),
     ])
-      .then(([a, c, p]) => {
+      .then(([a, c, p, b]) => {
+        setVatRegistered(!!b.business.vatRegistered);
         setAccounts(a.accounts);
         setCategories(c.categories);
         setProducts(p.products);
@@ -107,6 +113,7 @@ export default function Record() {
     setLines([]);
     setPicking(false);
     setCredit(false);
+    setVatChoice(null);
   }
 
   async function submit(e, again) {
@@ -126,6 +133,7 @@ export default function Record() {
       }
       const onCredit = isPurchase && credit;
       if (onCredit) body.onCredit = { supplier };
+      if (vatApplies) body.vat = vatOn;
       if (isMomo && !onCredit) {
         body.paymentRef = form.paymentRef || null;
         body.momoFee = form.momoFee || 0;
@@ -153,6 +161,11 @@ export default function Record() {
   }
 
   const amountLabel = isPurchase ? '' : t(`record.amount.${kind}`);
+  const vatApplies = vatRegistered && ['sale', 'expense', 'purchase'].includes(kind);
+  // Shop prices usually include VAT; a cost includes VAT only with the supplier's VAT invoice.
+  const vatOn = vatChoice ?? kind === 'sale';
+  const recordTotal = hasLines ? itemTotal : Number(form.amount || 0);
+  const vatPart = vatApplies && vatOn && recordTotal > 0 ? vatFromInclusive(recordTotal).tax : 0;
 
   return (
     <main className="screen">
@@ -238,6 +251,18 @@ export default function Record() {
                 placeholder="0.00" value={form.amount} onChange={set('amount')} autoFocus={!usesProducts} required />}
             </Field>
           )
+        )}
+
+        {vatApplies && (
+          <div className="field">
+            <label className="check-row">
+              <input type="checkbox" checked={vatOn} onChange={(e) => setVatChoice(e.target.checked)} />
+              <span>{kind === 'sale' ? t('record.vatSale') : t('record.vatCost')}</span>
+            </label>
+            {vatOn && vatPart > 0 && (
+              <p className="muted small">{t(kind === 'sale' ? 'record.vatSaleNote' : 'record.vatCostNote', { tax: money(vatPart), rest: money(recordTotal - vatPart) })}</p>
+            )}
+          </div>
         )}
 
         {isPurchase && (

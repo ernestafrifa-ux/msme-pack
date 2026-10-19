@@ -27,7 +27,7 @@ router.get('/tax/summary', canView, validate(periodSchema, 'query'), async (req,
   const to = req.valid.query.to || today;
   if (to < from) throw new HttpError(400, 'The end date is before the start date.', { to: 'Before the start date.' });
   const args = [req.businessId, from, to];
-  const [charged, paid, withheld, position, biz] = await Promise.all([
+  const [charged, paid, withheld, position, biz, records] = await Promise.all([
     query(
       `SELECT tax_scheme, COUNT(*) AS n,
               COALESCE(SUM(subtotal - discount), 0) AS taxable,
@@ -51,7 +51,17 @@ router.get('/tax/summary', canView, validate(periodSchema, 'query'), async (req,
     ),
     taxPosition(req.businessId, to),
     query('SELECT vat_registered, tin FROM businesses WHERE id = $1', [req.businessId]),
+    query(
+      `SELECT COUNT(*) FILTER (WHERE kind = 'sale' AND invoice_id IS NULL AND tax_amount > 0)::int AS sales_n,
+              COALESCE(SUM(amount - tax_amount) FILTER (WHERE kind = 'sale' AND invoice_id IS NULL AND tax_amount > 0), 0) AS sales_base,
+              COALESCE(SUM(tax_amount) FILTER (WHERE kind = 'sale' AND invoice_id IS NULL), 0) AS sales_tax,
+              COUNT(*) FILTER (WHERE kind IN ('expense', 'purchase') AND tax_amount > 0)::int AS input_n,
+              COALESCE(SUM(tax_amount) FILTER (WHERE kind IN ('expense', 'purchase')), 0) AS input_tax
+         FROM transactions WHERE business_id = $1 AND deleted_at IS NULL AND txn_date BETWEEN $2 AND $3`,
+      args
+    ),
   ]);
+  const rec = records.rows[0];
   const vat = charged.rows.find((r) => r.tax_scheme === 'vat') || {};
   const other = charged.rows.find((r) => r.tax_scheme === 'custom') || {};
   const paidTotal = paid.rows.reduce((s, r) => s + num(r.amount), 0);
@@ -66,6 +76,10 @@ router.get('/tax/summary', canView, validate(periodSchema, 'query'), async (req,
       total: money(vat.tax),
       otherTax: money(other.tax), otherInvoices: Number(other.n || 0),
     },
+    cashSales: { count: rec.sales_n, base: money(rec.sales_base), tax: money(rec.sales_tax) },
+    input: { count: rec.input_n, tax: money(rec.input_tax) },
+    // This period: tax charged on invoices and everyday sales, less VAT on purchases.
+    netForPeriod: money(num(vat.tax) + num(other.tax) + num(rec.sales_tax) - num(rec.input_tax)),
     paid: { total: money(paidTotal), records: paid.rows.map(publicTxn) },
     owed: money(position.owed),
     withheld: { total: money(whtTotal), toDate: money(position.whtCredit), records: withheld.rows.map(publicTxn) },

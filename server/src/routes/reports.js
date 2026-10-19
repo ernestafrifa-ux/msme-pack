@@ -98,6 +98,10 @@ async function taxPosition(businessId, asOf) {
        (SELECT COALESCE(SUM(tax_amount), 0) FROM invoices
          WHERE business_id = $1 AND doc_type = 'invoice' AND deleted_at IS NULL
            AND status NOT IN ('draft', 'void') AND issue_date <= $2) AS charged,
+       (SELECT COALESCE(SUM(tax_amount), 0) FROM transactions
+         WHERE business_id = $1 AND deleted_at IS NULL AND kind = 'sale' AND invoice_id IS NULL AND txn_date <= $2) AS cash_sales,
+       (SELECT COALESCE(SUM(tax_amount), 0) FROM transactions
+         WHERE business_id = $1 AND deleted_at IS NULL AND kind IN ('expense', 'purchase') AND txn_date <= $2) AS input,
        (SELECT COALESCE(SUM(amount), 0) FROM transactions
          WHERE business_id = $1 AND deleted_at IS NULL AND kind = 'vat_payment' AND txn_date <= $2) AS paid,
        (SELECT COALESCE(SUM(amount), 0) FROM transactions
@@ -105,10 +109,12 @@ async function taxPosition(businessId, asOf) {
     [businessId, asOf]
   );
   const r = rows[0];
+  // Owed = tax charged on invoices and everyday sales − VAT paid on purchases − payments to GRA.
+  // Below zero, GRA owes the business (a credit to claim back or carry forward).
+  const owed = Math.round((num(r.charged) + num(r.cash_sales) - num(r.input) - num(r.paid)) * 100) / 100;
   return {
-    charged: num(r.charged), paid: num(r.paid),
-    owed: Math.round((num(r.charged) - num(r.paid)) * 100) / 100,
-    whtCredit: num(r.wht),
+    charged: num(r.charged), cashSales: num(r.cash_sales), input: num(r.input), paid: num(r.paid),
+    owed, whtCredit: num(r.wht),
   };
 }
 
@@ -203,8 +209,8 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
       // Tax a customer withheld (wht) settled part of the invoice, so it counts.
       `SELECT CASE WHEN t.invoice_id IS NOT NULL THEN 'invoice' ELSE t.kind END AS line,
               CASE WHEN t.invoice_id IS NULL THEN c.name END AS category,
-              SUM(t.amount - COALESCE(t.amount * inv.tax_amount / NULLIF(inv.total, 0), 0)) AS total,
-              SUM(COALESCE(t.amount * inv.tax_amount / NULLIF(inv.total, 0), 0)) AS tax,
+              SUM(t.amount - COALESCE(t.amount * inv.tax_amount / NULLIF(inv.total, 0), t.tax_amount)) AS total,
+              SUM(COALESCE(t.amount * inv.tax_amount / NULLIF(inv.total, 0), t.tax_amount)) AS tax,
               SUM(t.amount) FILTER (WHERE t.kind = 'wht') AS wht
          FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
          LEFT JOIN invoices inv ON inv.id = t.invoice_id
@@ -214,7 +220,7 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
       args
     ),
     query(
-      `SELECT COALESCE(c.name, 'Other expenses') AS category, SUM(t.amount) AS total
+      `SELECT COALESCE(c.name, 'Other expenses') AS category, SUM(t.amount - t.tax_amount) AS total
          FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
         WHERE t.business_id = $1 AND t.deleted_at IS NULL AND NOT t.is_credit
           AND t.kind = 'expense' AND t.txn_date BETWEEN $2 AND $3
@@ -376,7 +382,7 @@ router.get('/reports/sales-by-product', canView, validate(periodSchema, 'query')
     query(
       `SELECT p.id, p.name, p.unit, p.kind, SUM(x.qty) AS qty, SUM(x.revenue) AS revenue, SUM(x.cost) AS cost
          FROM (
-           SELECT ti.product_id, ti.quantity AS qty, ti.line_total AS revenue,
+           SELECT ti.product_id, ti.quantity AS qty, ti.line_total * (1 - t.tax_amount / NULLIF(t.amount, 0)) AS revenue,
                   ti.quantity * COALESCE(ti.unit_cost, 0) * (CASE WHEN pp.track_stock THEN 1 ELSE 0 END) AS cost
              FROM transaction_items ti
              JOIN transactions t ON t.id = ti.transaction_id
@@ -398,7 +404,7 @@ router.get('/reports/sales-by-product', canView, validate(periodSchema, 'query')
       args
     ),
     query(
-      `SELECT COALESCE(SUM(t.amount), 0) AS total FROM transactions t
+      `SELECT COALESCE(SUM(t.amount - t.tax_amount), 0) AS total FROM transactions t
         WHERE t.business_id = $1 AND t.kind = 'sale' AND t.deleted_at IS NULL AND t.invoice_id IS NULL
           AND t.txn_date BETWEEN $2 AND $3
           AND NOT EXISTS (SELECT 1 FROM transaction_items ti WHERE ti.transaction_id = t.id)`,
@@ -455,9 +461,10 @@ router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), asy
   const equipmentLines = equipment.rows.map((e) => ({ name: e.name, amount: money(e.current_value) }));
   const equipmentTotal = sum(equipment.rows, 'current_value');
   const whtCredit = tax.whtCredit;
-  const assetsTotal = cashTotal + stockValue + debtorsTotal + equipmentTotal + whtCredit;
+  const vatCredit = Math.max(0, -tax.owed);
+  const assetsTotal = cashTotal + stockValue + debtorsTotal + equipmentTotal + whtCredit + vatCredit;
   const debtLines = debts.filter((d) => d.balance > 0.004).map((d) => ({ name: d.lender, kind: d.kind, amount: money(d.balance) }));
-  const taxOwed = tax.owed;
+  const taxOwed = Math.max(0, tax.owed);
   const liabilitiesTotal = sum(debtLines, 'amount') + taxOwed;
   res.json({
     business, asOf,
@@ -467,6 +474,7 @@ router.get('/reports/balance-sheet', canView, validate(asOfSchema, 'query'), asy
       debtors: money(debtorsTotal),
       equipment: equipmentLines, equipmentTotal: money(equipmentTotal),
       whtCredit: money(whtCredit),
+      vatCredit: money(vatCredit),
       total: money(assetsTotal),
     },
     liabilities: { debts: debtLines, taxOwed: money(taxOwed), total: money(liabilitiesTotal) },

@@ -3,6 +3,15 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.14 · 19 October 2026 · VAT on everyday sales and on purchases
+
+For VAT-registered businesses:
+- **Everyday sales**: Record → Sale has "Price includes VAT, NHIL & GETFund (20%)", ticked by default. It shows how much of the money is tax for GRA; only the rest counts as the sale.
+- **Costs**: Expense and Buy stock have "The supplier gave a VAT invoice". The VAT inside (20/120 of the amount) is VAT to claim back: costs and stock are counted without it.
+- **Reports → Tax** now shows VAT on invoices, on everyday sales and on what you bought, the total for the period, payments to GRA and what is owed (or what GRA owes you).
+- The balance sheet shows VAT owed to GRA, or "VAT to claim back from GRA" when purchases carried more VAT than sales.
+- Deploy: database change `012_vat_on_records.sql`.
+
 ## 0.13.2 · 19 October 2026 · Log out from Home
 
 - **Log out** is now a button at the top of Home, beside the messages bell and settings. It asks "Log out of MSME Pack on this phone?" first, so a stray tap doesn't log anyone out.

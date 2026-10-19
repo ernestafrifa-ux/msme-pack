@@ -98,6 +98,18 @@ with sync_playwright() as p:
     page.goto(BASE + "/learn/tax-basics")
     expect(page.get_by_text("Withholding tax (WHT)")).to_be_visible()
 
+    # An everyday sale with VAT included
+    page.goto(BASE + "/record/sale")
+    page.get_by_label(re.compile("How much did you receive")).fill("1200")
+    expect(page.get_by_label("Price includes VAT, NHIL & GETFund (20%)")).to_be_checked()
+    expect(page.get_by_text("GHS 200.00 of this is tax for GRA; GHS 1,000.00 is your sale.")).to_be_visible()
+    page.get_by_text("Cash box", exact=True).click()
+    page.get_by_role("button", name="Save sale").click()
+    page.goto(BASE + "/tax")
+    expect(page.get_by_text("On everyday sales (1)")).to_be_visible()
+    expect(page.locator("tr.total")).to_contain_text("200.00")
+    shot(page, "v5-tax-everyday.png")
+
     assert not errors, errors
     browser.close()
     print("VAT and WHT flow OK")

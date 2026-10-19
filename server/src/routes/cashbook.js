@@ -7,6 +7,7 @@ const { requireMember } = require('../auth');
 const { HttpError, validate } = require('../http');
 const { todayInGhana, addDays } = require('../dates');
 const { refreshInvoiceStatus } = require('../invoiceStatus');
+const { vatFromInclusive } = require('../tax');
 
 const router = express.Router({ mergeParams: true });
 
@@ -50,6 +51,7 @@ function publicTxn(t) {
     lender: t.lender || null,
     assetName: t.asset_name || null,
     interest: t.interest_amount,
+    taxAmount: t.tax_amount,
   };
 }
 
@@ -184,6 +186,9 @@ const txnSchema = z
     // Stock bought now and paid for later: no money moves; the supplier becomes a debt.
     onCredit: z.object({ supplier: z.string().trim().min(2, 'Enter the supplier\'s name.').max(120) })
       .optional().nullable(),
+    // VAT-registered businesses: the amount includes VAT, NHIL and GETFund (20%).
+    // A sale: tax collected for GRA. An expense or stock bought: VAT on a supplier's VAT invoice, to claim back.
+    vat: z.boolean().optional().default(false),
   })
   .superRefine((t, ctx) => {
     if (t.kind === 'transfer' && !t.toAccountId) {
@@ -237,15 +242,15 @@ function checkDate(date) {
 // Inserts one transaction (and its items) inside an open db transaction. Returns its id.
 async function insertTransaction(db, { businessId, userId, kind, date, amount, accountId, toAccountId,
   categoryId, contactId, invoiceId, paymentRef, momoFee, note, clientRef, items,
-  isCredit = false, debtId = null, assetId = null, interest = 0 }) {
+  isCredit = false, debtId = null, assetId = null, interest = 0, taxAmount = 0 }) {
   const { rows } = await db.query(
     `INSERT INTO transactions (business_id, kind, txn_date, amount, account_id, to_account_id, category_id,
                                contact_id, invoice_id, payment_ref, momo_fee, note, client_ref, created_by,
-                               is_credit, debt_id, asset_id, interest_amount)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING id`,
+                               is_credit, debt_id, asset_id, interest_amount, tax_amount)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id`,
     [businessId, kind, date, amount, accountId, toAccountId || null, categoryId || null, contactId || null,
      invoiceId || null, paymentRef || null, momoFee || 0, note || null, clientRef || null, userId,
-     isCredit, debtId, assetId, interest || 0]
+     isCredit, debtId, assetId, interest || 0, taxAmount || 0]
   );
   const id = rows[0].id;
   for (const it of items || []) {
@@ -312,13 +317,39 @@ router.post('/transactions', canRecord, validate(txnSchema), async (req, res) =>
     if (total <= 0) throw new HttpError(400, 'The total must be more than zero.', { items: 'Check the prices.' });
   }
 
+  let taxAmount = 0;
+  if (t.vat) {
+    if (!['sale', 'expense', 'purchase'].includes(t.kind)) {
+      throw new HttpError(400, 'VAT applies only to sales, expenses and stock bought.', { vat: 'Not for this record.' });
+    }
+    const { rows } = await query('SELECT vat_registered FROM businesses WHERE id = $1', [req.businessId]);
+    if (!rows[0].vat_registered) {
+      throw new HttpError(400, 'Only a VAT-registered business records VAT. Switch it on in Registrations.', { vat: 'Not registered for VAT.' });
+    }
+    taxAmount = vatFromInclusive(total).tax;
+  }
+
   const saved = await withTransaction(async (db) => {
     const id = await insertTransaction(db, {
       businessId: req.businessId, userId: req.user.id, kind: t.kind, date, amount: total,
       accountId: t.accountId, toAccountId: t.toAccountId, categoryId: t.categoryId, contactId: t.contactId,
       paymentRef: t.paymentRef, momoFee: t.onCredit ? 0 : t.momoFee, note: t.note, clientRef: t.clientRef, items,
-      isCredit: !!t.onCredit,
+      isCredit: !!t.onCredit, taxAmount,
     });
+    if (taxAmount && t.kind === 'purchase') {
+      // Stock is worth its price before VAT: the VAT is claimed back from GRA.
+      const share = (total - taxAmount) / total;
+      await db.query(
+        `UPDATE stock_movements SET unit_cost = round(unit_cost * $2, 4)
+          WHERE transaction_item_id IN (SELECT id FROM transaction_items WHERE transaction_id = $1)`,
+        [id, share]
+      );
+      await db.query(
+        `UPDATE products p SET cost_price = round(ti.unit_price * $2, 2)
+           FROM transaction_items ti WHERE ti.transaction_id = $1 AND ti.product_id = p.id`,
+        [id, share]
+      );
+    }
     if (t.onCredit) {
       await db.query(
         `INSERT INTO debts (business_id, lender, kind, amount, start_date, purchase_txn_id, note, created_by)

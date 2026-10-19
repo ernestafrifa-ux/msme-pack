@@ -159,25 +159,33 @@ export default function Tax() {
           )}
 
           <section className="card stack" aria-labelledby="vat-head">
-            <h2 id="vat-head">VAT on your invoices</h2>
+            <h2 id="vat-head">VAT for this period</h2>
             <table className="statement-table">
               <tbody>
-                <tr><td className="indent">Invoices with VAT sent</td><td className="num">{s.charged.invoices}</td></tr>
+                <tr className="head"><th colSpan="2">On invoices ({s.charged.invoices})</th></tr>
                 <tr><td className="indent">Value before tax</td><td className="num">{money(s.charged.taxable)}</td></tr>
                 <tr><td className="indent">NHIL (2.5%)</td><td className="num">{money(s.charged.nhil)}</td></tr>
                 <tr><td className="indent">GETFund (2.5%)</td><td className="num">{money(s.charged.getfund)}</td></tr>
                 <tr><td className="indent">VAT (15%)</td><td className="num">{money(s.charged.vat)}</td></tr>
-                <tr className="subtotal"><td>Tax charged</td><td className="num">{money(s.charged.total)}</td></tr>
                 {Number(s.charged.otherTax) > 0 && (
                   <tr><td className="indent">Other tax on invoices</td><td className="num">{money(s.charged.otherTax)}</td></tr>
                 )}
+                <tr className="head"><th colSpan="2">On everyday sales ({s.cashSales.count})</th></tr>
+                <tr><td className="indent">Sales before tax</td><td className="num">{money(s.cashSales.base)}</td></tr>
+                <tr><td className="indent">VAT, NHIL &amp; GETFund</td><td className="num">{money(s.cashSales.tax)}</td></tr>
+                <tr className="head"><th colSpan="2">On what you bought ({s.input.count})</th></tr>
+                <tr><td className="indent">VAT to claim back (input VAT)</td><td className="num">({money(s.input.tax)})</td></tr>
+                <tr className="subtotal"><td>For this period</td><td className="num">{money(s.netForPeriod)}</td></tr>
                 <tr><td className="indent">Paid to GRA in this period</td><td className="num">({money(s.paid.total)})</td></tr>
-                <tr className="total"><td>Owed to GRA on {longDate(s.to, t)}</td><td className="num">{money(s.owed)}</td></tr>
+                <tr className="total">
+                  <td>{Number(s.owed) < 0 ? `GRA owes you on ${longDate(s.to, t)}` : `Owed to GRA on ${longDate(s.to, t)}`}</td>
+                  <td className="num">{money(Math.abs(Number(s.owed)))}</td>
+                </tr>
               </tbody>
             </table>
             <p className="muted small">
-              VAT returns and payment are due by the last working day of the month after the sale. Tax you paid on your own
-              purchases (input VAT) is not tracked here: your tax return can deduct it.
+              VAT returns and payment are due by the last working day of the month after the sale. Input VAT counts only
+              with the supplier&rsquo;s valid GRA VAT invoice: keep them for your return.
             </p>
             {canManage && !paying && (
               <button type="button" className="btn btn-primary btn-block" onClick={() => setPaying(true)}>Record a payment to GRA</button>

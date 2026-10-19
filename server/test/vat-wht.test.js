@@ -153,3 +153,43 @@ test('a business that is not VAT-registered keeps its own tax line', async () =>
   assert.equal(plain.taxScheme, 'none');
   assert.equal(plain.total, '100.00');
 });
+
+test('VAT on everyday sales and on purchases (input VAT)', async () => {
+  // Not registered (switched off in the previous test): refused.
+  let r = await api('post', '/transactions', { kind: 'sale', accountId: cash, amount: 120, vat: true });
+  assert.equal(r.status, 400);
+  await ok(api('patch', '', { vatRegistered: true }), 200);
+  const before = (await api('get', '/tax/summary')).body;
+  const bsBefore = (await api('get', '/reports/balance-sheet')).body;
+
+  // A cash sale of 1,200 including VAT: 1,000 sales + 200 tax for GRA.
+  r = await ok(api('post', '/transactions', { kind: 'sale', accountId: cash, amount: 1200, vat: true }));
+  assert.equal(r.transaction.taxAmount, '200.00');
+  // Rent with a VAT invoice: 600 = 500 cost + 100 to claim back.
+  const cats = (await api('get', '/categories')).body.categories;
+  r = await ok(api('post', '/transactions', { kind: 'expense', accountId: cash, amount: 600, vat: true,
+    categoryId: cats.find((c) => c.name === 'Rent').id }));
+  assert.equal(r.transaction.taxAmount, '100.00');
+  // 10 packs of envelopes at 24 with VAT: stock worth 20 each.
+  const env = (await ok(api('post', '/products', { name: 'Envelopes', costPrice: 20, sellingPrice: 30 }))).product.id;
+  r = await ok(api('post', '/transactions', { kind: 'purchase', accountId: cash, vat: true,
+    items: [{ productId: env, quantity: 10, unitPrice: 24 }] }));
+  assert.equal(r.transaction.taxAmount, '40.00');
+  const p = (await api('get', `/products/${env}`)).body.product;
+  assert.equal(p.costPrice, '20.00');
+  assert.equal((await api('post', '/transactions', { kind: 'transfer', accountId: cash, toAccountId: cash, amount: 1, vat: true })).status, 400);
+
+  const s = (await api('get', '/tax/summary')).body;
+  assert.equal(s.cashSales.tax, '200.00');
+  assert.equal(s.cashSales.base, '1000.00');
+  assert.equal(s.input.tax, '140.00');
+  assert.equal(s.owed, money2(Number(before.owed) + 200 - 140));
+
+  const pl = (await api('get', '/reports/profit-loss')).body;
+  assert.equal(pl.expenses.find((x) => x.category === 'Rent').amount, '500.00');
+  const bs = (await api('get', '/reports/balance-sheet')).body;
+  // Equity moves by profit only: +1,000 sale − 500 rent (the stock purchase just swaps cash for stock).
+  assert.equal(bs.equity, money2(Number(bsBefore.equity) + 1000 - 500));
+});
+
+function money2(n) { return (Math.round(n * 100) / 100).toFixed(2); }

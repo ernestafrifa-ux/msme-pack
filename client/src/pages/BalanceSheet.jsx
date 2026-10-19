@@ -20,6 +20,7 @@ export default function BalanceSheet() {
       [`  ${t('st.bs.stock')}`, s.assets.stock], [`  ${t('st.bs.debtors')}`, s.assets.debtors],
       ...s.assets.equipment.map((e) => [`  ${e.name}`, e.amount]),
       ...(Number(s.assets.whtCredit) > 0 ? [[`  ${t('st.bs.whtCredit')}`, s.assets.whtCredit]] : []),
+      ...(Number(s.assets.vatCredit) > 0 ? [[`  ${t('st.bs.vatCredit')}`, s.assets.vatCredit]] : []),
       [t('st.bs.totalOwns'), s.assets.total], [],
       [t('st.bs.owes')], ...s.liabilities.debts.map((d) => [`  ${d.name}`, d.amount]),
       ...(Number(s.liabilities.taxOwed) !== 0 ? [[`  ${t('st.bs.taxOwed')}`, s.liabilities.taxOwed]] : []),
@@ -44,6 +45,7 @@ export default function BalanceSheet() {
               <Row label={t('st.bs.debtors')} amount={money(s.assets.debtors)} />
               {s.assets.equipment.map((e) => <Row key={e.name} label={e.name} amount={money(e.amount)} />)}
               {Number(s.assets.whtCredit) > 0 && <Row label={t('st.bs.whtCredit')} amount={money(s.assets.whtCredit)} />}
+              {Number(s.assets.vatCredit) > 0 && <Row label={t('st.bs.vatCredit')} amount={money(s.assets.vatCredit)} />}
               <Subtotal label={t('st.bs.totalOwns')} amount={money(s.assets.total)} />
               <Head>{t('st.bs.owes')}</Head>
               {s.liabilities.debts.map((d) => <Row key={d.name + d.kind} label={`${d.name} (${t(`loans.short.${d.kind}`)})`} amount={money(d.amount)} />)}

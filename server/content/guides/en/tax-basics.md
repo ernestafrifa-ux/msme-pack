@@ -79,6 +79,6 @@ When **you** pay a supplier more than GHS 2,000, the same rules may require you 
 - Record every sale, and your monthly sales total is on the Home screen.
 - Keep receipts for expenses (you can photograph them).
 - At year end, add up your monthly sales to know which MTS group you fall in.
-- If you are VAT-registered, tick it in **Settings → Business details**. Your invoices then show NHIL, GETFund and VAT separately, and **Reports → Tax** shows what you owe GRA.
+- If you are VAT-registered, switch it on in **Settings → Registrations**. Your invoices then show NHIL, GETFund and VAT separately, everyday sales record the tax inside the price, and costs with a supplier's VAT invoice record the VAT you can claim back. **Reports → Tax** shows what you owe GRA.
 - When a customer keeps back withholding tax, record it with the payment on the invoice. The invoice is settled, and the tax withheld is listed in **Reports → Tax**.
 - **Reports → Tax** also has a calculator for VAT and withholding tax.
