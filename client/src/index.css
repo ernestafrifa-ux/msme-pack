@@ -514,3 +514,9 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
 .receipt-head .paper-label { margin-top: 8px; }
 .receipt-line { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed #D5DDD8; }
 .receipt-thanks { text-align: center; margin-top: 14px; }
+
+/* Close the day and activity */
+.statement-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 0; }
+.pos-text { color: var(--primary-dark); }
+.close-day-card { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; margin-top: 12px; }
+.close-day-card .grow { flex: 1; min-width: 0; }

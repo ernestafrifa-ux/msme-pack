@@ -3,6 +3,13 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.16 · 19 October 2026 · Close the day, and who recorded what
+
+- **Close the day** (Home, or Reports): count the cash box and check the MoMo balance; the app shows "Short by" or "Extra" against the records. A difference is recorded (a shortage as the cost "Cash shortage", extra as "Cash over") so balances match what is really there, or can be noted only. Earlier counts are listed with who counted. Home shows "Day closed" once counted.
+- **Who recorded what** (Reports, owner and manager only): for a month or chosen dates, each person's records, sales and spending, anything deleted (what, by whom, when, and who had recorded it), and every cash count that did not match.
+- **Records** now say "by Yaw" on records someone else made.
+- Deploy: database change `014_cash_counts.sql`.
+
 ## 0.15 · 19 October 2026 · Customers who owe, receipts, bills and reminders
 
 - **Sell now, paid later**: on Record → Sale, tick "Paid later (the customer owes)", choose or add the customer and an optional pay-by date. Goods leave stock now; the sale counts as the customer pays.

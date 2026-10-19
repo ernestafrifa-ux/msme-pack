@@ -107,6 +107,7 @@ python e2e/test_registrations.py     # starting without a bank or VAT, registeri
 python e2e/test_people.py            # admin sets up businesses, owner adds staff
 python e2e/test_logo_messages.py     # business logo, admin messages to businesses
 python e2e/test_customers_receipts.py # selling on credit, receipts, bills and reminders
+python e2e/test_control.py           # close the day, who recorded what
 ```
 
 ## Deploying

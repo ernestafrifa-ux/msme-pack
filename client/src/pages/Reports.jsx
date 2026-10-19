@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n.jsx';
 import { Icon, TopBar } from '../components.jsx';
+import { useSession } from '../session.jsx';
 
 const STATEMENTS = [
   ['/reports/profit-loss', 'st.pl.title', 'st.pl.what'],
@@ -14,6 +15,7 @@ const STATEMENTS = [
 
 export default function Reports() {
   const { t } = useT();
+  const { business } = useSession();
   return (
     <main className="screen">
       <TopBar title={t('st.title')} back="/records" />
@@ -42,6 +44,26 @@ export default function Reports() {
             <Icon name="chevron" size={18} />
           </Link>
         </li>
+        <li>
+          <Link to="/close-day" className="txn report-link">
+            <span className="txn-main">
+              <span className="txn-title wrap">Close the day</span>
+              <span className="small muted">Count the cash box and check the MoMo balance against the records.</span>
+            </span>
+            <Icon name="chevron" size={18} />
+          </Link>
+        </li>
+        {['owner', 'manager'].includes(business.role) && (
+          <li>
+            <Link to="/activity" className="txn report-link">
+              <span className="txn-main">
+                <span className="txn-title wrap">Who recorded what</span>
+                <span className="small muted">Records by each person, anything deleted, and cash count differences.</span>
+              </span>
+              <Icon name="chevron" size={18} />
+            </Link>
+          </li>
+        )}
         <li>
           <Link to="/customers" className="txn report-link">
             <span className="txn-main">

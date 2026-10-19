@@ -94,6 +94,17 @@ export default function Home() {
           <Link to="/invoices/new" className="quick-btn"><span className="q-in"><Icon name="file" size={26} /></span>{t('home.quick.invoice')}</Link>
         </div>
 
+        {data && (
+          <Link to="/close-day" className="card close-day-card">
+            <Icon name={data.countedToday ? 'check' : 'box'} size={22} />
+            <span className="grow">
+              <span className="strong block-strong">{data.countedToday ? 'Day closed: cash counted today' : 'Close the day'}</span>
+              <span className="small muted">{data.countedToday ? 'Count again any time' : 'Count the cash box and check it matches the records'}</span>
+            </span>
+            <Icon name="chevron" size={18} />
+          </Link>
+        )}
+
         {data && (data.lowStock.length > 0 || Number(data.owed.total) > 0 || data.reminders?.length > 0) && (
           <section aria-label={t('home.attention')}>
             <div className="card-head"><h2>{t('home.attention')}</h2></div>

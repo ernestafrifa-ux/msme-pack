@@ -121,6 +121,7 @@ export default {
   'home.afternoon': 'Good afternoon',
   'home.evening': 'Good evening',
   'home.settings': 'Business details',
+  'records.by': 'by {name}',
   'records.receipt': 'Receipt for GHS {amount}',
   'home.vatDue': 'VAT return: about GHS {amount} to pay GRA by {date}',
   'home.debtDue': 'Pay {name} GHS {amount} by {date}',

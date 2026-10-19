@@ -18,6 +18,8 @@ import PublicReceipt from './pages/PublicReceipt.jsx';
 import Receipt from './pages/Receipt.jsx';
 import Customers from './pages/Customers.jsx';
 import CustomerDetail from './pages/CustomerDetail.jsx';
+import CloseDay from './pages/CloseDay.jsx';
+import Activity from './pages/Activity.jsx';
 import BusinessDetails from './pages/BusinessDetails.jsx';
 import Health from './pages/Health.jsx';
 import HealthCheck from './pages/HealthCheck.jsx';
@@ -140,6 +142,8 @@ export default function App() {
       <Route path="/notices" element={<Notices />} />
       <Route path="/receipt/:id" element={<Receipt />} />
       <Route path="/customers" element={<Customers />} />
+      <Route path="/close-day" element={<CloseDay />} />
+      <Route path="/activity" element={<Activity />} />
       <Route path="/customers/:contactId" element={<CustomerDetail />} />
       {adminRoutes}
       <Route path="/health" element={<Health />} />

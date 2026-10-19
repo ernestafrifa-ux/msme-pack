@@ -17,6 +17,7 @@ const FILTERS = [
 
 export function TxnRow({ txn, showDate, onDelete }) {
   const { t } = useT();
+  const { user } = useSession();
   // Stock bought on credit moves no money until the supplier is paid.
   const dir = txn.isCredit ? 0 : direction(txn.kind);
   const sign = dir > 0 ? '+' : dir < 0 ? '−' : '';
@@ -34,6 +35,7 @@ export function TxnRow({ txn, showDate, onDelete }) {
         <div className="txn-title">{title}</div>
         <div className="muted small">
           {kindLabel} · {where}{showDate ? ` · ${friendlyDate(txn.date, t)}` : ''}
+          {txn.createdBy && user && txn.createdBy !== user.fullName ? ` · ${t('records.by', { name: txn.createdBy.split(' ')[0] })}` : ''}
           {txn.note && title !== txn.note && !txn.invoiceNumber ? ` · ${txn.note}` : ''}
         </div>
       </div>
