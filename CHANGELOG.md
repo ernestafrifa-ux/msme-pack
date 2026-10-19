@@ -3,6 +3,12 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.13.1 · 19 October 2026 · Bigger logo on Home
+
+- The logo on Home is now large (about twice the size) and sits on its own row beside the business name, with the greeting, messages bell and settings above it.
+- Logos on Home are shown whole on a white rounded tile instead of being cropped to a circle, so wide logos and logos with text are not cut off.
+- Deploy: no database change.
+
 ## 0.13 · 19 October 2026 · Business logos and messages from the admin
 
 - **Business logo**: Settings → Business details → **Upload logo** (owner or manager). The phone shrinks the picture before uploading, so it is quick on mobile data. PNG, JPEG or WebP; change or remove it any time.

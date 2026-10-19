@@ -35,13 +35,7 @@ export default function Home() {
     <>
       <main className="screen with-nav">
         <header className="home-head">
-          <div className="home-brand">
-            <Link to="/settings" aria-label="Business details"><BizLogo business={business} size={44} /></Link>
-            <div>
-              <div className="muted">{t(greetingKey())}, {user.fullName.split(' ')[0]}</div>
-              <h1 className="biz-name">{business.name}</h1>
-            </div>
-          </div>
+          <div className="muted">{t(greetingKey())}, {user.fullName.split(' ')[0]}</div>
           <div className="home-actions">
             <Link to="/notices" className="icon-btn bell"
               aria-label={data?.notices?.unread ? `Messages, ${data.notices.unread} new` : 'Messages'}>
@@ -51,6 +45,10 @@ export default function Home() {
             <Link to="/settings" className="icon-btn" aria-label={t('home.settings')}><Icon name="settings" /></Link>
           </div>
         </header>
+        <div className="home-brand home-brand-lg">
+          <Link to="/settings" aria-label="Business details"><BizLogo business={business} size={84} className="biz-logo-home" /></Link>
+          <h1 className="biz-name">{business.name}</h1>
+        </div>
 
         {data?.notices?.latest && (
           <Link to="/notices" className="notice-banner">

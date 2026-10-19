@@ -499,3 +499,9 @@ fieldset.plain { border: none; padding: 0; margin: 0; min-width: 0; }
 .paper-head-left { display: flex; gap: 12px; align-items: flex-start; }
 .paper-logo { width: 56px; height: 56px; object-fit: contain; flex: none; }
 .statement-logo { width: 48px; height: 48px; object-fit: contain; display: block; margin: 0 auto 6px; }
+
+/* Home: a large logo beside the business name. Logos are shown whole (not cropped) on a white tile. */
+.home-brand-lg { margin-top: 8px; gap: 14px; }
+.home-brand-lg .biz-name { font-size: 26px; line-height: 1.15; margin: 0; }
+img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; padding: 4px; box-shadow: 0 1px 3px rgba(22, 33, 28, .12); }
+.biz-logo-initials.biz-logo-home { border-radius: 18px; }
