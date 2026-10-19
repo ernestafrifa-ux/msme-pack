@@ -184,8 +184,10 @@ const txnSchema = z
     // Generated on the phone; makes saving safe to retry after a dropped connection.
     clientRef: z.uuid().optional().nullable(),
     // Stock bought now and paid for later: no money moves; the supplier becomes a debt.
-    onCredit: z.object({ supplier: z.string().trim().min(2, 'Enter the supplier\'s name.').max(120) })
-      .optional().nullable(),
+    onCredit: z.object({
+      supplier: z.string().trim().min(2, 'Enter the supplier\'s name.').max(120),
+      dueDate: isoDate.optional().nullable(),
+    }).optional().nullable(),
     // VAT-registered businesses: the amount includes VAT, NHIL and GETFund (20%).
     // A sale: tax collected for GRA. An expense or stock bought: VAT on a supplier's VAT invoice, to claim back.
     vat: z.boolean().optional().default(false),
@@ -352,9 +354,9 @@ router.post('/transactions', canRecord, validate(txnSchema), async (req, res) =>
     }
     if (t.onCredit) {
       await db.query(
-        `INSERT INTO debts (business_id, lender, kind, amount, start_date, purchase_txn_id, note, created_by)
-         VALUES ($1, $2, 'supplier', $3, $4, $5, $6, $7)`,
-        [req.businessId, t.onCredit.supplier, total, date, id, t.note || null, req.user.id]
+        `INSERT INTO debts (business_id, lender, kind, amount, start_date, purchase_txn_id, note, created_by, due_date)
+         VALUES ($1, $2, 'supplier', $3, $4, $5, $6, $7, $8)`,
+        [req.businessId, t.onCredit.supplier, total, date, id, t.note || null, req.user.id, t.onCredit.dueDate || null]
       );
     }
     return id;
@@ -404,6 +406,106 @@ router.get('/transactions', canView, validate(listSchema, 'query'), async (req, 
   const hasMore = rows.length > q.limit;
   res.json({ transactions: rows.slice(0, q.limit).map(publicTxn), hasMore });
 });
+
+// ---- Receipts --------------------------------------------------------------------------
+// A receipt for money received (a sale or a payment on an invoice): numbered the first time
+// it is asked for, and shared with the customer as a link like an invoice.
+
+router.post('/transactions/:id/receipt', canRecord, async (req, res) => {
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) throw new HttpError(404, 'Record not found.');
+  const out = await withTransaction(async (db) => {
+    const { rows } = await db.query(
+      `SELECT id, kind, receipt_no, receipt_token FROM transactions
+        WHERE id = $1 AND business_id = $2 AND deleted_at IS NULL FOR UPDATE`,
+      [req.params.id, req.businessId]
+    );
+    const t = rows[0];
+    if (!t) throw new HttpError(404, 'Record not found.');
+    if (t.kind !== 'sale') throw new HttpError(400, 'Receipts are for money received from customers.');
+    if (t.receipt_token) return { number: t.receipt_no, token: t.receipt_token };
+    const { rows: b } = await db.query(
+      'UPDATE businesses SET next_receipt_no = next_receipt_no + 1 WHERE id = $1 RETURNING next_receipt_no - 1 AS n',
+      [req.businessId]
+    );
+    const token = require('crypto').randomBytes(16).toString('base64url');
+    await db.query('UPDATE transactions SET receipt_no = $2, receipt_token = $3 WHERE id = $1', [t.id, b[0].n, token]);
+    return { number: b[0].n, token };
+  });
+  res.json(out);
+});
+
+const publicRouter = express.Router();
+
+// The customer's view of a receipt (no login).
+publicRouter.get('/receipts/:token', async (req, res) => {
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(req.params.token)) throw new HttpError(404, 'Receipt not found.');
+  const { rows } = await query(
+    `SELECT t.id, t.business_id, t.txn_date, t.amount, t.tax_amount, t.receipt_no, t.note, t.payment_ref,
+            a.kind AS account_kind, a.name AS account_name, inv.number AS invoice_number, ct.name AS customer,
+            b.name, b.phone, b.town, b.tin, b.vat_number, b.vat_registered, b.logo_url, b.digital_address, r.name AS region
+       FROM transactions t
+       JOIN businesses b ON b.id = t.business_id
+       LEFT JOIN regions r ON r.code = b.region_code
+       LEFT JOIN payment_accounts a ON a.id = t.account_id
+       LEFT JOIN invoices inv ON inv.id = t.invoice_id
+       LEFT JOIN contacts ct ON ct.id = t.contact_id
+      WHERE t.receipt_token = $1 AND t.deleted_at IS NULL`,
+    [req.params.token]
+  );
+  const t = rows[0];
+  if (!t) throw new HttpError(404, 'Receipt not found.');
+  const { rows: items } = await query(
+    `SELECT p.name, ti.quantity, ti.unit_price, ti.line_total, p.unit FROM transaction_items ti
+       JOIN products p ON p.id = ti.product_id WHERE ti.transaction_id = $1 ORDER BY ti.id`,
+    [t.id]
+  );
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    business: { name: t.name, phone: t.phone, town: t.town, region: t.region, tin: t.tin, digitalAddress: t.digital_address,
+      vatNumber: t.vat_registered ? t.vat_number : null, logoUrl: t.logo_url },
+    receipt: {
+      number: t.receipt_no, date: t.txn_date, amount: t.amount, tax: t.tax_amount, note: t.note, paymentRef: t.payment_ref,
+      paidBy: t.account_kind, invoiceNumber: t.invoice_number, customer: t.customer,
+      items: items.map((i) => ({ name: i.name, quantity: i.quantity, unitPrice: i.unit_price, lineTotal: i.line_total, unit: i.unit })),
+    },
+  });
+});
+
+// Last working day of the month containing `iso` (weekends skipped; public holidays not).
+function lastWorkingDay(iso) {
+  const d = new Date(`${iso.slice(0, 7)}-01T00:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + 1);
+  d.setUTCDate(0);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+// Things coming due: money owed to suppliers and lenders, and the monthly VAT return.
+async function reminders(businessId) {
+  const today = todayInGhana();
+  const out = [];
+  const { rows: debts } = await query(
+    `SELECT d.id, d.lender, d.kind, d.due_date,
+            d.amount - COALESCE((SELECT SUM(t.amount - t.interest_amount) FROM transactions t
+                                  WHERE t.debt_id = d.id AND t.kind = 'loan_repayment' AND t.deleted_at IS NULL), 0) AS balance
+       FROM debts d
+      WHERE d.business_id = $1 AND d.deleted_at IS NULL AND d.due_date IS NOT NULL AND d.due_date <= $2
+      ORDER BY d.due_date`,
+    [businessId, addDays(today, 7)]
+  );
+  for (const d of debts) {
+    if (Number(d.balance) <= 0.004) continue;
+    out.push({ type: 'debt', id: d.id, lender: d.lender, kind: d.kind, dueDate: d.due_date,
+      balance: Number(d.balance).toFixed(2), overdue: d.due_date < today });
+  }
+  const { rows: b } = await query('SELECT vat_registered FROM businesses WHERE id = $1', [businessId]);
+  if (b[0].vat_registered && Number(today.slice(8, 10)) >= 15) {
+    const { taxPosition } = require('./reports');
+    const pos = await taxPosition(businessId, today);
+    if (pos.owed > 0) out.push({ type: 'vat', owed: pos.owed.toFixed(2), dueDate: lastWorkingDay(today) });
+  }
+  return out;
+}
 
 async function latestNotice(businessId, userId) {
   const { rows } = await query(
@@ -526,6 +628,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
     recent: recent.rows.map(publicTxn),
     // The newest message from the MSME Pack team that this person has not read.
     notices: await latestNotice(req.businessId, req.user.id),
+    reminders: await reminders(req.businessId),
     lowStock: lowStock.rows.map((p) => ({
       id: p.product_id, name: p.name, unit: p.unit, onHand: p.on_hand, reorderLevel: p.reorder_level,
     })),
@@ -537,4 +640,4 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
   });
 });
 
-module.exports = { router, insertTransaction, checkAccounts, checkDate, TXN_SELECT, publicTxn };
+module.exports = { router, publicRouter, insertTransaction, checkAccounts, checkDate, TXN_SELECT, publicTxn };

@@ -11,7 +11,7 @@ const KINDS = ['bank', 'microfinance', 'susu', 'supplier', 'family', 'other'];
 function LoanForm({ accounts, onSaved, onCancel }) {
   const { business } = useSession();
   const { t } = useT();
-  const [f, setF] = useState({ lender: '', kind: 'microfinance', amount: '', startDate: todayGhana(), accountId: accounts[0]?.id || '', note: '' });
+  const [f, setF] = useState({ lender: '', kind: 'microfinance', amount: '', startDate: todayGhana(), accountId: accounts[0]?.id || '', note: '', dueDate: '' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -20,7 +20,7 @@ function LoanForm({ accounts, onSaved, onCancel }) {
     e.preventDefault();
     setBusy(true); setErrors({}); setMessage('');
     try {
-      await api(`/businesses/${business.id}/debts`, { method: 'POST', body: { ...f, accountId: f.accountId || null, note: f.note || null } });
+      await api(`/businesses/${business.id}/debts`, { method: 'POST', body: { ...f, accountId: f.accountId || null, note: f.note || null, dueDate: f.dueDate || null } });
       onSaved();
     } catch (err) { setErrors(err.fields || {}); setMessage(err.message); } finally { setBusy(false); }
   }
@@ -42,6 +42,9 @@ function LoanForm({ accounts, onSaved, onCancel }) {
             <option value="">{t('loans.notThroughApp')}</option>
           </select>
         )}
+      </Field>
+      <Field label="Pay by, or next payment due (optional)" error={errors.dueDate} hint="You get a reminder on Home a week before">
+        {(p) => <input {...p} type="date" value={f.dueDate} onChange={set('dueDate')} />}
       </Field>
       <Field label={t('common.noteOptional')}>{(p) => <input {...p} value={f.note} onChange={set('note')} />}</Field>
       <button className="btn btn-primary btn-block" disabled={busy}>{busy ? t('common.saving') : t('loans.save')}</button>
@@ -182,6 +185,9 @@ export default function Loans() {
                   <span className="small muted">
                     {t(`loans.kind.${d.kind}`)} · {t('loans.borrowedN', { amount: money(d.amount), date: longDate(d.startDate, t) })}
                   </span>
+                  {d.dueDate && Number(d.balance) > 0 && (
+                    <span className={'small ' + (d.dueDate < todayGhana() ? 'warn-text' : 'muted')}>Pay by {longDate(d.dueDate, t)}</span>
+                  )}
                 </span>
                 <span className="txn-amt">{Number(d.balance) > 0 ? money(d.balance) : t('loans.paidOff')}</span>
               </Link>

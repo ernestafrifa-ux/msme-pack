@@ -325,40 +325,196 @@ router.get('/invoices/defaults', canView, async (req, res) => {
   });
 });
 
+// Inserts an invoice (a draft) with its number, items and audit entry. Returns its id.
+async function createInvoiceRecord(db, businessId, userId, v, issueDate) {
+  const totals = computeTotals(v.items, v.discount || 0, v.taxRate || 0, v.taxScheme);
+  await checkLineProducts(db, businessId, v.items);
+  const contactId = await resolveContact(db, businessId, v);
+  // Next number, locked so two phones can't get the same one.
+  const { rows: biz } = await db.query(
+    `UPDATE businesses SET next_invoice_no = next_invoice_no + 1 WHERE id = $1
+     RETURNING invoice_prefix, next_invoice_no - 1 AS n`,
+    [businessId]
+  );
+  const number = `${biz[0].invoice_prefix}-${String(biz[0].n).padStart(4, '0')}`;
+  const { rows } = await db.query(
+    `INSERT INTO invoices (business_id, doc_type, number, contact_id, issue_date, due_date, status,
+                           subtotal, discount, tax_label, tax_rate, tax_amount, total, notes, payment_terms,
+                           share_token, created_by, tax_scheme, nhil_amount, getfund_amount, vat_amount)
+     VALUES ($1,'invoice',$2,$3,$4,$5,'draft',$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id`,
+    [businessId, number, contactId, issueDate, v.dueDate || null, totals.subtotal, totals.discount,
+     taxLabelFor(totals, v), totals.taxRate, totals.taxAmount, totals.total,
+     v.notes || null, v.paymentTerms || null, crypto.randomBytes(16).toString('base64url'), userId,
+     totals.scheme, totals.nhil, totals.getfund, totals.vat]
+  );
+  await replaceItems(db, rows[0].id, v.items);
+  await db.query(
+    `INSERT INTO audit_log (business_id, user_id, action, entity, entity_id, changes)
+     VALUES ($1,$2,'create','invoice',$3,$4)`,
+    [businessId, userId, rows[0].id, JSON.stringify({ number, total: totals.total })]
+  );
+  return rows[0].id;
+}
+
 router.post('/invoices', canRecord, validate(invoiceSchema), async (req, res) => {
   const v = req.valid.body;
   const issueDate = v.issueDate || todayInGhana();
   checkDate(issueDate);
-  const totals = computeTotals(v.items, v.discount, v.taxRate, v.taxScheme);
+  const id = await withTransaction((db) => createInvoiceRecord(db, req.businessId, req.user.id, v, issueDate));
+  res.status(201).json({ invoice: await invoiceDetail(req.businessId, id) });
+});
+
+// ---- Selling on credit ("customer owes") ---------------------------------------------
+// A sale paid later becomes a sent invoice for the customer: goods leave stock now, the
+// customer appears in Customers and Who owes you, and it counts as income as they pay.
+
+const creditSaleSchema = z.object({
+  contactId: z.uuid().optional().nullable(),
+  newContact: contactSchema.pick({ name: true, phone: true }).optional().nullable(),
+  date: isoDate.optional(),
+  dueDate: isoDate.optional().nullable(),
+  items: z.array(z.object({
+    productId: z.uuid(),
+    quantity: z.coerce.number().positive().max(1e9),
+    unitPrice: z.coerce.number().min(0).max(1e9),
+  })).max(100).optional().nullable(),
+  amount: z.coerce.number().positive('Enter the amount.').max(1e11).optional(),
+  note: z.string().trim().max(200).optional().nullable(),
+  // VAT-registered: prices include VAT, NHIL and GETFund.
+  vat: z.boolean().optional().default(false),
+}).refine((v) => (v.items && v.items.length) || v.amount, { message: 'Enter the amount or add products.', path: ['amount'] });
+
+router.post('/credit-sales', canRecord, validate(creditSaleSchema), async (req, res) => {
+  const v = req.valid.body;
+  const date = v.date || todayInGhana();
+  checkDate(date);
+  if (v.dueDate && v.dueDate < date) throw new HttpError(400, 'The pay-by date is before the sale.', { dueDate: 'On or after the sale date.' });
+  if (v.vat) {
+    const { rows } = await query('SELECT vat_registered FROM businesses WHERE id = $1', [req.businessId]);
+    if (!rows[0].vat_registered) throw new HttpError(400, 'Only a VAT-registered business records VAT.', { vat: 'Not registered for VAT.' });
+  }
   const id = await withTransaction(async (db) => {
-    await checkLineProducts(db, req.businessId, v.items);
-    const contactId = await resolveContact(db, req.businessId, v);
-    // Next number, locked so two phones can't get the same one.
-    const { rows: biz } = await db.query(
-      `UPDATE businesses SET next_invoice_no = next_invoice_no + 1 WHERE id = $1
-       RETURNING invoice_prefix, next_invoice_no - 1 AS n`,
-      [req.businessId]
-    );
-    const number = `${biz[0].invoice_prefix}-${String(biz[0].n).padStart(4, '0')}`;
-    const { rows } = await db.query(
-      `INSERT INTO invoices (business_id, doc_type, number, contact_id, issue_date, due_date, status,
-                             subtotal, discount, tax_label, tax_rate, tax_amount, total, notes, payment_terms,
-                             share_token, created_by, tax_scheme, nhil_amount, getfund_amount, vat_amount)
-       VALUES ($1,'invoice',$2,$3,$4,$5,'draft',$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING id`,
-      [req.businessId, number, contactId, issueDate, v.dueDate || null, totals.subtotal, totals.discount,
-       taxLabelFor(totals, v), totals.taxRate, totals.taxAmount, totals.total,
-       v.notes || null, v.paymentTerms || null, crypto.randomBytes(16).toString('base64url'), req.user.id,
-       totals.scheme, totals.nhil, totals.getfund, totals.vat]
-    );
-    await replaceItems(db, rows[0].id, v.items);
+    let items;
+    if (v.items && v.items.length) {
+      const { rows } = await db.query(
+        'SELECT id, name FROM products WHERE business_id = $1 AND id = ANY($2::uuid[]) AND deleted_at IS NULL',
+        [req.businessId, v.items.map((i) => i.productId)]
+      );
+      const names = Object.fromEntries(rows.map((r) => [r.id, r.name]));
+      items = v.items.map((i) => {
+        if (!names[i.productId]) throw new HttpError(400, 'One of the products was not found.', { items: 'Check the products.' });
+        return { productId: i.productId, description: names[i.productId], quantity: i.quantity, unitPrice: i.unitPrice };
+      });
+    } else {
+      items = [{ productId: null, description: v.note || 'Goods sold on credit', quantity: 1, unitPrice: v.amount }];
+    }
+    // Shop prices include VAT; an invoice adds it on top, so take it out of each price first.
+    if (v.vat) items = items.map((i) => ({ ...i, unitPrice: Math.round((i.unitPrice / 1.2) * 100) / 100 }));
+    const invId = await createInvoiceRecord(db, req.businessId, req.user.id, {
+      contactId: v.contactId, newContact: v.newContact, items, dueDate: v.dueDate || null,
+      notes: v.note ? `Sold on credit: ${v.note}` : 'Sold on credit', taxScheme: v.vat ? 'vat' : 'none',
+    }, date);
     await db.query(
-      `INSERT INTO audit_log (business_id, user_id, action, entity, entity_id, changes)
-       VALUES ($1,$2,'create','invoice',$3,$4)`,
-      [req.businessId, req.user.id, rows[0].id, JSON.stringify({ number, total: totals.total })]
+      `UPDATE invoices SET status = 'sent', sent_via = 'print', sent_at = now(), updated_at = now() WHERE id = $1`, [invId]
     );
-    return rows[0].id;
+    return invId;
   });
   res.status(201).json({ invoice: await invoiceDetail(req.businessId, id) });
+});
+
+// ---- Customers: what each one owes ----------------------------------------------------
+
+const OPEN_INVOICES = `
+  SELECT b.invoice_id, b.outstanding, b.computed_status, i.number, i.issue_date, i.due_date, i.total, i.contact_id
+    FROM v_invoice_balances b JOIN invoices i ON i.id = b.invoice_id
+   WHERE i.business_id = $1 AND i.deleted_at IS NULL AND i.status NOT IN ('draft', 'void') AND b.outstanding > 0`;
+
+router.get('/customers', canView, async (req, res) => {
+  const { rows } = await query(
+    `SELECT c.id, c.name, c.phone,
+            COALESCE(SUM(o.outstanding), 0) AS owes,
+            COALESCE(SUM(o.outstanding) FILTER (WHERE o.computed_status = 'overdue'), 0) AS overdue,
+            COUNT(o.invoice_id)::int AS open_count,
+            (SELECT MAX(t.txn_date) FROM transactions t WHERE t.contact_id = c.id AND t.deleted_at IS NULL) AS last_paid
+       FROM contacts c
+       LEFT JOIN (${OPEN_INVOICES}) o ON o.contact_id = c.id
+      WHERE c.business_id = $1 AND c.deleted_at IS NULL AND c.kind IN ('customer', 'both')
+      GROUP BY c.id
+      ORDER BY COALESCE(SUM(o.outstanding), 0) DESC, c.name`,
+    [req.businessId]
+  );
+  res.json({
+    customers: rows.map((c) => ({ id: c.id, name: c.name, phone: c.phone, owes: Number(c.owes).toFixed(2),
+      overdue: Number(c.overdue).toFixed(2), openCount: c.open_count, lastPaid: c.last_paid })),
+    totalOwed: rows.reduce((s, c) => s + Number(c.owes), 0).toFixed(2),
+  });
+});
+
+async function customerDetail(businessId, contactId) {
+  const { rows: c } = await query('SELECT * FROM contacts WHERE id = $1 AND business_id = $2 AND deleted_at IS NULL', [contactId, businessId]);
+  if (!c[0]) throw new HttpError(404, 'Customer not found.');
+  const [open, payments] = await Promise.all([
+    query(`${OPEN_INVOICES} AND i.contact_id = $2 ORDER BY i.issue_date, i.number`, [businessId, contactId]),
+    query(`${TXN_SELECT} WHERE t.business_id = $1 AND t.contact_id = $2 AND t.deleted_at IS NULL AND t.kind IN ('sale', 'wht')
+           ORDER BY t.txn_date DESC, t.created_at DESC LIMIT 30`, [businessId, contactId]),
+  ]);
+  return {
+    customer: publicContact(c[0]),
+    open: open.rows.map((o) => ({ id: o.invoice_id, number: o.number, issueDate: o.issue_date, dueDate: o.due_date,
+      total: o.total, outstanding: Number(o.outstanding).toFixed(2), status: o.computed_status })),
+    owes: open.rows.reduce((s, o) => s + Number(o.outstanding), 0).toFixed(2),
+    payments: payments.rows.map(publicTxn),
+  };
+}
+
+router.get('/customers/:contactId', canView, async (req, res) => {
+  if (!isUuid(req.params.contactId)) throw new HttpError(404, 'Customer not found.');
+  res.json(await customerDetail(req.businessId, req.params.contactId));
+});
+
+const customerPaymentSchema = z.object({
+  amount: z.coerce.number().positive('Enter the amount received.').max(1e11).transform((n) => Math.round(n * 100) / 100),
+  accountId: z.uuid('Choose where the money went.'),
+  date: isoDate.optional(),
+  paymentRef: z.string().trim().max(80).optional().nullable(),
+  momoFee: z.coerce.number().min(0).max(1e6).optional().default(0),
+  note: z.string().trim().max(500).optional().nullable(),
+});
+
+// Money from a customer: settles their oldest unpaid sales and invoices first.
+router.post('/customers/:contactId/payments', canRecord, validate(customerPaymentSchema), async (req, res) => {
+  if (!isUuid(req.params.contactId)) throw new HttpError(404, 'Customer not found.');
+  const p = req.valid.body;
+  const date = p.date || todayInGhana();
+  checkDate(date);
+  await withTransaction(async (db) => {
+    const { rows: open } = await db.query(
+      `${OPEN_INVOICES} AND i.contact_id = $2 ORDER BY i.issue_date, i.number FOR UPDATE OF i`,
+      [req.businessId, req.params.contactId]
+    );
+    const owed = Math.round(open.reduce((s, o) => s + Number(o.outstanding), 0) * 100);
+    if (!open.length) throw new HttpError(409, 'This customer does not owe anything.');
+    if (Math.round(p.amount * 100) > owed) {
+      throw new HttpError(400, `This customer owes GHS ${(owed / 100).toFixed(2)}.`, { amount: `At most ${(owed / 100).toFixed(2)}.` });
+    }
+    await checkAccounts(db, req.businessId, [p.accountId], date);
+    const { rows: cat } = await db.query(`SELECT id FROM categories WHERE business_id IS NULL AND kind = 'income' AND name = 'Product sales'`);
+    let left = Math.round(p.amount * 100);
+    let first = true;
+    for (const o of open) {
+      if (left <= 0) break;
+      const part = Math.min(left, Math.round(Number(o.outstanding) * 100));
+      await insertTransaction(db, {
+        businessId: req.businessId, userId: req.user.id, kind: 'sale', date, amount: part / 100,
+        accountId: p.accountId, categoryId: cat[0]?.id, contactId: req.params.contactId, invoiceId: o.invoice_id,
+        paymentRef: p.paymentRef, momoFee: first ? p.momoFee : 0, note: p.note || `Payment for ${o.number}`,
+      });
+      await refreshInvoiceStatus(db, o.invoice_id);
+      left -= part;
+      first = false;
+    }
+  });
+  res.status(201).json(await customerDetail(req.businessId, req.params.contactId));
 });
 
 router.get('/invoices/:invoiceId', canView, async (req, res) => {

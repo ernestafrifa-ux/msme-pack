@@ -44,6 +44,7 @@ async function loadDebts(businessId, id = null) {
     id: d.id, lender: d.lender, kind: d.kind, amount: money(d.amount), startDate: d.start_date, note: d.note,
     repaid: money(d.repaid), interestPaid: money(d.interest_paid), balance: money(Number(d.amount) - Number(d.repaid)),
     lastPaid: d.last_paid, receivedInto: d.received_into || null, boughtOnCredit: !!d.purchase_txn_id,
+    dueDate: d.due_date,
   }));
 }
 
@@ -81,6 +82,8 @@ const debtSchema = z.object({
   // Where the borrowed money went. Empty: the money is already spent or was never in the app (an old loan).
   accountId: z.uuid().optional().nullable(),
   note: z.string().trim().max(300).optional().nullable(),
+  // When it should be paid (or the next payment is due), for reminders.
+  dueDate: isoDate.optional().nullable(),
 });
 
 router.post('/debts', canManage, validate(debtSchema), async (req, res) => {
@@ -90,9 +93,9 @@ router.post('/debts', canManage, validate(debtSchema), async (req, res) => {
   const id = await withTransaction(async (db) => {
     if (d.accountId) await checkAccounts(db, req.businessId, [d.accountId], date);
     const { rows } = await db.query(
-      `INSERT INTO debts (business_id, lender, kind, amount, start_date, note, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-      [req.businessId, d.lender, d.kind, d.amount, date, d.note || null, req.user.id]
+      `INSERT INTO debts (business_id, lender, kind, amount, start_date, note, created_by, due_date)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+      [req.businessId, d.lender, d.kind, d.amount, date, d.note || null, req.user.id, d.dueDate || null]
     );
     if (d.accountId) {
       await insertTransaction(db, {
@@ -147,6 +150,16 @@ router.post('/debts/:debtId/repayments', canManage, validate(repaySchema), async
   });
   const [debt] = await loadDebts(req.businessId, req.params.debtId);
   res.status(201).json({ debt });
+});
+
+// Change when a debt (or its next payment) is due.
+router.patch('/debts/:debtId', canManage, validate(z.object({ dueDate: isoDate.nullable() })), async (req, res) => {
+  if (!isUuid(req.params.debtId)) throw new HttpError(404, 'Not found.');
+  const { rowCount } = await query('UPDATE debts SET due_date = $3, updated_at = now() WHERE id = $1 AND business_id = $2 AND deleted_at IS NULL',
+    [req.params.debtId, req.businessId, req.valid.body.dueDate]);
+  if (!rowCount) throw new HttpError(404, 'Not found.');
+  const [debt] = await loadDebts(req.businessId, req.params.debtId);
+  res.json({ debt });
 });
 
 router.delete('/debts/:debtId', canManage, async (req, res) => {

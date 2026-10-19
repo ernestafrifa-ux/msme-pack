@@ -41,6 +41,11 @@ export function TxnRow({ txn, showDate, onDelete }) {
         <span className="sr-only">{t(dir > 0 ? 'records.moneyIn' : dir < 0 ? 'records.moneyOut' : 'records.moved')} </span>
         {sign}{money(txn.amount)}
       </div>
+      {txn.kind === 'sale' && !txn.isCredit && (
+        <Link to={`/receipt/${txn.id}`} className="icon-btn small-btn" aria-label={t('records.receipt', { amount: money(txn.amount) })}>
+          <Icon name="print" size={18} />
+        </Link>
+      )}
       {onDelete && (
         <button className="icon-btn small-btn" onClick={() => onDelete(txn)}
           aria-label={t('records.delete', { title, amount: money(txn.amount) })}>

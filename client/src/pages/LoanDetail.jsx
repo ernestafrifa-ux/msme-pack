@@ -66,6 +66,16 @@ export default function LoanDetail() {
           {d.receivedInto ? ` · ${t('loans.intoN', { name: d.receivedInto })}` : ''}
           {Number(d.interestPaid) > 0 ? ` · ${t('loans.interestN', { amount: money(d.interestPaid) })}` : ''}
         </p>
+        {open && (
+          <label className="field">
+            <span className="field-label">Pay by, or next payment due</span>
+            <input type="date" value={d.dueDate || ''} onChange={async (e) => {
+              const r = await api(`/businesses/${business.id}/debts/${d.id}`, { method: 'PATCH', body: { dueDate: e.target.value || null } });
+              setData({ ...data, debt: r.debt });
+              setFlash(r.debt.dueDate ? `Reminder set for ${longDate(r.debt.dueDate, t)}.` : 'Reminder removed.');
+            }} />
+          </label>
+        )}
       </section>
 
       {flash && <div className="flash" role="status">{flash}</div>}

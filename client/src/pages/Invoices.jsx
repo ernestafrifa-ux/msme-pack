@@ -77,7 +77,7 @@ export default function Invoices() {
             </li>
           ))}
         </ul>
-        <p className="center small"><Link to="/settings">Business details on your invoices</Link></p>
+        <p className="center small"><Link to="/customers">Customers who owe</Link> · <Link to="/settings">Business details on your invoices</Link></p>
       </main>
       <BottomNav />
     </>

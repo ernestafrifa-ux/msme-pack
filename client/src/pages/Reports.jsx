@@ -43,6 +43,15 @@ export default function Reports() {
           </Link>
         </li>
         <li>
+          <Link to="/customers" className="txn report-link">
+            <span className="txn-main">
+              <span className="txn-title wrap">Customers who owe</span>
+              <span className="small muted">Sales paid later and unpaid invoices, customer by customer.</span>
+            </span>
+            <Icon name="chevron" size={18} />
+          </Link>
+        </li>
+        <li>
           <Link to="/registrations" className="txn report-link">
             <span className="txn-main">
               <span className="txn-title wrap">Registrations: bank account &amp; VAT</span>

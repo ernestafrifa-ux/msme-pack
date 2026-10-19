@@ -3,6 +3,15 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.15 · 19 October 2026 · Customers who owe, receipts, bills and reminders
+
+- **Sell now, paid later**: on Record → Sale, tick "Paid later (the customer owes)", choose or add the customer and an optional pay-by date. Goods leave stock now; the sale counts as the customer pays.
+- **Customers who owe** (Home's "Customers owe you", Reports, Invoices): every customer with what they owe and how late. On a customer: record money received (it settles the oldest sales first), send a WhatsApp reminder, see their payments.
+- **Receipts**: after a sale, Home offers "Send a receipt"; any sale in Records has a receipt button. Receipts are numbered (0001, 0002…), carry the logo and VAT number, and are sent on WhatsApp or printed. The customer opens a link, like an invoice.
+- **Supplier bills and loans with due dates**: Buy stock on credit and new loans take a "Pay by" date; a loan's page can change it.
+- **Reminders on Home**: money due to suppliers and lenders within a week (or late), and, for VAT-registered businesses from the 15th, the VAT return with the amount owed and the last working day to pay.
+- Deploy: database change `013_receipts_credit_bills.sql`.
+
 ## 0.14 · 19 October 2026 · VAT on everyday sales and on purchases
 
 For VAT-registered businesses:

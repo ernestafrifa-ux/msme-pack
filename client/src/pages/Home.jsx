@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
 import { BottomNav, Icon } from '../components.jsx';
-import { money, monthName, qty } from '../format';
+import { money, monthName, qty, longDate } from '../format';
 import { TxnRow } from './Records.jsx';
 import BizLogo from '../BizLogo.jsx';
 import { useT, DraftLanguageBanner } from '../i18n.jsx';
@@ -66,7 +66,12 @@ export default function Home() {
         )}
 
         <DraftLanguageBanner />
-        {flash && <div className="flash" role="status">{flash}</div>}
+        {flash && (
+          <div className="flash flash-row" role="status">
+            <span>{flash}</span>
+            {location.state?.receiptFor && <Link to={`/receipt/${location.state.receiptFor}`} className="btn btn-ghost btn-small">{t('record.sendReceipt')}</Link>}
+          </div>
+        )}
         {error && <div className="form-error" role="alert">{error}</div>}
 
         <section className="money-card" aria-label={t('home.moneyNow')}>
@@ -89,12 +94,12 @@ export default function Home() {
           <Link to="/invoices/new" className="quick-btn"><span className="q-in"><Icon name="file" size={26} /></span>{t('home.quick.invoice')}</Link>
         </div>
 
-        {data && (data.lowStock.length > 0 || Number(data.owed.total) > 0) && (
+        {data && (data.lowStock.length > 0 || Number(data.owed.total) > 0 || data.reminders?.length > 0) && (
           <section aria-label={t('home.attention')}>
             <div className="card-head"><h2>{t('home.attention')}</h2></div>
             <div className="alerts">
               {Number(data.owed.total) > 0 && (
-                <Link to="/invoices" className={'alert' + (data.owed.overdueCount ? ' alert-warn' : '')}>
+                <Link to="/customers" className={'alert' + (data.owed.overdueCount ? ' alert-warn' : '')}>
                   <Icon name="file" size={20} />
                   <span>
                     {t('home.owed', { amount: money(data.owed.total) })}
@@ -102,6 +107,17 @@ export default function Home() {
                   </span>
                 </Link>
               )}
+              {data.reminders?.map((r) => (r.type === 'vat' ? (
+                <Link key="vat" to="/tax" className="alert alert-warn">
+                  <Icon name="alert" size={20} />
+                  <span>{t('home.vatDue', { amount: money(r.owed), date: longDate(r.dueDate, t) })}</span>
+                </Link>
+              ) : (
+                <Link key={r.id} to={`/loans/${r.id}`} className={'alert' + (r.overdue ? ' alert-warn' : '')}>
+                  <Icon name="alert" size={20} />
+                  <span>{t(r.overdue ? 'home.debtLate' : 'home.debtDue', { name: r.lender, amount: money(r.balance), date: longDate(r.dueDate, t) })}</span>
+                </Link>
+              )))}
               {data.lowStock.map((p) => (
                 <Link key={p.id} to={`/stock/${p.id}`} className="alert alert-warn">
                   <Icon name="alert" size={20} />

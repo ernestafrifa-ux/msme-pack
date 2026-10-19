@@ -14,6 +14,10 @@ import Invoices from './pages/Invoices.jsx';
 import InvoiceForm from './pages/InvoiceForm.jsx';
 import Invoice from './pages/Invoice.jsx';
 import PublicInvoice from './pages/PublicInvoice.jsx';
+import PublicReceipt from './pages/PublicReceipt.jsx';
+import Receipt from './pages/Receipt.jsx';
+import Customers from './pages/Customers.jsx';
+import CustomerDetail from './pages/CustomerDetail.jsx';
 import BusinessDetails from './pages/BusinessDetails.jsx';
 import Health from './pages/Health.jsx';
 import HealthCheck from './pages/HealthCheck.jsx';
@@ -42,10 +46,11 @@ export default function App() {
   const location = useLocation();
 
   // The customer's invoice link works for anyone, logged in or not.
-  if (location.pathname.startsWith('/i/')) {
+  if (location.pathname.startsWith('/i/') || location.pathname.startsWith('/r/')) {
     return (
       <Routes>
         <Route path="/i/:token" element={<PublicInvoice />} />
+        <Route path="/r/:token" element={<PublicReceipt />} />
       </Routes>
     );
   }
@@ -133,6 +138,9 @@ export default function App() {
       <Route path="/settings" element={<BusinessDetails />} />
       <Route path="/settings/password" element={<ChangePassword />} />
       <Route path="/notices" element={<Notices />} />
+      <Route path="/receipt/:id" element={<Receipt />} />
+      <Route path="/customers" element={<Customers />} />
+      <Route path="/customers/:contactId" element={<CustomerDetail />} />
       {adminRoutes}
       <Route path="/health" element={<Health />} />
       <Route path="/health/check" element={<HealthCheck />} />

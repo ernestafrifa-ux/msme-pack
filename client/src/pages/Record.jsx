@@ -41,6 +41,10 @@ export default function Record() {
   // Buy stock now, pay the supplier later.
   const [credit, setCredit] = useState(false);
   const [supplier, setSupplier] = useState('');
+  const [payBy, setPayBy] = useState('');
+  // Sell now, the customer pays later.
+  const [contacts, setContacts] = useState(null);
+  const [customer, setCustomer] = useState({ contactId: '', name: '', phone: '' });
   // VAT-registered businesses: does this amount include VAT, NHIL and GETFund?
   const [vatRegistered, setVatRegistered] = useState(false);
   const [vatChoice, setVatChoice] = useState(null); // null = the default for this kind
@@ -114,6 +118,7 @@ export default function Record() {
     setPicking(false);
     setCredit(false);
     setVatChoice(null);
+    setPayBy('');
   }
 
   async function submit(e, again) {
@@ -131,8 +136,17 @@ export default function Record() {
       } else {
         body.amount = form.amount;
       }
+      if (kind === 'sale' && credit) {
+        const cs = { date: form.date, dueDate: payBy || null, note: form.note || null, vat: vatApplies ? vatOn : false };
+        if (customer.contactId) cs.contactId = customer.contactId;
+        else cs.newContact = { name: customer.name, phone: customer.phone || null };
+        if (hasLines) cs.items = body.items; else cs.amount = form.amount;
+        const { invoice } = await api(`/businesses/${business.id}/credit-sales`, { method: 'POST', body: cs });
+        navigate(`/customers/${invoice.contact.id}`, { state: { flash: t('record.saved.creditSale', { amount: money(invoice.total), name: invoice.contact.name }) } });
+        return;
+      }
       const onCredit = isPurchase && credit;
-      if (onCredit) body.onCredit = { supplier };
+      if (onCredit) body.onCredit = { supplier, dueDate: payBy || null };
       if (vatApplies) body.vat = vatOn;
       if (isMomo && !onCredit) {
         body.paymentRef = form.paymentRef || null;
@@ -150,7 +164,7 @@ export default function Record() {
         // Refresh stock numbers shown in the picker.
         api(`/businesses/${business.id}/products`).then((p) => setProducts(p.products)).catch(() => {});
       } else {
-        navigate('/', { state: { flash: msg } });
+        navigate('/', { state: { flash: msg, receiptFor: kind === 'sale' ? transaction.id : null } });
       }
     } catch (err) {
       setErrors(err.fields || {});
@@ -272,15 +286,65 @@ export default function Record() {
               <span>{t('record.onCredit')}</span>
             </label>
             {credit && (
-              <Field label={t('record.supplier')} error={errors['onCredit.supplier'] || errors.onCredit}
-                hint={t('record.onCreditHint')}>
-                {(p) => <input {...p} value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder={t('record.ph.purchase')} />}
-              </Field>
+              <div className="grid-2">
+                <Field label={t('record.supplier')} error={errors['onCredit.supplier'] || errors.onCredit}
+                  hint={t('record.onCreditHint')}>
+                  {(p) => <input {...p} value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder={t('record.ph.purchase')} />}
+                </Field>
+                <Field label={t('record.payBy')} error={errors['onCredit.dueDate']} hint={t('record.payByHint')}>
+                  {(p) => <input {...p} type="date" min={form.date} value={payBy} onChange={(e) => setPayBy(e.target.value)} />}
+                </Field>
+              </div>
             )}
           </div>
         )}
 
-        {kind !== 'transfer' && !(isPurchase && credit) ? (
+        {kind === 'sale' && (
+          <div className="field">
+            <label className="check-row">
+              <input type="checkbox" checked={credit} onChange={(e) => {
+                setCredit(e.target.checked);
+                if (e.target.checked && !contacts) {
+                  api(`/businesses/${business.id}/contacts`).then((d) => {
+                    setContacts(d.contacts);
+                    if (!d.contacts.length) setCustomer((c) => ({ ...c, contactId: '' }));
+                  }).catch(() => setContacts([]));
+                }
+              }} />
+              <span>{t('record.saleOnCredit')}</span>
+            </label>
+            {credit && (
+              <div className="stack-tight">
+                <p className="muted small">{t('record.saleOnCreditHint')}</p>
+                {contacts && contacts.length > 0 && (
+                  <Field label={t('record.customer')} error={errors.contactId}>
+                    {(p) => (
+                      <select {...p} value={customer.contactId} onChange={(e) => setCustomer({ ...customer, contactId: e.target.value })}>
+                        <option value="">{t('record.newCustomer')}</option>
+                        {contacts.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone.replace('+233', '0')}` : ''}</option>)}
+                      </select>
+                    )}
+                  </Field>
+                )}
+                {!customer.contactId && (
+                  <div className="grid-2">
+                    <Field label={t('record.customerName')} error={errors['newContact.name']}>
+                      {(p) => <input {...p} value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} />}
+                    </Field>
+                    <Field label={t('record.customerPhone')} error={errors['newContact.phone']}>
+                      {(p) => <input {...p} type="tel" inputMode="tel" placeholder="024 123 4567" value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} />}
+                    </Field>
+                  </div>
+                )}
+                <Field label={t('record.payBy')} error={errors.dueDate} hint={t('record.payByHint')}>
+                  {(p) => <input {...p} type="date" min={form.date} value={payBy} onChange={(e) => setPayBy(e.target.value)} />}
+                </Field>
+              </div>
+            )}
+          </div>
+        )}
+
+        {kind !== 'transfer' && !credit ? (
           <fieldset className="field">
             <legend>{kind === 'sale' ? t('record.whereTo') : t('record.whereFrom')}</legend>
             <div className="chips">
@@ -327,7 +391,7 @@ export default function Record() {
           </Field>
         )}
 
-        {isMomo && !(isPurchase && credit) && (
+        {isMomo && !credit && (
           <div className="grid-2">
             <Field label={t('record.momoId')} error={errors.paymentRef}>
               {(p) => <input {...p} value={form.paymentRef} onChange={set('paymentRef')} />}

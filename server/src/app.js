@@ -43,7 +43,7 @@ function createApp() {
   app.use('/api/guides', requireAuth, require('./routes/guides').router);
   // Customer-facing invoice links: no login, read-only, rate-limited.
   app.use('/api/public', rateLimit({ windowMs: 60 * 1000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false }),
-    invoices.publicRouter);
+    invoices.publicRouter, require('./routes/cashbook').publicRouter);
 
   app.use('/api', (req, res, next) => next(new HttpError(404, 'Not found.')));
 
