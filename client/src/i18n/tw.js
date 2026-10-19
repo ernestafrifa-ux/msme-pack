@@ -550,32 +550,32 @@ export default {
   "st.stock.usedN": "wode dii dwuma {n}", // draft, to review
   "st.stock.supply": "Wode yɛ adwuma", // draft, to review
 
-  // Added in v0.24 (statement of cash flows). Drafts, not yet reviewed.
-  "st.cf.title": "Sika a ɛbaeɛ ne sika a ɛkɔeɛ (cash flow)", // draft, to review
-  "st.cf.statement": "Sika nantewee akontaa (statement of cash flows)", // draft, to review
-  "st.cf.what": "Baabi a sika no firi baeɛ ne baabi a ɛkɔeɛ: adetɔn, nnwinnade, ne adwuma wura ne bosea.", // draft, to review
-  "st.cf.operating": "Sika firi adwumayɛ (operating activities)", // draft, to review
-  "st.cf.investing": "Sika a wode tɔɔ nnwinnade (investing activities)", // draft, to review
-  "st.cf.financing": "Sika firi adwuma wura ne bosea (financing activities)", // draft, to review
-  "st.cf.netOperating": "Sika a aka firi adwumayɛ mu", // draft, to review
-  "st.cf.netInvesting": "Sika a ɛkɔɔ nnwinnade so", // draft, to review
-  "st.cf.netFinancing": "Sika a aka firi adwuma wura ne bosea mu", // draft, to review
-  "st.cf.increase": "Sika a aka ho", // draft, to review
-  "st.cf.decrease": "Sika a ate so", // draft, to review
-  "st.cf.opening": "Sika a na ɛwɔ hɔ mfiase (sika adaka, MoMo ne bank)", // draft, to review
-  "st.cf.closing": "Sika a ɛwɔ hɔ awieeɛ", // draft, to review
-  "st.cf.line.customers": "Sika a adetɔfoɔ tuaeɛ", // draft, to review
-  "st.cf.line.other_income": "Sika foforɔ a ɛbaeɛ", // draft, to review
-  "st.cf.line.suppliers": "Sika a wotuaa maa nneɛma ne wɔn a wɔtɔn ma wo", // draft, to review
-  "st.cf.line.expenses": "Ɛka a wotuaeɛ", // draft, to review
-  "st.cf.line.momo_fees": "MoMo charges", // draft, to review
-  "st.cf.line.interest": "Bosea ho mfɛntom a wotuaeɛ", // draft, to review
-  "st.cf.line.tax": "VAT, NHIL ne GETFund a wotuaa GRA", // draft, to review
-  "st.cf.line.equipment": "Nnwinnade a wotɔeɛ", // draft, to review
-  "st.cf.line.owner_capital": "Sika a adwuma wura de hyɛɛ mu", // draft, to review
-  "st.cf.line.loans_received": "Bosea a wonyaeɛ", // draft, to review
-  "st.cf.line.loans_repaid": "Bosea a wotuaeɛ", // draft, to review
-  "st.cf.line.owner_draw": "Wo ho akatua", // draft, to review
-  "st.cf.note": "Sika a wotu firi wo sika adaka, MoMo ne bank mu kɔ wɔn ho wɔn ho no nnyɛ sika nantewee. Sika a na ɛwɔ hɔ mfiase + nsakraeɛ = sika a ɛwɔ hɔ awieeɛ, sɛdeɛ ɛte wɔ Sika a ɛbaeɛ ne sika a ɛkɔeɛ akontaa mu.", // draft, to review
-  "st.cf.profitNote": "Sika a ɛfiri adwumayɛ mu nnyɛ mfasoɔ: wotua nneɛma ho ka ansa na woatɔn, invoice ka ho bere a wɔatua nko ara, na nnwinnade, bosea ne wo ho akatua nka mfasoɔ ho koraa.", // draft, to review
+  // Added in v0.24 (statement of cash flows). Reviewed and approved (October 2026).
+  "st.cf.title": "Sika a ɛbaeɛ ne sika a ɛkɔeɛ (cash flow)",
+  "st.cf.statement": "Sika nantewee akontaa (statement of cash flows)",
+  "st.cf.what": "Baabi a sika no firi baeɛ ne baabi a ɛkɔeɛ: adetɔn, nnwinnade, ne adwuma wura ne bosea.",
+  "st.cf.operating": "Sika firi adwumayɛ (operating activities)",
+  "st.cf.investing": "Sika a wode tɔɔ nnwinnade (investing activities)",
+  "st.cf.financing": "Sika firi adwuma wura ne bosea (financing activities)",
+  "st.cf.netOperating": "Sika a aka firi adwumayɛ mu",
+  "st.cf.netInvesting": "Sika a ɛkɔɔ nnwinnade so",
+  "st.cf.netFinancing": "Sika a aka firi adwuma wura ne bosea mu",
+  "st.cf.increase": "Sika a abɛka ho",
+  "st.cf.decrease": "Sika a afiri so",
+  "st.cf.opening": "Sika a na ɛwɔ hɔ mfiase (sika adaka, MoMo ne bank)",
+  "st.cf.closing": "Sika a ɛwɔ hɔ awieeɛ",
+  "st.cf.line.customers": "Sika a adetɔfoɔ tuaeɛ",
+  "st.cf.line.other_income": "Sika foforɔ a ɛbaeɛ",
+  "st.cf.line.suppliers": "Sika a wotuaa maa nneɛma ne wɔn a wɔtɔn ma wo",
+  "st.cf.line.expenses": "Ɛka a wotuaeɛ",
+  "st.cf.line.momo_fees": "MoMo charges",
+  "st.cf.line.interest": "Bosea ho nsihu a wotuaeɛ",
+  "st.cf.line.tax": "VAT, NHIL ne GETFund a wotuaa GRA",
+  "st.cf.line.equipment": "Mfidie a wotɔeɛ",
+  "st.cf.line.owner_capital": "Sika a adwuma wura de hyɛɛ mu",
+  "st.cf.line.loans_received": "Bosea a wonyaeɛ",
+  "st.cf.line.loans_repaid": "Bosea a wotuaeɛ",
+  "st.cf.line.owner_draw": "Wo ho akatua",
+  "st.cf.note": "Sika a wo yi firi wo sika adaka, MoMo ne bank mu kɔ wɔn ho wɔn ho no nnyɛ sika nantewee. Sika a na ɛwɔ hɔ mfiase + nsakraeɛ = sika a ɛwɔ hɔ awieeɛ, sɛdeɛ ɛte wɔ Sika a ɛbaeɛ ne sika a ɛkɔeɛ akontaa mu.",
+  "st.cf.profitNote": "Sika a ɛfiri adwumayɛ mu nnyɛ mfasoɔ: wotua nneɛma ho ka ansa na woatɔn, invoice ka ho bere a wɔatua nko ara, na nnwinnade, bosea ne wo ho akatua nka mfasoɔ ho koraa.",
 };

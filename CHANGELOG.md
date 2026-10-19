@@ -10,7 +10,7 @@ On Railway, database changes and guide edits are applied automatically when the 
   - **Cash for equipment** (investing): equipment bought;
   - **Cash from the owner and loans** (financing): money the owner put in or took out, and loans received or repaid (the loan itself; its interest is under trading).
 - It ends on money at the start + the net change = money at the end, the same balances as Receipts and payments and Home. Transfers between the business's own accounts are left out. Print, save as PDF or download for a spreadsheet, like the other statements.
-- New Twi lines for this screen are drafts for the reviewer (`msme-pack-twi-review-v0.24.xlsx`).
+- The 27 new Twi lines for this screen were reviewed: 22 approved and 5 corrected (for example "Mfidie" for equipment and "nsihu" for interest).
 - Deploy: no database change.
 
 ## 0.23 · 19 October 2026 · Items used in the work, and making goods
