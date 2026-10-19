@@ -5,7 +5,7 @@ On Railway, database changes and guide edits are applied automatically when the 
 
 ## 0.22.1 · 19 October 2026 · Twi for the newer screens reviewed
 
-- A fluent Asante Twi speaker checked all 762 new Twi lines: 751 approved as written, 11 corrected (for example "Ɛso ati" for a cash shortage, "mane" for sending on WhatsApp). The corrections are applied and the lines are no longer marked as drafts.
+- A fluent Asante Twi speaker checked all 762 new Twi lines: 751 approved as written, 11 corrected (for example "Ɛso ati" for a cash shortage, "mane" for sending on WhatsApp and SMS). The corrections are applied, and the same words are now used on the matching lines and the lines are no longer marked as drafts.
 - Deploy: no database change.
 
 ## 0.22 · 19 October 2026 · Twi for the newer screens (drafts)
