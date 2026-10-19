@@ -20,6 +20,9 @@ import Customers from './pages/Customers.jsx';
 import CustomerDetail from './pages/CustomerDetail.jsx';
 import CloseDay from './pages/CloseDay.jsx';
 import Activity from './pages/Activity.jsx';
+import Plan from './pages/Plan.jsx';
+import Goals from './pages/Goals.jsx';
+import PriceCheck from './pages/PriceCheck.jsx';
 import BusinessDetails from './pages/BusinessDetails.jsx';
 import Health from './pages/Health.jsx';
 import HealthCheck from './pages/HealthCheck.jsx';
@@ -144,6 +147,9 @@ export default function App() {
       <Route path="/customers" element={<Customers />} />
       <Route path="/close-day" element={<CloseDay />} />
       <Route path="/activity" element={<Activity />} />
+      <Route path="/plan" element={<Plan />} />
+      <Route path="/goals" element={<Goals />} />
+      <Route path="/price-check" element={<PriceCheck />} />
       <Route path="/customers/:contactId" element={<CustomerDetail />} />
       {adminRoutes}
       <Route path="/health" element={<Health />} />

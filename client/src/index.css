@@ -520,3 +520,11 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
 .pos-text { color: var(--primary-dark); }
 .close-day-card { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; margin-top: 12px; }
 .close-day-card .grow { flex: 1; min-width: 0; }
+
+/* Planning */
+.progress-line { display: flex; flex-direction: column; gap: 2px; }
+.progress-line .bar { margin-top: 2px; }
+.plan-link { text-decoration: none; color: inherit; margin: 8px 0; }
+.limit-input { width: 110px; min-height: 40px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; font-size: 16px; text-align: right; }
+.price-result .stat { font-size: 24px; }
+.goal .bar { margin-top: 4px; }

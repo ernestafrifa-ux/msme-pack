@@ -33,6 +33,22 @@ export default function Reports() {
           </li>
         ))}
       </ul>
+      <h2 className="date-head">Plan and grow</h2>
+      <ul className="txn-list">
+        {[['/plan', 'Target & budget', 'A sales target and a spending limit for the month, with progress on Home.'],
+          ['/goals', 'Savings goals', 'Save up for something, like a photocopier or next year’s rent.'],
+          ['/price-check', 'Price checker', 'Profit, margin and markup on an item, and how many to sell.']].map(([to, title, what]) => (
+          <li key={to}>
+            <Link to={to} className="txn report-link">
+              <span className="txn-main">
+                <span className="txn-title wrap">{title}</span>
+                <span className="small muted">{what}</span>
+              </span>
+              <Icon name="chevron" size={18} />
+            </Link>
+          </li>
+        ))}
+      </ul>
       <h2 className="date-head">{t('st.records')}</h2>
       <ul className="txn-list">
         <li>

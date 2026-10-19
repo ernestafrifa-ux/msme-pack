@@ -629,6 +629,7 @@ router.get('/dashboard', canView, validate(dashSchema, 'query'), async (req, res
     // The newest message from the MSME Pack team that this person has not read.
     notices: await latestNotice(req.businessId, req.user.id),
     reminders: await reminders(req.businessId),
+    plan: (await require('./planning').planSummary(req.businessId, month)).plan,
     countedToday: (await query('SELECT 1 FROM cash_counts WHERE business_id = $1 AND count_date = $2 LIMIT 1',
       [req.businessId, todayInGhana()])).rows.length > 0,
     lowStock: lowStock.rows.map((p) => ({

@@ -6,6 +6,7 @@ import { BottomNav, Icon } from '../components.jsx';
 import { money, monthName, qty, longDate } from '../format';
 import { TxnRow } from './Records.jsx';
 import BizLogo from '../BizLogo.jsx';
+import Progress from '../Progress.jsx';
 import { useT, DraftLanguageBanner } from '../i18n.jsx';
 
 function greetingKey() {
@@ -174,6 +175,12 @@ export default function Home() {
                 {money(data?.summary.netProfitEstimate)}
               </div></div>
           </div>
+          {data?.plan && (data.plan.salesTarget || data.plan.expenseLimit) && (
+            <Link to="/plan" className="stack-tight plan-link">
+              {data.plan.salesTarget && <Progress label={t('home.sales')} value={data.summary.sales} target={data.plan.salesTarget} />}
+              {data.plan.expenseLimit && <Progress label={t('home.spending')} value={Number(data.summary.expenses) + Number(data.summary.momoFees)} target={data.plan.expenseLimit} budget />}
+            </Link>
+          )}
           <p className="muted small">{t('home.profitNote')}</p>
           {Number(data?.summary.stockLosses) !== 0 && data && (
             <p className="owner-pay small">

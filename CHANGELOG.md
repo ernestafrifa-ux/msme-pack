@@ -3,6 +3,14 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.17 · 19 October 2026 · Target, budget, savings goals and price checker
+
+New "Plan and grow" section in Reports:
+- **Target & budget**: a sales target and a spending budget for the month, with optional limits for some costs (for example transport). Progress bars on Home and on the plan; a warning when sales are behind for the share of the month gone, and when spending passes 90%. A plan carries over to later months until changed.
+- **Savings goals**: save for something (a photocopier, next year's rent) in a separate place money is kept, such as a "Savings box", susu or bank account. Progress follows that account's balance; "Put money aside" opens a transfer into it; with a date, it shows about how much to save each month.
+- **Price checker**: cost plus other costs per item, then either a suggested price for the margin wanted (rounded up to the next 50 pesewas) or a check of your own price: profit on each, margin, markup, the price with VAT for VAT-registered businesses, and how many to sell to cover monthly running costs. With a product chosen, the suggested price can be saved as its selling price.
+- Deploy: database change `015_plans_and_goals.sql`.
+
 ## 0.16 · 19 October 2026 · Close the day, and who recorded what
 
 - **Close the day** (Home, or Reports): count the cash box and check the MoMo balance; the app shows "Short by" or "Extra" against the records. A difference is recorded (a shortage as the cost "Cash shortage", extra as "Cash over") so balances match what is really there, or can be noted only. Earlier counts are listed with who counted. Home shows "Day closed" once counted.

@@ -70,14 +70,14 @@ export default function Record() {
         setForm((f) => ({
           ...f,
           accountId: f.accountId || defaults.accountId,
-          toAccountId: f.toAccountId || defaults.toAccountId,
+          toAccountId: location.state?.toAccountId || f.toAccountId || defaults.toAccountId,
         }));
         // Opened from a product's "Bought more" button: start with that product.
         const startWith = p.products.find((x) => x.id === location.state?.productId);
         if (startWith) setLines((l) => (l.length ? l : [lineFrom(startWith, 'costPrice')]));
       })
       .catch((err) => setMessage(err.message));
-  }, [business.id, location.state?.productId]);
+  }, [business.id, location.state?.productId, location.state?.toAccountId]);
 
   // Sales can include services (photocopying, repairs); buying stock is for products only.
   const pickable = useMemo(
