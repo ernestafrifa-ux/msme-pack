@@ -233,6 +233,8 @@ export default {
 
   'picker.label': 'Choose a product',
   'picker.search': 'Search products',
+  'picker.searchList': 'Type to search',
+  'picker.noMatch': 'Nothing matches.',
   'picker.done': 'Done',
   'picker.inStock': '{qty} {unit} in stock',
   'picker.none': 'No products match. Add products in Stock.',

@@ -3,6 +3,16 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.25 · 20 October 2026 · Search in long lists
+
+- Lists that can grow long now open a searchable list instead of a plain dropdown: tap it, type a few letters (a name, or part of a phone number for customers) and tap the item. Used for:
+  - choosing a saved customer on an invoice, and on a sale paid later;
+  - choosing a product in the Price checker;
+  - choosing each ingredient or material in "Made some".
+- The product lists on Sale, Buy stock and invoices, the Stock screen and Customers who owe already had search.
+- Two new Twi lines ("Kyerɛw na hwehwɛ", "Biribiara nhyia.") are drafts for the reviewer.
+- Deploy: no database change.
+
 ## 0.24 · 19 October 2026 · Statement of cash flows
 
 - New in Reports: **Cash flow**, the statement of cash flows lenders and programmes ask for. It sorts the money that came in and went out over any period into:

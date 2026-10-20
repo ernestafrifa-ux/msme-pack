@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api, cachedGet, addToOutbox, newClientRef } from '../api';
 import { useSession } from '../session.jsx';
-import { Field, FormError, Icon, ProductPicker } from '../components.jsx';
+import { Field, FormError, Icon, ProductPicker, SearchSelect } from '../components.jsx';
 import { money, qty, todayGhana } from '../format';
 import { useT } from '../i18n.jsx';
 import { vatFromInclusive } from '../tax';
@@ -337,10 +337,9 @@ export default function Record() {
                 {contacts && contacts.length > 0 && (
                   <Field label={t('record.customer')} error={errors.contactId}>
                     {(p) => (
-                      <select {...p} value={customer.contactId} onChange={(e) => setCustomer({ ...customer, contactId: e.target.value })}>
-                        <option value="">{t('record.newCustomer')}</option>
-                        {contacts.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone.replace('+233', '0')}` : ''}</option>)}
-                      </select>
+                      <SearchSelect {...p} value={customer.contactId} emptyLabel={t('record.newCustomer')}
+                        options={contacts.map((c) => ({ value: c.id, label: c.name, hint: c.phone ? c.phone.replace('+233', '0') : undefined }))}
+                        onChange={(v) => setCustomer({ ...customer, contactId: v })} />
                     )}
                   </Field>
                 )}

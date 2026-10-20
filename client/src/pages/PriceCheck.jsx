@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
-import { Field, TopBar } from '../components.jsx';
+import { Field, TopBar, SearchSelect } from '../components.jsx';
 import { money } from '../format';
 import { useT } from '../i18n.jsx';
 
@@ -57,10 +57,9 @@ export default function PriceCheck() {
         {products.length > 0 && (
           <Field label={tt('Product (optional)')}>
             {(p) => (
-              <select {...p} value={productId} onChange={(e) => pick(e.target.value)}>
-                <option value="">{tt('Type the numbers yourself')}</option>
-                {products.filter((x) => x.kind === 'product').map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-              </select>
+              <SearchSelect {...p} value={productId} emptyLabel={tt('Type the numbers yourself')}
+                options={products.filter((x) => x.kind === 'product').map((x) => ({ value: x.id, label: x.name }))}
+                onChange={pick} />
             )}
           </Field>
         )}

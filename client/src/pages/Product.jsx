@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
-import { Field, FormError, Icon, TopBar } from '../components.jsx';
+import { Field, FormError, Icon, TopBar, SearchSelect } from '../components.jsx';
 import { money, qty, friendlyDate, STOCK_REASON, todayGhana } from '../format';
 import { useT } from '../i18n.jsx';
 
@@ -71,11 +71,10 @@ function MakeForm({ product, businessId, onDone, onCancel }) {
         <legend>{tt('What did you use from stock?')}</legend>
         <div className="stack-tight">
           {used.map((u, i) => (
-            <div key={i} className="grid-2">
-              <select aria-label={tt('Ingredient {n}', { n: i + 1 })} value={u.productId} onChange={(e) => setLine(i, 'productId', e.target.value)}>
-                <option value="">{tt('Choose…')}</option>
-                {(items || []).map((x) => <option key={x.id} value={x.id}>{x.name} ({qty(x.onHand)} {x.unit})</option>)}
-              </select>
+            <div key={i} className="ingredient-row">
+              <SearchSelect label={tt('Ingredient {n}', { n: i + 1 })} value={u.productId} placeholder={tt('Choose…')}
+                options={(items || []).map((x) => ({ value: x.id, label: x.name, hint: `${qty(x.onHand)} ${x.unit}` }))}
+                onChange={(v) => setLine(i, 'productId', v)} />
               <input type="number" inputMode="decimal" min="0" step="any" aria-label={tt('How much of ingredient {n}', { n: i + 1 })}
                 placeholder={u.productId ? byId[u.productId]?.unit : tt('How much')} value={u.quantity}
                 onChange={(e) => setLine(i, 'quantity', e.target.value)} />

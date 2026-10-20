@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useSession } from '../session.jsx';
-import { Field, FormError, Icon, ProductPicker, TopBar } from '../components.jsx';
+import { Field, FormError, Icon, ProductPicker, TopBar, SearchSelect } from '../components.jsx';
 import { money, todayGhana, addDaysIso } from '../format';
 import { vatOn } from '../tax';
 import { useT } from '../i18n.jsx';
@@ -126,10 +126,9 @@ export default function InvoiceForm() {
           {customer.mode === 'existing' ? (
             <Field label={tt('Choose customer')} error={errors.contactId}>
               {(p) => (
-                <select {...p} value={customer.contactId} onChange={(e) => setCustomer({ ...customer, contactId: e.target.value })}>
-                  <option value="">{tt('Choose…')}</option>
-                  {contacts.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone.replace('+233', '0')}` : ''}</option>)}
-                </select>
+                <SearchSelect {...p} value={customer.contactId} placeholder={tt('Choose…')}
+                  options={contacts.map((c) => ({ value: c.id, label: c.name, hint: c.phone ? c.phone.replace('+233', '0') : undefined }))}
+                  onChange={(v) => setCustomer({ ...customer, contactId: v })} />
               )}
             </Field>
           ) : (

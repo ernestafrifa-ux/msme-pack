@@ -578,4 +578,8 @@ export default {
   "st.cf.line.owner_draw": "Wo ho akatua",
   "st.cf.note": "Sika a wo yi firi wo sika adaka, MoMo ne bank mu kɔ wɔn ho wɔn ho no nnyɛ sika nantewee. Sika a na ɛwɔ hɔ mfiase + nsakraeɛ = sika a ɛwɔ hɔ awieeɛ, sɛdeɛ ɛte wɔ Sika a ɛbaeɛ ne sika a ɛkɔeɛ akontaa mu.",
   "st.cf.profitNote": "Sika a ɛfiri adwumayɛ mu nnyɛ mfasoɔ: wotua nneɛma ho ka ansa na woatɔn, invoice ka ho bere a wɔatua nko ara, na mfidie, bosea ne wo ho akatua nka mfasoɔ ho koraa.",
+
+  // Added in v0.25 (search in long lists). Drafts, not yet reviewed.
+  "picker.searchList": "Kyerɛw na hwehwɛ", // draft, to review
+  "picker.noMatch": "Biribiara nhyia.", // draft, to review
 };

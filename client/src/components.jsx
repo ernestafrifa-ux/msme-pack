@@ -88,6 +88,55 @@ export function StatusPill({ status, label }) {
   return <span className={`pill pill-${status}`}>{label}</span>;
 }
 
+// A choice from a long list (customers, products, ingredients): looks like a dropdown, and
+// opens a list you can search by typing a few letters. options: [{ value, label, hint? }].
+// `emptyLabel` adds a first choice with value '' (e.g. "A new customer…").
+export function SearchSelect({ value, options, onChange, placeholder, emptyLabel, label, id, ...aria }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const chosen = options.find((o) => o.value === value);
+  const words = q.trim().toLowerCase();
+  const list = options.filter((o) => !words || `${o.label} ${o.hint || ''}`.toLowerCase().includes(words));
+  const pick = (v) => { onChange(v); setOpen(false); setQ(''); };
+  const shown = chosen ? chosen.label : value === '' && emptyLabel ? emptyLabel : placeholder;
+  return (
+    <div className="search-select">
+      <button type="button" id={id} className={'select-btn' + (chosen ? '' : ' select-btn-empty')}
+        aria-haspopup="dialog" aria-expanded={open} aria-label={label} {...aria} onClick={() => setOpen(!open)}>
+        <span className="select-btn-text">{shown}{chosen?.hint ? <span className="muted small"> · {chosen.hint}</span> : null}</span>
+        <Icon name="search" size={18} />
+      </button>
+      {open && (
+        <div className="picker" role="dialog" aria-label={label || placeholder || emptyLabel}>
+          <div className="picker-head">
+            <label className="search">
+              <Icon name="search" size={20} />
+              <span className="sr-only">{t('picker.searchList')}</span>
+              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('picker.searchList')} />
+            </label>
+            <button type="button" className="btn-link" onClick={() => { setOpen(false); setQ(''); }}>{t('common.close')}</button>
+          </div>
+          <ul className="picker-list">
+            {emptyLabel && !words && (
+              <li><button type="button" onClick={() => pick('')}><span className="picker-name">{emptyLabel}</span></button></li>
+            )}
+            {list.map((o) => (
+              <li key={o.value}>
+                <button type="button" aria-pressed={o.value === value} onClick={() => pick(o.value)}>
+                  <span className="picker-name">{o.label}</span>
+                  {o.hint && <span className="muted small">{o.hint}</span>}
+                </button>
+              </li>
+            ))}
+            {!list.length && <li className="muted small picker-empty">{t('picker.noMatch')}</li>}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Searchable list of products to add to a sale, stock purchase or invoice.
 export function ProductPicker({ products, onPick, onClose, priceField = 'sellingPrice', showStock = true }) {
   const { t } = useT();
