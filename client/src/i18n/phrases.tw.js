@@ -595,4 +595,16 @@ export default {
   "Sold": "Wɔtɔneeɛ", // draft, to review
   "Used to make products": "Wode yɛɛ nneɛma", // draft, to review
   "Item name": "Adeɛ no din", // draft, to review
+  // v0.26 computer view
+  "Customers": "Adetɔfoɔ", // draft, to review
+  "Record a sale": "Kyerɛw adetɔn", // draft, to review
+  "Screen layout": "Screen nhyehyɛeɛ", // draft, to review
+  "Only changes this phone or computer.": "Ɛsesa phone anaa kɔmputa yi nko ara.", // draft, to review
+  "Automatic": "Ɛno ara bɛpaw", // draft, to review
+  "Computer view on a wide screen, phone view on a phone": "Kɔmputa nhyehyɛeɛ wɔ screen kɛseɛ so, phone nhyehyɛeɛ wɔ phone so", // draft, to review
+  "Phone view": "Phone nhyehyɛeɛ", // draft, to review
+  "One column with the menu at the bottom": "Ɔfa baako, na menu no wɔ aseɛ", // draft, to review
+  "Computer view": "Kɔmputa nhyehyɛeɛ", // draft, to review
+  "Menu on the left and more on the screen at once. For a laptop, desktop or tablet.": "Menu no wɔ benkum so, na nneɛma pii da screen no so prɛko. Ɛyɛ ma laptop, kɔmputa anaa tablet.", // draft, to review
+  "Switch to phone view": "Sesa kɔ phone nhyehyɛeɛ so", // draft, to review
 };

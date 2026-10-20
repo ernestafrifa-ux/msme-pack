@@ -4,6 +4,7 @@ import { useSession } from '../session.jsx';
 import { Link } from 'react-router-dom';
 import { Field, FormError, Icon, TopBar } from '../components.jsx';
 import { useT, UI_LANGUAGES } from '../i18n.jsx';
+import { useViewChoice } from '../view.js';
 import AccountsSection from './AccountsSection.jsx';
 import MembersSection from './MembersSection.jsx';
 import LogoSection from './LogoSection.jsx';
@@ -118,8 +119,34 @@ export default function BusinessDetails() {
         </div>
         {langMessage && <p className="small" role="status">{langMessage === 'saved' ? t('settings.langSaved') : langMessage}</p>}
       </section>
+      <ViewCard />
       <Link to="/settings/password" className="btn btn-ghost btn-block">{tt('Change my password')}</Link>
       {user.isAdmin && <Link to="/admin" className="btn btn-ghost btn-block">{tt('MSME Pack admin: all businesses')}</Link>}
     </main>
+  );
+}
+
+// Phone view or computer view, kept on this device.
+function ViewCard() {
+  const { tt } = useT();
+  const [choice, setChoice] = useViewChoice();
+  const options = [
+    ['auto', tt('Automatic'), tt('Computer view on a wide screen, phone view on a phone')],
+    ['phone', tt('Phone view'), tt('One column with the menu at the bottom')],
+    ['desktop', tt('Computer view'), tt('Menu on the left and more on the screen at once. For a laptop, desktop or tablet.')],
+  ];
+  return (
+    <section className="card lang-card">
+      <h2>{tt('Screen layout')}</h2>
+      <p className="muted small">{tt('Only changes this phone or computer.')}</p>
+      <div className="options view-options" role="radiogroup" aria-label={tt('Screen layout')}>
+        {options.map(([value, label, hint]) => (
+          <label key={value} className={'option' + (choice === value ? ' option-on' : '')}>
+            <input type="radio" name="viewMode" checked={choice === value} onChange={() => setChoice(value)} />
+            <span><span className="block-strong">{label}</span><span className="small muted block">{hint}</span></span>
+          </label>
+        ))}
+      </div>
+    </section>
   );
 }

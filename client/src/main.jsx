@@ -5,6 +5,9 @@ import App from './App.jsx';
 import { SessionProvider } from './session.jsx';
 import { I18nProvider } from './i18n.jsx';
 import './index.css';
+import { startView } from './view.js';
+
+startView();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

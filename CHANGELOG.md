@@ -3,6 +3,17 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.26 · 21 October 2026 · Computer view
+
+- New **computer view** for people who keep records on a laptop or desktop:
+  - the menu sits down the left side and stays on every screen (Record a sale, Home, Records, Stock, Invoices, Customers, Reports, Business health, Learn, Messages, Business details, Log out);
+  - Home shows two columns: money, quick buttons, this month and latest records on the left; Close the day, things that need attention and the health check on the right;
+  - screens use more of the width, so reports and lists are easier to read.
+- It turns on by itself on a wide screen. Change it in **Business details → Screen layout**: Automatic, Phone view or Computer view. The choice is kept on that phone or computer only. "Switch to phone view" is also at the bottom of the left menu.
+- Phones look and work exactly as before.
+- New Twi lines for the screen layout options and the left menu are drafts for the reviewer (marked "draft, to review").
+- Deploy: no database change.
+
 ## 0.25 · 20 October 2026 · Search in long lists
 
 - Lists that can grow long now open a searchable list instead of a plain dropdown: tap it, type a few letters (a name, or part of a phone number for customers) and tap the item. Used for:

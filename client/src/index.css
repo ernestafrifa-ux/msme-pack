@@ -572,3 +572,43 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
 .file-btn { cursor: pointer; }
 .momo-line { align-items: center; }
 .block-strong { display: block; }
+
+/* ---- Computer view (v0.26) ----------------------------------------------
+   Turned on in Settings → Screen layout, or automatically on a wide screen. The <html> element
+   gets the class "desk"; "has-side" is added while the left menu is showing. */
+.side-nav { display: none; }
+.view-options .option { padding: 10px 14px; align-items: flex-start; }
+.view-options .option input { margin-top: 3px; flex: none; }
+@media (min-width: 760px) {
+  html.desk.has-side body { padding-left: 248px; }
+  html.desk .bottom-nav { display: none; }
+  html.desk .side-nav {
+    display: flex; flex-direction: column; gap: 2px;
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 10; width: 248px;
+    padding: 20px 14px 16px; overflow-y: auto;
+    background: var(--surface); border-right: 1px solid var(--line);
+  }
+  .side-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 14px; text-decoration: none; color: var(--ink); min-width: 0; }
+  .side-brand-name { font-family: var(--display); font-weight: 700; font-size: 18px; line-height: 1.2; overflow-wrap: anywhere; }
+  .side-record { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 4px 12px; }
+  .side-nav > a:not(.side-brand):not(.side-record), .side-link {
+    display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 10px;
+    color: var(--muted); text-decoration: none; font-size: 16px; background: none; border: none; text-align: left; cursor: pointer; width: 100%;
+  }
+  .side-nav > a:not(.side-brand):not(.side-record):hover, .side-link:hover { background: var(--bg); color: var(--ink); }
+  .side-nav > a.active:not(.side-brand):not(.side-record) { background: var(--primary-tint); color: var(--primary-dark); font-weight: 700; }
+  .side-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+
+  html.desk .screen { max-width: 820px; padding: 28px 40px 48px; }
+  html.desk .screen.with-nav { max-width: 980px; padding-bottom: 48px; }
+  html.desk .screen.home-screen { max-width: 1160px; }
+  html.desk .screen.auth { max-width: 480px; }
+  html.desk h1 { font-size: 32px; }
+
+  /* Home: two columns */
+  html.desk .home-cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: start; margin-top: 4px; }
+  html.desk .home-col > :first-child { margin-top: 16px; }
+  html.desk .money-accounts { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  html.desk .money-account:last-child:nth-child(odd) { grid-column: auto; }
+  html.desk .quick-btn:hover { border-color: var(--primary); }
+}

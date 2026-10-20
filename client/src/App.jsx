@@ -2,6 +2,8 @@ import { lazy, useEffect } from 'react';
 import { flushOutbox } from './api';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useSession } from './session.jsx';
+import { useDesktop } from './view.js';
+import SideNav from './SideNav.jsx';
 import Login from './pages/Login.jsx';
 const Signup = lazy(() => import('./pages/Signup.jsx'));
 import Setup from './pages/Setup.jsx';
@@ -56,6 +58,7 @@ const Notices = lazy(() => import('./pages/Notices.jsx'));
 export default function App() {
   const { loading, user, business, connectError, retry } = useSession();
   const location = useLocation();
+  const desk = useDesktop();
 
   // Send records saved offline: now, when the connection returns, and every minute.
   useEffect(() => {
@@ -135,6 +138,8 @@ export default function App() {
   }
 
   return (
+    <>
+    {desk && <SideNav />}
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/record/:kind" element={<Record />} />
@@ -180,5 +185,6 @@ export default function App() {
       <Route path="/learn/:slug" element={<Guide />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
