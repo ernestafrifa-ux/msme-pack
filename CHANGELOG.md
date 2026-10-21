@@ -12,7 +12,7 @@ On Railway, database changes and guide edits are applied automatically when the 
 - It turns on by itself on a wide screen. Change it in **Business details → Screen layout**: Automatic, Phone view or Computer view. The choice is kept on that phone or computer only. "Switch to phone view" is also at the bottom of the left menu.
 - Phones look and work exactly as before.
 - New Twi lines for the screen layout options and the left menu are drafts for the reviewer (marked "draft, to review").
-- Deploy: no database change.
+- Deploy: no database change. (Pushed again on 21 October after Railway's build outage held back the first deploy.)
 
 ## 0.25 · 20 October 2026 · Search in long lists
 
