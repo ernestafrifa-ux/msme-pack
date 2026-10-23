@@ -56,7 +56,7 @@ function LoanForm({ accounts, onSaved, onCancel }) {
 function AssetForm({ accounts, onSaved, onCancel }) {
   const { business } = useSession();
   const { t } = useT();
-  const [f, setF] = useState({ name: '', cost: '', boughtOn: todayGhana(), accountId: '', currentValue: '' });
+  const [f, setF] = useState({ name: '', cost: '', boughtOn: todayGhana(), accountId: '', currentValue: '', depreciationRate: '' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -66,7 +66,8 @@ function AssetForm({ accounts, onSaved, onCancel }) {
     setBusy(true); setErrors({}); setMessage('');
     try {
       const body = { name: f.name, cost: f.cost || 0, boughtOn: f.boughtOn, accountId: f.accountId || null };
-      if (f.currentValue !== '') body.currentValue = f.currentValue;
+      if (f.depreciationRate !== '') body.depreciationRate = f.depreciationRate;
+      else if (f.currentValue !== '') body.currentValue = f.currentValue;
       await api(`/businesses/${business.id}/assets`, { method: 'POST', body });
       onSaved();
     } catch (err) { setErrors(err.fields || {}); setMessage(err.message); } finally { setBusy(false); }
@@ -87,9 +88,14 @@ function AssetForm({ accounts, onSaved, onCancel }) {
           </select>
         )}
       </Field>
-      <Field label={t('assets.value')} error={errors.currentValue} hint={t('assets.valueHint')}>
-        {(p) => <input {...p} type="number" inputMode="decimal" min="0" step="0.01" value={f.currentValue} onChange={set('currentValue')} placeholder={f.cost || '0.00'} />}
+      <Field label={t('assets.rate')} error={errors.depreciationRate} hint={t('assets.rateHint')}>
+        {(p) => <input {...p} type="number" inputMode="decimal" min="0" max="100" step="0.5" value={f.depreciationRate} onChange={set('depreciationRate')} placeholder="e.g. 20" />}
       </Field>
+      {f.depreciationRate === '' && (
+        <Field label={t('assets.value')} error={errors.currentValue} hint={t('assets.valueHint')}>
+          {(p) => <input {...p} type="number" inputMode="decimal" min="0" step="0.01" value={f.currentValue} onChange={set('currentValue')} placeholder={f.cost || '0.00'} />}
+        </Field>
+      )}
       <button className="btn btn-primary btn-block" disabled={busy}>{busy ? t('common.saving') : t('assets.save')}</button>
       <button type="button" className="btn btn-ghost btn-block" onClick={onCancel}>{t('common.cancel')}</button>
     </form>
@@ -99,14 +105,18 @@ function AssetForm({ accounts, onSaved, onCancel }) {
 function AssetRow({ a, onChanged }) {
   const { business } = useSession();
   const { t } = useT();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(''); // '' | 'value' | 'rate'
   const [value, setValue] = useState(a.currentValue);
+  const [rate, setRate] = useState(a.depreciationRate ?? '');
   const [message, setMessage] = useState('');
   async function saveValue(e) {
     e.preventDefault();
     try {
-      await api(`/businesses/${business.id}/assets/${a.id}`, { method: 'PATCH', body: { currentValue: value } });
-      setEditing(false); onChanged();
+      const body = editing === 'rate'
+        ? (rate === '' ? { depreciationRate: null, currentValue: a.currentValue } : { depreciationRate: rate })
+        : { currentValue: value };
+      await api(`/businesses/${business.id}/assets/${a.id}`, { method: 'PATCH', body });
+      setEditing(''); onChanged();
     } catch (err) { setMessage(err.message); }
   }
   async function patch(body) { await api(`/businesses/${business.id}/assets/${a.id}`, { method: 'PATCH', body }); onChanged(); }
@@ -122,14 +132,33 @@ function AssetRow({ a, onChanged }) {
           {t('assets.line', { cost: money(a.cost), date: longDate(a.boughtOn, t) })}
           {a.paidFrom ? ` · ${t('assets.paidFromN', { name: a.paidFrom })}` : ''}
         </span>
-        {editing ? (
+        {a.depreciationRate != null && (
+          <span className="small muted">
+            {t('assets.rateLine', { rate: a.depreciationRate })}
+            {Number(a.depreciatedSoFar) > 0 ? ` · ${t('assets.depSoFar', { amount: money(a.depreciatedSoFar) })}` : ''}
+            {Number(a.nextCharge) > 0 ? ` · ${t('assets.depNext', { amount: money(a.nextCharge) })}` : ''}
+          </span>
+        )}
+        {editing === 'value' && (
           <form className="inline-form" onSubmit={saveValue}>
             <input aria-label={t('assets.value')} type="number" inputMode="decimal" min="0" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} />
             <button className="btn btn-primary">{t('common.save')}</button>
           </form>
-        ) : (
+        )}
+        {editing === 'rate' && (
+          <form className="stack-tight" onSubmit={saveValue}>
+            <span className="inline-form">
+              <input aria-label={t('assets.rateLabel')} type="number" inputMode="decimal" min="0" max="100" step="0.5" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="e.g. 20" />
+              <button className="btn btn-primary">{t('common.save')}</button>
+              <button type="button" className="btn btn-ghost" onClick={() => setEditing('')}>{t('common.cancel')}</button>
+            </span>
+            {a.depreciationRate != null && <span className="small muted">{t('assets.rateClear')}</span>}
+          </form>
+        )}
+        {!editing && (
           <span className="asset-actions">
-            <button type="button" className="btn-link small" onClick={() => setEditing(true)}>{t('assets.updateValue')}</button>
+            {a.depreciationRate == null && <button type="button" className="btn-link small" onClick={() => setEditing('value')}>{t('assets.updateValue')}</button>}
+            <button type="button" className="btn-link small" onClick={() => setEditing('rate')}>{a.depreciationRate == null ? t('assets.setRate') : t('assets.changeRate')}</button>
             {!a.disposedOn
               ? <button type="button" className="btn-link small" onClick={() => patch({ disposedOn: todayGhana() })}>{t('assets.markGone')}</button>
               : <button type="button" className="btn-link small" onClick={() => patch({ disposedOn: null })}>{t('assets.markBack')}</button>}

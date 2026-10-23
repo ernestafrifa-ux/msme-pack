@@ -612,3 +612,12 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
   html.desk .money-account:last-child:nth-child(odd) { grid-column: auto; }
   html.desk .quick-btn:hover { border-color: var(--primary); }
 }
+
+/* Admin: delete a business (v0.27) */
+.btn-danger { background: var(--danger); color: #FFFFFF; border: none; }
+.btn-danger:hover { background: #8E1E18; color: #FFFFFF; }
+.btn-danger:disabled { opacity: 0.55; }
+.delete-biz { margin-top: 6px; padding: 12px; border: 1px solid #E8C4C1; border-radius: 12px; background: #FDF3F2; }
+.delete-biz input { min-height: 44px; padding: 0 12px; border: 1px solid var(--input-line); border-radius: 10px; font-size: 16px; background: var(--surface); }
+.deleted-biz summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
+.deleted-biz .biz-row:last-child { border-bottom: none; }

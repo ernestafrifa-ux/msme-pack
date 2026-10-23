@@ -674,7 +674,7 @@ publicRouter.get('/invoices/:token', async (req, res) => {
   const token = req.params.token;
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) throw new HttpError(404, 'Invoice not found.');
   const { rows } = await query(
-    `SELECT i.id, i.business_id FROM invoices i
+    `SELECT i.id, i.business_id FROM invoices i JOIN businesses b ON b.id = i.business_id AND b.deleted_at IS NULL
       WHERE i.share_token = $1 AND i.deleted_at IS NULL AND i.status <> 'draft'`,
     [token]
   );

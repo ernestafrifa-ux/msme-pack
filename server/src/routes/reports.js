@@ -7,6 +7,7 @@ const { query } = require('../db');
 const { requireMember } = require('../auth');
 const { HttpError, validate } = require('../http');
 const { todayInGhana } = require('../dates');
+const dep = require('../depreciation');
 
 const router = express.Router({ mergeParams: true });
 const canView = requireMember();
@@ -280,7 +281,7 @@ router.get('/reports/cash-flow', canView, validate(periodSchema, 'query'), async
 router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), async (req, res) => {
   const { from, to } = period(req);
   const args = [req.businessId, from, to];
-  const [income, expenses, other, cogs, losses, business] = await Promise.all([
+  const [income, expenses, other, cogs, losses, business, equipment] = await Promise.all([
     query(
       // Tax on invoices belongs to GRA, so each payment's share of it is left out.
       // Tax a customer withheld (wht) settled part of the invoice, so it counts.
@@ -337,6 +338,11 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
       args
     ),
     businessHeader(req.businessId),
+    query(
+      `SELECT cost, bought_on, disposed_on, depreciation_rate, current_value FROM assets
+        WHERE business_id = $1 AND deleted_at IS NULL AND depreciation_rate IS NOT NULL AND bought_on <= $2`,
+      [req.businessId, to]
+    ),
   ]);
 
   const incomeLines = income.rows.map((r) => ({ line: r.line, category: r.category, amount: money(r.total) }));
@@ -352,6 +358,9 @@ router.get('/reports/profit-loss', canView, validate(periodSchema, 'query'), asy
   if (num(o.interest) > 0) expenseLines.push({ line: 'interest', category: null, amount: money(o.interest) });
   if (num(o.momo_fees) > 0) expenseLines.push({ line: 'momo_fees', category: null, amount: money(o.momo_fees) });
   if (stockLosses !== 0) expenseLines.push({ line: 'stock_losses', category: null, amount: money(stockLosses) });
+  // Equipment losing value: charged at each year end (31 December) inside the period.
+  const depreciation = Math.round(equipment.rows.reduce((t, a) => t + dep.chargedBetween(a, from, to), 0) * 100) / 100;
+  if (depreciation > 0) expenseLines.push({ line: 'depreciation', category: null, amount: money(depreciation) });
   const expensesTotal = sum(expenseLines, 'amount');
   const netProfit = grossProfit - expensesTotal;
 
@@ -530,7 +539,7 @@ async function balanceSheet(businessId, asOf) {
     ),
     openInvoices(businessId, asOf),
     query(
-      `SELECT id, name, current_value FROM assets
+      `SELECT id, name, cost, bought_on, disposed_on, depreciation_rate, current_value FROM assets
         WHERE business_id = $1 AND deleted_at IS NULL AND bought_on <= $2
           AND (disposed_on IS NULL OR disposed_on > $2)
         ORDER BY bought_on, name`,
@@ -544,8 +553,8 @@ async function balanceSheet(businessId, asOf) {
   const cashTotal = sum(accounts, 'closing');
   const stockValue = num(stock.rows[0].value);
   const debtorsTotal = sum(invoices, 'outstanding');
-  const equipmentLines = equipment.rows.map((e) => ({ name: e.name, amount: money(e.current_value) }));
-  const equipmentTotal = sum(equipment.rows, 'current_value');
+  const equipmentLines = equipment.rows.map((e) => ({ name: e.name, amount: money(dep.valueOn(e, asOf)), depreciated: e.depreciation_rate != null }));
+  const equipmentTotal = sum(equipmentLines, 'amount');
   const whtCredit = tax.whtCredit;
   const vatCredit = Math.max(0, -tax.owed);
   const assetsTotal = cashTotal + stockValue + debtorsTotal + equipmentTotal + whtCredit + vatCredit;

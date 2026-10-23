@@ -76,6 +76,41 @@ router.post('/businesses', validate(createWithOwnerSchema), async (req, res) => 
   res.status(201).json(out);
 });
 
+// Delete a business (usually a test run). It is hidden from every list and its people can no
+// longer open it. Nothing is erased, so it can be restored. The admin types the name to confirm.
+router.delete('/businesses/:businessId', validate(z.object({ confirmName: z.string().trim().min(1, 'Type the business name.') })), async (req, res) => {
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.businessId)) throw new HttpError(404, 'Business not found.');
+  const { rows } = await query('SELECT id, name FROM businesses WHERE id = $1 AND deleted_at IS NULL', [req.params.businessId]);
+  if (!rows[0]) throw new HttpError(404, 'Business not found.');
+  const norm = (x) => x.trim().replace(/\s+/g, ' ').toLowerCase();
+  if (norm(req.valid.body.confirmName) !== norm(rows[0].name)) {
+    throw new HttpError(400, 'The name does not match.', { confirmName: `Type ${rows[0].name} exactly.` });
+  }
+  await query('UPDATE businesses SET deleted_at = now(), deleted_by = $2, updated_at = now() WHERE id = $1', [rows[0].id, req.user.id]);
+  res.json({ ok: true });
+});
+
+router.get('/businesses/deleted', async (req, res) => {
+  const { rows } = await query(
+    `SELECT b.id, b.name, b.town, b.created_at, b.deleted_at, u.full_name AS deleted_by,
+            (SELECT string_agg(o.full_name, ', ' ORDER BY o.full_name) FROM business_members m JOIN users o ON o.id = m.user_id
+              WHERE m.business_id = b.id AND m.role = 'owner') AS owners
+       FROM businesses b LEFT JOIN users u ON u.id = b.deleted_by
+      WHERE b.deleted_at IS NOT NULL ORDER BY b.deleted_at DESC LIMIT 200`
+  );
+  res.json({ businesses: rows.map((b) => ({ id: b.id, name: b.name, town: b.town, owners: b.owners, createdAt: b.created_at, deletedAt: b.deleted_at, deletedBy: b.deleted_by })) });
+});
+
+router.post('/businesses/:businessId/restore', async (req, res) => {
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.businessId)) throw new HttpError(404, 'Business not found.');
+  const { rowCount } = await query(
+    'UPDATE businesses SET deleted_at = NULL, deleted_by = NULL, updated_at = now() WHERE id = $1 AND deleted_at IS NOT NULL',
+    [req.params.businessId]
+  );
+  if (!rowCount) throw new HttpError(404, 'Business not found.');
+  res.json({ ok: true });
+});
+
 async function loadUser(req) {
   if (!/^[0-9a-f-]{36}$/i.test(req.params.userId)) throw new HttpError(404, 'Person not found.');
   if (req.params.userId === req.user.id) throw new HttpError(409, 'Change your own account from Settings.');

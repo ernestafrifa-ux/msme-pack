@@ -467,7 +467,7 @@ publicRouter.get('/receipts/:token', async (req, res) => {
             a.kind AS account_kind, a.name AS account_name, inv.number AS invoice_number, ct.name AS customer,
             b.name, b.phone, b.town, b.tin, b.vat_number, b.vat_registered, b.logo_url, b.digital_address, r.name AS region
        FROM transactions t
-       JOIN businesses b ON b.id = t.business_id
+       JOIN businesses b ON b.id = t.business_id AND b.deleted_at IS NULL
        LEFT JOIN regions r ON r.code = b.region_code
        LEFT JOIN payment_accounts a ON a.id = t.account_id
        LEFT JOIN invoices inv ON inv.id = t.invoice_id

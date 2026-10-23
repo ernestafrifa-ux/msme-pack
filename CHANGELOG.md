@@ -3,6 +3,21 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.27 · 23 October 2026 · Delete test businesses, equipment depreciation
+
+- **Admin: delete a business.** Each business on the admin screen now has **Delete business** (beside New password and Switch off). Type the business name to confirm. A deleted business:
+  - disappears from the admin list, the programme dashboard, groups and messages;
+  - can no longer be opened by its owner or staff, and its invoice and receipt links stop working;
+  - is not erased: it is listed under **Deleted businesses** at the bottom of the admin screen with **Restore**.
+  - "Switch off" still works as before: it stops a person logging in, without touching the business.
+- **Equipment depreciation.** When adding equipment (Reports → Plan and grow → Loans & equipment), enter an optional **depreciation rate** (% a year), for example 20 for a laptop or 10 for a sewing machine.
+  - At the end of each year (31 December) the app takes that share of what was paid off the item's value. The year it was bought counts only the months owned (bought in March: 10 of 12 months). The value never goes below zero, and nothing is taken off after the item is marked sold or thrown away.
+  - The equipment list shows the rate, how much has been taken off so far and how much comes off on 31 December. **Change rate** or **Add depreciation** on each item; clear the rate to go back to your own estimate.
+  - The **balance sheet** values equipment after depreciation, and the **profit and loss** shows **Equipment depreciation** as an expense in any period that includes 31 December. Home's monthly profit estimate does not include it.
+  - Equipment without a rate works as before (your own estimate).
+- New Twi lines for depreciation are drafts for the reviewer (marked "new, to review"). The admin screens are English only, as before.
+- Deploy: database change 019 (depreciation rate on equipment; who deleted a business). Applied automatically on start.
+
 ## 0.26 · 21 October 2026 · Computer view
 
 - New **computer view** for people who keep records on a laptop or desktop:

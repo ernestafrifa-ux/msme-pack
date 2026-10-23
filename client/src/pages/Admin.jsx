@@ -47,6 +47,77 @@ function OwnerRow({ o, onDone }) {
   );
 }
 
+// Delete a business (most are test runs). The admin types the name to confirm. Nothing is erased:
+// it can be restored from Deleted businesses at the bottom of the screen.
+function DeleteBusiness({ b, onDone }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function remove(e) {
+    e.preventDefault();
+    setMessage(''); setBusy(true);
+    try {
+      await api(`/admin/businesses/${b.id}`, { method: 'DELETE', body: { confirmName: name } });
+      onDone(`${b.name} deleted. You can restore it from Deleted businesses below.`);
+    } catch (err) { setMessage(err.fields?.confirmName || err.message); setBusy(false); }
+  }
+  if (!open) {
+    return (
+      <span className="asset-actions">
+        <button type="button" className="btn-link small danger" onClick={() => setOpen(true)}>Delete business</button>
+      </span>
+    );
+  }
+  return (
+    <form className="delete-biz stack-tight" onSubmit={remove}>
+      <span className="small">
+        <span className="strong">Delete {b.name}?</span> Its owner and staff will no longer be able to open it, and it leaves
+        the dashboard and messages. Use this for test runs. You can restore it later.
+      </span>
+      <label className="small" htmlFor={`del-${b.id}`}>Type the business name to confirm</label>
+      <input id={`del-${b.id}`} value={name} onChange={(e) => { setName(e.target.value); setMessage(''); }} placeholder={b.name} autoComplete="off" />
+      {message && <span className="field-error">{message}</span>}
+      <span className="inline-form">
+        <button className="btn btn-danger" disabled={busy || !name.trim()}>{busy ? 'Deleting…' : 'Delete'}</button>
+        <button type="button" className="btn btn-ghost" onClick={() => { setOpen(false); setName(''); setMessage(''); }}>Cancel</button>
+      </span>
+    </form>
+  );
+}
+
+function DeletedBusinesses({ reloadKey, onRestored }) {
+  const { t } = useT();
+  const [list, setList] = useState(null);
+  const [message, setMessage] = useState('');
+  useEffect(() => {
+    api('/admin/businesses/deleted').then((d) => setList(d.businesses)).catch((err) => setMessage(err.message));
+  }, [reloadKey]);
+  async function restore(b) {
+    try {
+      await api(`/admin/businesses/${b.id}/restore`, { method: 'POST', body: {} });
+      onRestored(`${b.name} restored.`);
+    } catch (err) { setMessage(err.message); }
+  }
+  if (!list || !list.length) return message ? <p className="field-error">{message}</p> : null;
+  return (
+    <details className="card deleted-biz">
+      <summary><span className="strong">Deleted businesses ({list.length})</span></summary>
+      {message && <p className="field-error">{message}</p>}
+      {list.map((b) => (
+        <div key={b.id} className="biz-row">
+          <span className="strong">{b.name}</span>
+          <span className="small muted">
+            {[b.owners && `Owner: ${b.owners}`, b.town].filter(Boolean).join(' · ')}
+          </span>
+          <span className="small muted">Deleted {longDate(b.deletedAt.slice(0, 10), t)}{b.deletedBy ? ` by ${b.deletedBy}` : ''}</span>
+          <span className="asset-actions"><button type="button" className="btn-link small" onClick={() => restore(b)}>Restore</button></span>
+        </div>
+      ))}
+    </details>
+  );
+}
+
 // The MSME Pack admin's home: every business and its owner. The admin does not see records.
 export default function Admin() {
   const { business, logout } = useSession();
@@ -59,6 +130,7 @@ export default function Admin() {
   const [groups, setGroups] = useState([]);
   const [sms, setSms] = useState(null);
   const [groupId, setGroupId] = useState('');
+  const [deletedKey, setDeletedKey] = useState(0);
 
   const load = useCallback(() => {
     api('/admin/businesses').then((d) => setList(d.businesses)).catch((err) => setError(err.message));
@@ -121,11 +193,13 @@ export default function Admin() {
                 {b.lastRecord ? ` · last record ${friendlyDate(b.lastRecord, t)}` : ' · no records yet'}
               </span>
               {b.owners.map((o) => <OwnerRow key={o.userId} o={o} onDone={(m, reload) => { setFlash(m); if (reload) load(); }} />)}
+              <DeleteBusiness b={b} onDone={(m) => { setFlash(m); load(); setDeletedKey((k) => k + 1); window.scrollTo(0, 0); }} />
             </div>
           ))}
           {!list.length && <p className="muted">No businesses yet.</p>}
         </section>
       )}
+      <DeletedBusinesses reloadKey={deletedKey} onRestored={(m) => { setFlash(m); load(); setDeletedKey((k) => k + 1); window.scrollTo(0, 0); }} />
     </main>
   );
 }

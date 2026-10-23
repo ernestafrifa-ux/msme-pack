@@ -8,6 +8,7 @@ const { requireMember } = require('../auth');
 const { HttpError, validate } = require('../http');
 const { todayInGhana, addDays } = require('../dates');
 const { insertTransaction, checkAccounts } = require('./cashbook');
+const dep = require('../depreciation');
 
 const router = express.Router({ mergeParams: true });
 const canView = requireMember();
@@ -190,12 +191,22 @@ router.delete('/debts/:debtId', canManage, async (req, res) => {
 
 // ---- Equipment ------------------------------------------------------------------------
 
+// currentValue: what it is worth today. With a depreciation rate it is worked out (cost less the
+// year-end charges so far); without, it is the owner's own estimate.
 function publicAsset(a) {
+  const today = todayInGhana();
+  const rate = a.depreciation_rate == null ? null : Number(a.depreciation_rate);
+  const taken = dep.charges(a, today);
   return {
-    id: a.id, name: a.name, cost: money(a.cost), currentValue: money(a.current_value),
+    id: a.id, name: a.name, cost: money(a.cost), currentValue: money(dep.valueOn(a, today)),
+    depreciationRate: rate, depreciatedSoFar: money(taken.reduce((s, c) => s + c.charge, 0)),
+    nextCharge: rate && !a.disposed_on ? money(dep.nextCharge(a, today)) : null,
+    estimate: money(a.current_value),
     boughtOn: a.bought_on, disposedOn: a.disposed_on, note: a.note, paidFrom: a.paid_from || null,
   };
 }
+const rateField = z.union([z.literal(''), z.null(), z.coerce.number().gt(0, 'More than 0.').max(100, 'At most 100.')])
+  .optional().transform((n) => (n === '' ? null : n === undefined ? undefined : n === null ? null : Math.round(n * 100) / 100));
 
 router.get('/assets', canView, async (req, res) => {
   const { rows } = await query(
@@ -216,6 +227,8 @@ const assetSchema = z.object({
   currentValue: z.coerce.number().min(0, 'Cannot be negative.').max(1e11).optional()
     .transform((n) => (n === undefined ? undefined : Math.round(n * 100) / 100)),
   boughtOn: isoDate.optional(),
+  // Percent of the cost taken off at each year end. Empty: no depreciation, use the estimate.
+  depreciationRate: rateField,
   // Paid for now from this account. Empty: bought before using the app.
   accountId: z.uuid().optional().nullable(),
   note: z.string().trim().max(300).optional().nullable(),
@@ -229,9 +242,9 @@ router.post('/assets', canManage, validate(assetSchema), async (req, res) => {
   const id = await withTransaction(async (db) => {
     if (a.accountId) await checkAccounts(db, req.businessId, [a.accountId], date);
     const { rows } = await db.query(
-      `INSERT INTO assets (business_id, name, cost, current_value, bought_on, note, created_by)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-      [req.businessId, a.name, a.cost, a.currentValue ?? a.cost, date, a.note || null, req.user.id]
+      `INSERT INTO assets (business_id, name, cost, current_value, bought_on, note, created_by, depreciation_rate)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+      [req.businessId, a.name, a.cost, a.currentValue ?? a.cost, date, a.note || null, req.user.id, a.depreciationRate ?? null]
     );
     if (a.accountId) {
       await insertTransaction(db, {
@@ -251,6 +264,7 @@ const assetPatch = z.object({
     .transform((n) => (n === undefined ? undefined : Math.round(n * 100) / 100)),
   disposedOn: isoDate.optional().nullable(),
   note: z.string().trim().max(300).optional().nullable(),
+  depreciationRate: rateField,
 });
 
 router.patch('/assets/:assetId', canManage, validate(assetPatch), async (req, res) => {
@@ -259,10 +273,12 @@ router.patch('/assets/:assetId', canManage, validate(assetPatch), async (req, re
   const { rows } = await query(
     `UPDATE assets SET name = COALESCE($3, name), current_value = COALESCE($4, current_value),
             disposed_on = CASE WHEN $5::boolean THEN $6::date ELSE disposed_on END,
-            note = CASE WHEN $7::boolean THEN $8 ELSE note END, updated_at = now()
+            note = CASE WHEN $7::boolean THEN $8 ELSE note END,
+            depreciation_rate = CASE WHEN $9::boolean THEN $10::numeric ELSE depreciation_rate END, updated_at = now()
       WHERE id = $1 AND business_id = $2 AND deleted_at IS NULL RETURNING *`,
     [req.params.assetId, req.businessId, a.name ?? null, a.currentValue ?? null,
-     'disposedOn' in a, a.disposedOn ?? null, 'note' in a, a.note ?? null]
+     'disposedOn' in a, a.disposedOn ?? null, 'note' in a, a.note ?? null,
+     a.depreciationRate !== undefined, a.depreciationRate ?? null]
   );
   if (!rows[0]) throw new HttpError(404, 'Not found.');
   res.json({ asset: publicAsset(rows[0]) });

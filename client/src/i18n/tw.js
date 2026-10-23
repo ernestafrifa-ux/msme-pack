@@ -400,6 +400,7 @@ export default {
   "st.pl.line.interest": "Bosea ho nsihu",
   "st.pl.line.momo_fees": "MoMo charges",
   "st.pl.line.stock_losses": "Nneɛma a asɛe anaa ayera",
+  "st.pl.line.depreciation": "Mfidie boɔ a ɛte", // new, to review
   "st.pl.margin": "Gross margin: sika a ɛbaeɛ no {pct}% na aka bere a woayi nneɛma a wotɔneeɛ no ka.",
   "st.pl.ownerPay": "Wofaa GHS {amount} maa wo ho wɔ saa bere yi mu. Wo ho akatua nnyɛ adwuma no ɛka: ɛfiri mfasoɔ no mu, enti ɛda adi wɔ mfasoɔ no akyi, ɛnyɛ ɛka no mu.",
   "st.pl.ownerPayLine": "Yi: wo ho akatua (nea wofaa maa wo ho)",
@@ -417,7 +418,7 @@ export default {
   "st.bs.owes": "Ka a adwuma no de",
   "st.bs.totalOwes": "Ka nyinaa",
   "st.bs.equity": "Adwuma wura kyɛfa (nea aka ma wo)",
-  "st.bs.note": "Wɔbu stock boɔ wɔ ɛnnɛ ka so, na mfidie nso wɔ wo ankasa nsusuiɛ so. Adwuma wura kyɛfa = nea ɛwɔ nyinaa − ka nyinaa.",
+  "st.bs.note": "Wɔbu stock boɔ wɔ ɛnnɛ ka so. Mfidie boɔ yɛ nea wotuaeɛ a wɔayi nea ne boɔ ate afiri mu, anaa wo ankasa nsusuiɛ sɛ wonkyerɛɛ ɔfa a ne boɔ te a. Adwuma wura kyɛfa = nea ɛwɔ nyinaa − ka nyinaa.", // changed, to review
   "st.bs.whtCredit": "Tax a adetɔfoɔ akora (wɔde yi firi income tax mu)",
   "st.bs.taxOwed": "VAT, NHIL ne GETFund a GRA de wo",
   "st.pl.taxNote": "Sika a wonyaeɛ no mu GHS {amount} yɛ VAT, NHIL ne GETFund (anaa tax foforɔ) a ɛwɔ invoice ne adetɔn so. Ɛyɛ GRA dea, enti wɔmfa nka sika a ɛbaeɛ ho.",
@@ -542,6 +543,15 @@ export default {
   "assets.markBack": "Mewɔ bi ara",
   "assets.gone": "Wonni bio",
   "assets.delete": "Popa",
+  "assets.rate": "Ɔfa a ne boɔ te afe biara (%, sɛ wopɛ)", // new, to review
+  "assets.rateHint": "Ɔfa a ɛhwere firi nea wotuaeɛ mu afe biara: sɛ 20 ma laptop anaa phone (bɛyɛ mfeɛ 5), 10 ma nkongua anaa mfidie a wɔde pam ntadeɛ. Afe biara awieɛ (31 December) app no yi saa ɔfa yi firi ne boɔ mu. Gyae hɔ hunu sɛ wopɛ sɛ wo ankasa kyerɛw ne boɔ.", // new, to review
+  "assets.rateLine": "Ne boɔ te {rate}% afe biara", // new, to review
+  "assets.depSoFar": "Ayi {amount} afiri mu dada", // new, to review
+  "assets.depNext": "Ɛbɛyi {amount} bio wɔ 31 December", // new, to review
+  "assets.changeRate": "Sesa ɔfa no", // new, to review
+  "assets.setRate": "Fa boɔ-te ka ho", // new, to review
+  "assets.rateLabel": "Ɔfa a ne boɔ te afe biara (%)", // new, to review
+  "assets.rateClear": "Gyae hɔ hunu na boɔ-te no agyae, na fa wo ankasa nsusuiɛ.", // new, to review
   "assets.confirmDelete": "Popa {name}? Fa yei di dwuma ma mfomsoɔ nko ara. Sɛ wofaa account bi so tuaeɛ a, sika no bɛsan aba.",
 
   // Added in v0.23 (supplies and making goods). Drafts, not yet reviewed.

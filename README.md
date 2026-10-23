@@ -113,6 +113,7 @@ python e2e/test_planning.py          # target and budget, savings goals, price c
 python e2e/test_loan_pack.py         # loan-ready pack (and its PDF)
 python e2e/test_trades.py            # salon and bakery: items used in work, goods made from ingredients
 python e2e/test_desktop.py           # computer view: left menu, two-column Home, switch to phone view and back
+python e2e/test_delete_depreciation.py # equipment depreciation; admin deletes and restores a business
 python e2e/test_programme.py         # admin groups, questions, programme dashboard
 python e2e/test_offline_momo.py      # recording offline, checking MoMo SMS (needs the production build)
 SMS_PROVIDER=log python e2e/test_sms.py   # SMS options (start the server with SMS_PROVIDER=log)
