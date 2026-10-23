@@ -621,3 +621,13 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
 .delete-biz input { min-height: 44px; padding: 0 12px; border: 1px solid var(--input-line); border-radius: 10px; font-size: 16px; background: var(--surface); }
 .deleted-biz summary { cursor: pointer; min-height: 32px; display: flex; align-items: center; }
 .deleted-biz .biz-row:last-child { border-bottom: none; }
+
+/* Admin entry on Home and in the left menu (v0.28) */
+.admin-entry { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 12px 14px; border-radius: 14px;
+  background: #1F2D27; color: #FFFFFF; text-decoration: none; }
+.admin-entry:hover { background: #15211C; color: #FFFFFF; }
+.admin-entry .small { color: #CFE3D8; }
+@media (min-width: 760px) {
+  .side-nav > a.side-admin:not(.active) { color: var(--primary-dark); }
+  .side-nav > a.side-admin { margin-top: 8px; border: 1px solid var(--line); }
+}

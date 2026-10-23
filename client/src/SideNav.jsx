@@ -9,7 +9,7 @@ import { setViewChoice } from './view.js';
 // Computer view: the menu sits down the left side and stays on every screen.
 export default function SideNav() {
   const { t, tt } = useT();
-  const { business, logout } = useSession();
+  const { user, business, logout } = useSession();
   useEffect(() => {
     document.documentElement.classList.add('has-side');
     return () => document.documentElement.classList.remove('has-side');
@@ -31,6 +31,7 @@ export default function SideNav() {
       <NavLink to="/learn"><Icon name="book" size={20} />{t('nav.learn')}</NavLink>
       <NavLink to="/notices"><Icon name="bell" size={20} />{tt('Messages')}</NavLink>
       <NavLink to="/settings"><Icon name="settings" size={20} />{t('home.settings')}</NavLink>
+      {user.isAdmin && <NavLink to="/admin" className="side-admin"><Icon name="shield" size={20} />{tt('MSME Pack admin')}</NavLink>}
       <div className="side-foot">
         <button type="button" className="side-link" onClick={() => setViewChoice('phone')}>
           <Icon name="phone" size={20} />{tt('Switch to phone view')}

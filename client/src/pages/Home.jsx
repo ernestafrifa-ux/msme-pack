@@ -200,6 +200,17 @@ export default function Home() {
           <h1 className="biz-name">{business.name}</h1>
         </div>
 
+        {user.isAdmin && !desk && (
+          <Link to="/admin" className="admin-entry">
+            <Icon name="shield" size={20} />
+            <span className="grow">
+              <span className="strong block">{tt('MSME Pack admin')}</span>
+              <span className="small">{tt('All businesses, messages, groups and the programme dashboard')}</span>
+            </span>
+            <Icon name="chevron" size={18} />
+          </Link>
+        )}
+
         {data?.notices?.latest && (
           <Link to="/notices" className="notice-banner">
             <Icon name="bell" size={20} />

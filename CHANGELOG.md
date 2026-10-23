@@ -3,6 +3,15 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.28 · 23 October 2026 · MSME Pack admin on its own
+
+- For an admin who also runs a business, **MSME Pack admin** is now its own entry instead of a button inside Business details:
+  - on a phone: a dark card near the top of Home ("MSME Pack admin: all businesses, messages, groups and the programme dashboard");
+  - on a computer: its own item at the bottom of the left menu.
+- The back arrow on the admin screen now returns to Home.
+- An admin without a business still goes straight to the admin screen, as before. Owners and staff see nothing new.
+- Deploy: no database change.
+
 ## 0.27 · 23 October 2026 · Delete test businesses, equipment depreciation
 
 - **Admin: delete a business.** Each business on the admin screen now has **Delete business** (beside New password and Switch off). Type the business name to confirm. A deleted business:

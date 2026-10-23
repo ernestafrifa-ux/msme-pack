@@ -121,7 +121,6 @@ export default function BusinessDetails() {
       </section>
       <ViewCard />
       <Link to="/settings/password" className="btn btn-ghost btn-block">{tt('Change my password')}</Link>
-      {user.isAdmin && <Link to="/admin" className="btn btn-ghost btn-block">{tt('MSME Pack admin: all businesses')}</Link>}
     </main>
   );
 }

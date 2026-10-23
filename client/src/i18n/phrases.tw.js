@@ -36,7 +36,6 @@ export default {
   "New invoices then add NHIL 2.5%, GETFund 2.5% and VAT 15% (20% in all). Businesses that provide services must register whatever their sales; those selling goods must register once sales pass GHS 750,000 a year.": "Afei invoice foforɔ de NHIL 2.5%, GETFund 2.5% ne VAT 15% (20% nyinaa) bɛka ho. Adwuma a ɛyɛ services no, ɛsɛ sɛ ɛkyerɛw din a ɛmfa ho sɛ ne adetɔn yɛ sɛn; nea ɛtɔn nneɛma no, ɛsɛ sɛ ɛkyerɛw din sɛ n'adetɔn boro GHS 750,000 afe biara a.",
   "Registrations: bank account & VAT": "Din kyerɛw: bank account ne VAT",
   "Change my password": "Sesa me password",
-  "MSME Pack admin: all businesses": "MSME Pack admin: adwuma nyinaa",
   "The two new passwords are not the same.": "Password foforɔ mmienu no nyɛ pɛ.",
   "Password changed.": "Woasesa password no.",
   "Choose your own password": "Paw wo ankasa password",
@@ -595,6 +594,9 @@ export default {
   "Sold": "Wɔtɔneeɛ", // draft, to review
   "Used to make products": "Wode yɛɛ nneɛma", // draft, to review
   "Item name": "Adeɛ no din", // draft, to review
+  // v0.28 admin entry
+  "MSME Pack admin": "MSME Pack admin", // draft, to review
+  "All businesses, messages, groups and the programme dashboard": "Adwuma nyinaa, nkra, akuo ne programme dashboard no", // draft, to review
   // v0.26 computer view
   "Customers": "Adetɔfoɔ", // draft, to review
   "Record a sale": "Kyerɛw adetɔn", // draft, to review

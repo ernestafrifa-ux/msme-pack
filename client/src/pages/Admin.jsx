@@ -145,7 +145,7 @@ export default function Admin() {
 
   return (
     <main className="screen">
-      {business ? <TopBar title="MSME Pack admin" back="/settings" /> : (
+      {business ? <TopBar title="MSME Pack admin" back="/" /> : (
         <header className="topbar">
           <h1 className="topbar-title">MSME Pack admin</h1>
           <button type="button" className="btn-link" onClick={logout}>Log out</button>
