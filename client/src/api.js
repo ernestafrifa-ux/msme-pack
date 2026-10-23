@@ -60,6 +60,33 @@ export async function api(path, { method = 'GET', body, query } = {}) {
 
 // A UUID for idempotent saves. crypto.randomUUID needs HTTPS or localhost,
 // so fall back for plain-HTTP test servers on a local network.
+// Download a file the server makes (a backup): fetched with the login, then saved by the browser.
+export async function downloadFile(path) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  let res;
+  try {
+    res = await fetch('/api' + path, { headers });
+  } catch {
+    throw new ApiError(0, 'No connection. Check your data or Wi‑Fi and try again.');
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, data.error || 'Could not download the file.');
+  }
+  const name = (res.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/)?.[1] || 'backup';
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return name;
+}
+
 export function newClientRef() {
   if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
   const b = crypto.getRandomValues(new Uint8Array(16));

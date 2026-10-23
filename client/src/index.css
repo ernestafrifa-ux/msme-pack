@@ -631,3 +631,8 @@ img.biz-logo-home { border-radius: 18px; object-fit: contain; background: #fff; 
   .side-nav > a.side-admin:not(.active) { color: var(--primary-dark); }
   .side-nav > a.side-admin { margin-top: 8px; border: 1px solid var(--line); }
 }
+
+/* Admin full backup (v0.29) */
+.admin-backup { margin-top: 12px; }
+.admin-backup .btn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.admin-backup p { margin: 6px 0 0; }

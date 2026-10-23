@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api';
+import { api, downloadFile } from '../api';
 import { useSession } from '../session.jsx';
 import { Link } from 'react-router-dom';
 import { Field, FormError, Icon, TopBar } from '../components.jsx';
@@ -119,6 +119,7 @@ export default function BusinessDetails() {
         </div>
         {langMessage && <p className="small" role="status">{langMessage === 'saved' ? t('settings.langSaved') : langMessage}</p>}
       </section>
+      {canManage && <BackupCard />}
       <ViewCard />
       <Link to="/settings/password" className="btn btn-ghost btn-block">{tt('Change my password')}</Link>
     </main>
@@ -146,6 +147,31 @@ function ViewCard() {
           </label>
         ))}
       </div>
+    </section>
+  );
+}
+
+// Download every record of this business as one Excel file (owner and manager).
+function BackupCard() {
+  const { tt } = useT();
+  const { business } = useSession();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  async function download() {
+    setBusy(true); setMessage('');
+    try {
+      const name = await downloadFile(`/businesses/${business.id}/backup`);
+      setMessage(tt('Backup saved: {name}. Find it in your Downloads.', { name }));
+    } catch (err) { setMessage(err.message); } finally { setBusy(false); }
+  }
+  return (
+    <section className="card lang-card">
+      <h2>{tt('Backup')}</h2>
+      <p className="muted small">{tt('Download all this business’s records in one Excel file: money records, accounts, stock, customers, invoices, loans and equipment. Keep it on your phone, computer or Google Drive, or give it to your accountant. Make one every month.')}</p>
+      <button type="button" className="btn btn-ghost btn-block" onClick={download} disabled={busy}>
+        {busy ? tt('Preparing the backup…') : tt('Download backup')}
+      </button>
+      {message && <p className="small" role="status">{message}</p>}
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { api } from '../api';
+import { api, downloadFile } from '../api';
 import { useSession } from '../session.jsx';
 import { useT } from '../i18n.jsx';
 import { FormError, Icon, TopBar } from '../components.jsx';
@@ -118,6 +118,29 @@ function DeletedBusinesses({ reloadKey, onRestored }) {
   );
 }
 
+// A copy of all the app's data (every business), to keep safe outside Railway.
+function FullBackup() {
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  async function download() {
+    setBusy(true); setMessage('');
+    try {
+      const name = await downloadFile('/admin/backup');
+      setMessage(`Backup saved: ${name}. Keep it somewhere private: it holds every business's records.`);
+    } catch (err) { setMessage(err.message); } finally { setBusy(false); }
+  }
+  return (
+    <div className="admin-backup">
+      <button type="button" className="btn btn-ghost btn-block" onClick={download} disabled={busy}>
+        <Icon name="shield" size={18} /> {busy ? 'Preparing the backup…' : 'Download full backup'}
+      </button>
+      <p className="small muted">Every business&rsquo;s data in one file (JSON, compressed), to keep a copy off Railway. Make one every week.
+        Keep it private. Logos and guide audio are not included.</p>
+      {message && <p className="small" role="status">{message}</p>}
+    </div>
+  );
+}
+
 // The MSME Pack admin's home: every business and its owner. The admin does not see records.
 export default function Admin() {
   const { business, logout } = useSession();
@@ -160,6 +183,7 @@ export default function Admin() {
         <Link to="/admin/dashboard" className="btn btn-ghost"><Icon name="pulse" size={18} /> Programme dashboard</Link>
         <Link to="/admin/groups" className="btn btn-ghost"><Icon name="list" size={18} /> Groups</Link>
       </div>
+      <FullBackup />
       {sms && (
         <p className="small muted sms-status">
           {sms.enabled

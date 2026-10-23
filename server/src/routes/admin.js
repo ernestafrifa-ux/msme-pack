@@ -12,6 +12,7 @@ const { createSchema, createBusiness, publicBusiness } = require('./businesses')
 
 const router = express.Router();
 router.use(requireAdmin);
+router.use(require('./backup').adminRouter);
 
 router.get('/businesses', async (req, res) => {
   const { rows } = await query(

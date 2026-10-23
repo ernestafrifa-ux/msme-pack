@@ -594,6 +594,12 @@ export default {
   "Sold": "Wɔtɔneeɛ", // draft, to review
   "Used to make products": "Wode yɛɛ nneɛma", // draft, to review
   "Item name": "Adeɛ no din", // draft, to review
+  // v0.29 backup
+  "Backup": "Backup", // draft, to review
+  "Download all this business’s records in one Excel file: money records, accounts, stock, customers, invoices, loans and equipment. Keep it on your phone, computer or Google Drive, or give it to your accountant. Make one every month.": "Twe adwuma yi akontaa nyinaa wɔ Excel file baako mu: sika akontaa, accounts, nneɛma, adetɔfoɔ, invoice, bosea ne mfidie. Sie no wɔ wo phone, kɔmputa anaa Google Drive so, anaa fa ma wo akontaabufoɔ. Yɛ baako bosome biara.", // draft, to review
+  "Download backup": "Twe backup no", // draft, to review
+  "Preparing the backup…": "Yɛresiesie backup no…", // draft, to review
+  "Backup saved: {name}. Find it in your Downloads.": "Yɛasie backup no: {name}. Hwehwɛ no wɔ wo Downloads mu.", // draft, to review
   // v0.28 admin entry
   "MSME Pack admin": "MSME Pack admin", // draft, to review
   "All businesses, messages, groups and the programme dashboard": "Adwuma nyinaa, nkra, akuo ne programme dashboard no", // draft, to review

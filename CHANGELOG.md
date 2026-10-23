@@ -3,6 +3,14 @@
 Newest first. Each version lists what owners and the team will notice, then what to do when deploying it.
 On Railway, database changes and guide edits are applied automatically when the app starts.
 
+## 0.29 · 23 October 2026 · Backups
+
+- **Owners and managers: Download backup** (Business details → Backup). Saves every record of the business in one Excel file, one sheet each for: money records, accounts (start and today's balances), stock items, stock changes, customers, invoices, invoice lines, loans and equipment (value after depreciation). Keep it on the phone, a computer or Google Drive, or give it to an accountant. Staff and advisors do not see the button.
+- **Admin: Download full backup** (admin screen). Saves all the app's data, every business and every table, in one compressed JSON file, to keep a copy outside Railway. It contains password hashes (not passwords), so keep it private. Logos and guide audio are not included.
+- Both are downloads only. If data ever had to be put back, that is done from Railway's database backups (Postgres → Backups).
+- New Twi lines for the backup card are drafts for the reviewer.
+- Deploy: no database change. The server uses one new package (exceljs) to write Excel files; Railway installs it when it builds.
+
 ## 0.28 · 23 October 2026 · MSME Pack admin on its own
 
 - For an admin who also runs a business, **MSME Pack admin** is now its own entry instead of a button inside Business details:

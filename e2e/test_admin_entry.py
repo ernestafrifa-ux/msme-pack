@@ -1,5 +1,5 @@
 # Browser test: an admin who also runs a business reaches the MSME Pack admin straight from Home
-# (and from the left menu on a computer), not from Business details.
+# (and from the left menu on a computer), not from Business details; and both backups download.
 # Run against a FRESH database with the server on :4000:  python e2e/test_admin_entry.py
 import os
 import re
@@ -42,6 +42,23 @@ with sync_playwright() as p:
     # No longer in Business details
     page.goto(BASE + "/settings")
     expect(page.get_by_role("link", name=re.compile("MSME Pack admin"))).to_have_count(0)
+
+    # Backups: the owner's Excel backup in Business details, and the admin's full backup
+    with page.expect_download() as d:
+        page.get_by_role("button", name="Download backup").click()
+    dl = d.value
+    assert re.match(r"MSME-Pack-backup-Admin-Test-Shop-\d{4}-\d{2}-\d{2}\.xlsx$", dl.suggested_filename), dl.suggested_filename
+    path = dl.path()
+    assert os.path.getsize(path) > 3000
+    expect(page.get_by_text(re.compile("Backup saved: MSME-Pack-backup-Admin-Test-Shop"))).to_be_visible()
+    page.get_by_text(re.compile("^Backup$")).scroll_into_view_if_needed()
+    page.screenshot(path=f"{OUT}/ae3-owner-backup.png", full_page=True)
+    page.goto(BASE + "/admin")
+    with page.expect_download() as d:
+        page.get_by_role("button", name="Download full backup").click()
+    assert d.value.suggested_filename.endswith(".json.gz"), d.value.suggested_filename
+    expect(page.get_by_text(re.compile("Backup saved: MSME-Pack-full-backup"))).to_be_visible()
+    page.screenshot(path=f"{OUT}/ae4-admin-backup.png")
 
     # Computer: in the left menu
     page.set_viewport_size({"width": 1366, "height": 860})

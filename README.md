@@ -31,6 +31,7 @@ Built so far: **sign-up, business setup, the cash book, stock, invoices, the bus
 - Overdue invoices flagged; Home shows how much customers owe
 - Cancelling a sent invoice puts the products back; deleting a payment makes the invoice owed again
 - Business details on invoices (phone, digital address, TIN, invoice number prefix) under the settings icon on Home
+- Backups: owners download all their records as one Excel file (Business details → Backup); the admin downloads all the app’s data (admin screen)
 
 **Business health check**
 - 18 questions across six areas: money and records, registration and compliance, stock and operations, marketing and customers, staff, and access to finance
@@ -167,6 +168,8 @@ All routes except sign-up and login need `Authorization: Bearer <token>`.
 | DELETE | `/api/businesses/:id/transactions/:txnId` | Delete a record (owner/manager) |
 | GET | `/api/businesses/:id/dashboard` | Balances, month summary, latest records, low stock, money owed |
 | PATCH | `/api/businesses/:id` | Business details shown on invoices (owner/manager) |
+| GET | `/api/businesses/:id/backup` | Every record of the business as an Excel workbook (owner/manager) |
+| GET | `/api/admin/backup` | All the app’s data as gzipped JSON (admin) |
 | GET, POST | `/api/businesses/:id/products` | List (with stock on hand) / add a product or service |
 | GET, PATCH, DELETE | `/api/businesses/:id/products/:productId` | Details with stock history / edit / remove |
 | POST | `/api/businesses/:id/products/:productId/adjust` | Made, returned, damaged, expired, own use |
