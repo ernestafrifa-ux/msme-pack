@@ -189,18 +189,25 @@ export function MembersPage({ members, reload, slips, catLookup, canEdit }) {
 }
 
 function NotifyMemberModal({ member, history, catLookup, onClose }) {
-  const latest = [...history].sort((a, b) => b.date.localeCompare(a.date))[0];
+  const latestDate = history.length ? [...history].map(h => h.date).sort().reverse()[0] : null;
+  const latestItems = latestDate ? history.filter(h => h.date === latestDate) : [];
+  const latest = latestItems.length ? latestItems[0] : null;
+  const latestTotal = latestItems.reduce((s, h) => s + h.amount, 0);
   const total = history.reduce((s, h) => s + h.amount, 0);
-  const catName = latest ? `${catLookup[latest.catId]?.name || ""}${latest.subName ? " · " + latest.subName : ""}` : "";
+  const itemName = (h) => `${catLookup[h.catId]?.name || ""}${h.subName ? " · " + h.subName : ""}`;
+  const itemLines = latestItems.map(h => `  - ${itemName(h)}: GH₵ ${fmtPlain(h.amount)}`).join("\n");
+  const itemsInline = latestItems.map(h => `${itemName(h)} GH₵ ${fmtPlain(h.amount)}`).join(", ");
 
   const subject = `Santasi SDA Church — giving acknowledgement`;
   const bodyText = latest
-    ? `Dear ${member.name},\n\nThank you for your contribution of GH₵ ${fmtPlain(latest.amount)} (${catName}) received on ${latest.date}.\n\nYour total recorded giving to date is GH₵ ${fmtPlain(total)}.\n\nGod bless you.\nSantasi SDA Church Treasury`
+    ? (latestItems.length === 1
+        ? `Dear ${member.name},\n\nThank you for your contribution of GH₵ ${fmtPlain(latest.amount)} (${itemName(latest)}) received on ${latestDate}.\n\nYour total recorded giving to date is GH₵ ${fmtPlain(total)}.\n\nGod bless you.\nSantasi SDA Church Treasury`
+        : `Dear ${member.name},\n\nThank you for your contributions received on ${latestDate}:\n${itemLines}\n\nTotal received: GH₵ ${fmtPlain(latestTotal)}\n\nYour total recorded giving to date is GH₵ ${fmtPlain(total)}.\n\nGod bless you.\nSantasi SDA Church Treasury`)
     : `Dear ${member.name},\n\nThank you for your continued support of Santasi SDA Church.\n\nGod bless you.\nSantasi SDA Church Treasury`;
 
   const mailtoHref = `mailto:${encodeURIComponent(member.email || "")}?cc=${encodeURIComponent("ssdatreasury@outlook.com")}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
   const smsBody = latest
-    ? `Santasi SDA Church: Thank you for your GH₵ ${fmtPlain(latest.amount)} ${catName} contribution on ${latest.date}. God bless you.`
+    ? `Santasi SDA Church: Thank you for your contribution on ${latestDate}: ${itemsInline}. God bless you.`
     : `Santasi SDA Church: Thank you for your continued support. God bless you.`;
   const smsHref = `sms:${(member.phone || "").replace(/\s+/g, "")}?body=${encodeURIComponent(smsBody)}`;
 
