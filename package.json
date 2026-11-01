@@ -1,13 +1,23 @@
 {
-  "name": "msme-pack",
-  "version": "0.29.0",
-  "private": true,
-  "description": "MSME Enterprise Resource Pack: builds the React app and runs the API that serves it (used by Railway).",
-  "engines": {
-    "node": "22.x"
-  },
+  "name": "santasi-sda-accounting",
+  "version": "1.0.0",
+  "description": "Santasi SDA Church accounting system - backend server with persistent storage and login",
+  "main": "server/index.js",
   "scripts": {
-    "build": "npm ci --prefix server --omit=dev && npm ci --prefix client --include=dev && npm run build --prefix client",
-    "start": "npm run migrate --prefix server && npm start --prefix server"
+    "start": "node server/index.js",
+    "seed": "node server/seed.js",
+    "build": "npm install --prefix frontend && npm run build --prefix frontend",
+    "postinstall": "npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "better-sqlite3": "^11.3.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
   }
 }
